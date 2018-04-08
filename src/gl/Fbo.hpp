@@ -82,7 +82,7 @@ class KINSKI_API Fbo
 
 	void enable_draw_buffers(bool b = true);
 
-	void add_attachment(gl::Texture the_attachment);
+	void add_attachment(gl::Texture the_attachment, int the_index = -1);
 
 	//! Returns the bounding area of the FBO in pixels
 	//Area			getBounds() const { return Area( 0, 0, m_obj->m_width, m_obj->m_height ); }
@@ -294,6 +294,13 @@ class FboExceptionInvalidSpecification : public FboException {
 	char m_message[256];
 };
 
+
+//! create a framebuffer object with attached cubemaps
+KINSKI_API gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer = true);
+
+/* create an image from the content of the provided framebuffer object.
+ * if no framebuffer-object is provided, the display framebuffer will be used instead
+ */
 KINSKI_API ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo = gl::Fbo());
-    
+
 }}// namespace gl

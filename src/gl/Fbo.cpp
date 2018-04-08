@@ -14,6 +14,34 @@ using namespace std;
 namespace kinski { namespace gl {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer)
+{
+    uint32_t cube_sz = the_width;
+    gl::Fbo::Format fbo_fmt;
+    fbo_fmt.set_num_color_buffers(0);
+    gl::Fbo fbo(cube_sz, cube_sz, fbo_fmt);
+
+    gl::Texture::Format cube_depth_fmt;
+    cube_depth_fmt.set_target(GL_TEXTURE_CUBE_MAP);
+    cube_depth_fmt.set_data_type(GL_FLOAT);
+    cube_depth_fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
+    cube_depth_fmt.set_min_filter(GL_NEAREST);
+    cube_depth_fmt.set_mag_filter(GL_NEAREST);
+    auto cube_depth_tex = gl::Texture(nullptr, GL_DEPTH_COMPONENT, cube_sz, cube_sz, cube_depth_fmt);
+    fbo.set_depth_texture(cube_depth_tex);
+
+    if(with_color_buffer)
+    {
+        gl::Texture::Format cube_fmt;
+        cube_fmt.set_target(GL_TEXTURE_CUBE_MAP);
+        auto cube_tex = gl::Texture(cube_sz, cube_sz, cube_fmt);
+        fbo.add_attachment(cube_tex, 0);
+    }
+    return fbo;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
     
 ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo)
 {
@@ -446,20 +474,30 @@ void Fbo::enable_draw_buffers(bool b)
 #endif
 }
 
-void Fbo::add_attachment(gl::Texture the_attachment)
+void Fbo::add_attachment(gl::Texture the_attachment, int the_index)
 {
 	if(!m_impl){ return; }
-    uint32_t index = m_impl->m_color_textures.size();
+    uint32_t index = the_index <= 0 ? m_impl->m_color_textures.size() : the_index;
 
     SaveFramebufferBinding sfb;
     glBindFramebuffer(GL_FRAMEBUFFER, m_impl->m_id);
+#if defined(KINSKI_GLES_2)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, target(),
                            the_attachment.id(), 0);
+#else
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, the_attachment.id(), 0);
+#endif
+
     FboExceptionInvalidSpecification exc;
 
     if(check_status(&exc))
     {
-        m_impl->m_color_textures.push_back(the_attachment);
+    	if(the_index >= 0)
+    	{
+            m_impl->m_color_textures.resize(std::max<int>(m_impl->m_color_textures.size(), the_index + 1));
+    	    m_impl->m_color_textures[the_index] = the_attachment;
+    	}
+        else{ m_impl->m_color_textures.push_back(the_attachment); }
         m_impl->m_format.set_num_color_buffers(m_impl->m_color_textures.size());
         enable_draw_buffers(true);
     }

@@ -1,5 +1,8 @@
 #version 410
+
 #define MAX_NUM_LIGHTS 8
+#define PI 3.1415926535897932384626433832795
+#define ONE_OVER_PI	0.318309886
 
 struct Material
 {

@@ -161,7 +161,12 @@ namespace kinski { namespace gl {
 //        mat->set_depth_write(false);
         mat->set_culling(gl::Material::CULL_FRONT);
         mat->add_texture(t, gl::Material::TextureType::ENVIROMENT);
-        
+
+        if(t.target() == GL_TEXTURE_2D)
+        {
+            //TODO:  render enviroment cubemap here
+        }
+
         switch(t.target())
         {
             case GL_TEXTURE_CUBE_MAP:

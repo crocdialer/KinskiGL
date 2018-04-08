@@ -3,8 +3,8 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 18) out;
 
-uniform mat4 u_shadow_view[6];
-uniform mat4 u_shadow_projection;
+uniform mat4 u_view_matrix[6];
+uniform mat4 u_projection_matrix;
 
 out VertexData
 {
@@ -17,9 +17,9 @@ void main()
     {
         for(int i = 0; i < 3; ++i)
         {
-            vec4 tmp = u_shadow_view[gl_Layer] * gl_in[i].gl_Position;
+            vec4 tmp = u_view_matrix[gl_Layer] * gl_in[i].gl_Position;
             vertex_out.eyeVec = tmp.xyz;
-            gl_Position = u_shadow_projection * tmp;
+            gl_Position = u_projection_matrix * tmp;
             EmitVertex();
         }
         EndPrimitive();

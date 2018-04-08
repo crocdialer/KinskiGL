@@ -96,9 +96,6 @@ void DeferredRenderer::init()
     m_shader_shadow_omni = gl::Shader::create(empty_vert, linear_depth_frag, shadow_omni_geom);
     m_shader_shadow_omni_skin = gl::Shader::create(empty_skin_vert, linear_depth_frag, shadow_omni_geom);
     
-//    set_shadowmap_size(glm::vec2(512));
-//    m_shadow_map = shadow_fbos()[0].depth_texture();
-    
     const uint32_t sz = 1024, cube_sz = 512;
     
     // create shadow fbo (spot + directional lights)
@@ -107,15 +104,7 @@ void DeferredRenderer::init()
     m_fbo_shadow = gl::Fbo(sz, sz, fbo_fmt);
     
     // create shadow fbo (point lights)
-    m_fbo_shadow_cube = gl::Fbo(cube_sz, cube_sz, fbo_fmt);
-    gl::Texture::Format tex_fmt;
-    tex_fmt.set_target(GL_TEXTURE_CUBE_MAP);
-    tex_fmt.set_data_type(GL_FLOAT);
-    tex_fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
-    tex_fmt.set_min_filter(GL_NEAREST);
-    tex_fmt.set_mag_filter(GL_NEAREST);
-    auto cube_tex = gl::Texture(nullptr, GL_DEPTH_COMPONENT, cube_sz, cube_sz, tex_fmt);
-    m_fbo_shadow_cube.set_depth_texture(cube_tex);
+    m_fbo_shadow_cube = create_cube_framebuffer(cube_sz, false);
     KINSKI_CHECK_GL_ERRORS();
 #endif
 }
@@ -245,8 +234,9 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
             m_mat_lighting_shadow_omni->add_texture(m_fbo_geometry.texture(i), i);
             m_mat_lighting_enviroment->add_texture(m_fbo_geometry.texture(i), i);
         }
-//        m_mat_lighting_shadow->add_texture(m_fbo_shadow.depth_texture(), i);
-//        m_mat_lighting_shadow_omni->add_texture(m_shadow_cube, i);
+        m_mat_lighting->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
+        m_mat_lighting_shadow->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
+        m_mat_lighting_shadow_omni->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
     }
     m_fbo_lighting.bind();
 
@@ -258,9 +248,7 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
 
     gl::apply_material(m_mat_lighting);
     update_uniform_buffers(the_renderbin->lights);
-    m_mat_lighting->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
-    m_mat_lighting_shadow->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
-    m_mat_lighting_shadow_omni->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
+
 
     auto c = gl::COLOR_BLACK;
     c.a = 0.f;
@@ -328,12 +316,12 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         }
         
         m_shader_shadow_omni->bind();
-        m_shader_shadow_omni->uniform("u_shadow_view", cam_matrices);
-        m_shader_shadow_omni->uniform("u_shadow_projection", cube_cam->projection_matrix());
+        m_shader_shadow_omni->uniform("u_view_matrix", cam_matrices);
+        m_shader_shadow_omni->uniform("u_projection_matrix", cube_cam->projection_matrix());
         m_shader_shadow_omni->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
         m_shader_shadow_omni_skin->bind();
-        m_shader_shadow_omni_skin->uniform("u_shadow_view", cam_matrices);
-        m_shader_shadow_omni_skin->uniform("u_shadow_projection", cube_cam->projection_matrix());
+        m_shader_shadow_omni_skin->uniform("u_view_matrix", cam_matrices);
+        m_shader_shadow_omni_skin->uniform("u_projection_matrix", cube_cam->projection_matrix());
         m_shader_shadow_omni_skin->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
         KINSKI_CHECK_GL_ERRORS();
         
