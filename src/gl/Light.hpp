@@ -37,10 +37,10 @@ namespace kinski { namespace gl {
         
         const Color& diffuse() const { return m_diffuse; };
         const Color& ambient() const { return m_ambient; };
-        const Color& specular() const { return m_specular; };
+//        const Color& specular() const { return m_specular; };
         void set_diffuse(const Color &theColor);
         void set_ambient(const Color &theColor);
-        void set_specular(const Color &theColor);
+//        void set_specular(const Color &theColor);
         float intensity() const { return m_intensity; }
         void set_intensity(float the_intensity);
         

@@ -147,11 +147,11 @@ namespace kinski {
         observe_properties();
 
         // setup our light component
-        m_light_component = std::make_shared<LightComponent>();
+        m_light_component = LightComponent::create();
         m_light_component->set_lights(lights());
         
         // warp component
-        m_warp_component = std::make_shared<WarpComponent>();
+        m_warp_component = WarpComponent::create();
         m_warp_component->observe_properties();
         m_warp_component->set_font(fonts()[0]);
         
@@ -430,7 +430,7 @@ namespace kinski {
         std::list<ComponentPtr> light_components, material_components, warp_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
-            LightComponentPtr tmp(new LightComponent());
+            auto tmp = LightComponent::create();
             tmp->set_name("light_" + to_string(i));
             tmp->set_lights(lights());
             tmp->set_index(i);
@@ -446,7 +446,7 @@ namespace kinski {
         }
         for (uint32_t i = 0; i < 10; i++)
         {
-            auto wc = std::make_shared<WarpComponent>();
+            auto wc = WarpComponent::create();
             wc->set_name("warp_" + to_string(i));
             wc->set_from(m_warp_component->quad_warp(i), i);
             wc->set_enabled(i, m_warp_component->enabled(i));
@@ -490,7 +490,7 @@ namespace kinski {
         std::list<ComponentPtr> light_components, material_components, warp_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
-            LightComponentPtr tmp(new LightComponent());
+            auto tmp = LightComponent::create();
             tmp->set_name("light_" + to_string(i));
             tmp->set_lights(lights(), false);
             tmp->set_index(i);
@@ -508,7 +508,7 @@ namespace kinski {
         }
         for (uint32_t i = 0; i < 10; i++)
         {
-            auto wc = std::make_shared<WarpComponent>();
+            auto wc = WarpComponent::create();
             wc->set_name("warp_" + to_string(i));
             wc->set_index(i);
             wc->observe_properties();

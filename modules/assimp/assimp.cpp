@@ -238,7 +238,7 @@ gl::LightPtr create_light(const aiLight* the_light)
     l->set_spot_cutoff(the_light->mAngleOuterCone);
     l->set_diffuse(aicolor_convert(the_light->mColorDiffuse));
     l->set_ambient(aicolor_convert(the_light->mColorAmbient));
-    l->set_specular(aicolor_convert(the_light->mColorSpecular));
+//    l->set_specular(aicolor_convert(the_light->mColorSpecular));
     l->set_attenuation(the_light->mAttenuationConstant, the_light->mAttenuationLinear,
                        the_light->mAttenuationQuadratic);
 

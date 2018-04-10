@@ -27,10 +27,9 @@ namespace kinski
     class KINSKI_API WarpComponent : public kinski::Component
     {
     public:
-        
-        WarpComponent();
-        ~WarpComponent();
-        
+
+        static WarpComponentPtr create();
+
         void update_property(const Property::ConstPtr &the_property);
         
         void refresh();
@@ -58,6 +57,7 @@ namespace kinski
         void mouse_drag(const MouseEvent &e);
         
     private:
+        WarpComponent();
         std::vector<gl::Warp> m_quad_warp{10};
         
         typedef struct

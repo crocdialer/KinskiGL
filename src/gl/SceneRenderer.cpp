@@ -364,7 +364,7 @@ void SceneRenderer::set_light_uniforms(MaterialPtr &the_mat,
         the_mat->uniform(light_str + ".direction", glm::normalize(-vec3(l.transform[2].xyz())));
         the_mat->uniform(light_str + ".diffuse", l.light->diffuse());
         the_mat->uniform(light_str + ".ambient", l.light->ambient());
-        the_mat->uniform(light_str + ".specular", l.light->specular());
+//        the_mat->uniform(light_str + ".specular", l.light->specular());
         the_mat->uniform(light_str + ".intensity", l.light->intensity());
         
         // point + spot
@@ -424,7 +424,7 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         buf.direction = glm::normalize(-vec3(l.transform[2].xyz()));
         buf.diffuse = l.light->diffuse();
         buf.ambient = l.light->ambient();
-        buf.specular = l.light->specular();
+//        buf.specular = l.light->specular();
         buf.intensity = l.light->intensity();
         buf.radius = l.light->radius();
 //        buf.constantAttenuation = l.light->attenuation().constant;

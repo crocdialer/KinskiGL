@@ -23,18 +23,17 @@ namespace kinski
     class KINSKI_API LightComponent : public kinski::Component
     {
     public:
-        
-        LightComponent();
-        ~LightComponent();
-        
+
+        static LightComponentPtr create();
+
         void update_property(const Property::ConstPtr &theProperty);
         void set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings = true);
         void set_index(int index);
-//        void set_drawLight_dummies(bool b);
         void draw_light_dummies() const;
         void refresh();
         
     private:
+        LightComponent();
         std::vector<gl::LightPtr> m_lights;
         std::vector<bool> m_draw_dummy_flags;
         Property_<bool>::Ptr m_draw_light_dummies;
@@ -46,7 +45,7 @@ namespace kinski
         Property_<bool>::Ptr m_cast_shadows;
         Property_<float>::Ptr m_position_x, m_position_y, m_position_z;
         Property_<glm::vec3>::Ptr m_direction;
-        Property_<gl::Color>::Ptr m_ambient, m_diffuse, m_specular;
+        Property_<gl::Color>::Ptr m_ambient, m_diffuse;
         RangedProperty<float>::Ptr m_att_constant, m_att_linear, m_att_quadratic;
         RangedProperty<float>::Ptr m_spot_cutoff, m_spot_exponent;
     };

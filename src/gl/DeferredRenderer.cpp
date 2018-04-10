@@ -16,7 +16,7 @@ DeferredRendererPtr DeferredRenderer::create()
     return DeferredRendererPtr(new DeferredRenderer());
 }
 
-DeferredRenderer::DeferredRenderer(): SceneRenderer()
+DeferredRenderer::DeferredRenderer()
 {
 
 }
