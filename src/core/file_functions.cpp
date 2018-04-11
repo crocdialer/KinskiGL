@@ -426,7 +426,7 @@ namespace kinski { namespace fs{
         const std::set<string>
         image_exts{"png", "jpg", "jpeg", "gif", "bmp", "tga", "hdr"},
         audio_exts{"wav", "m4a", "mp3"},
-        model_exts{"obj", "dae", "3ds", "ply", "md5mesh", "fbx"},
+        model_exts{"obj", "dae", "3ds", "ply", "md5mesh", "fbx", "gltf", "glb"},
         movie_exts{"mpg", "mov", "avi", "mp4", "m4v", "mkv"},
         font_exts{"ttf", "otf", "ttc"};
 

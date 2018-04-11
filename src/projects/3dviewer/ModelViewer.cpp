@@ -209,7 +209,16 @@ void ModelViewer::draw()
     // draw texture map(s)
     if(display_tweakbar())
     {
-        if(*m_use_deferred_render && m_deferred_renderer->g_buffer())
+        std::vector<gl::Texture> display_textures;
+
+        if(selected_mesh())
+        {
+            for(auto &mat : selected_mesh()->materials())
+            {
+                for(auto &tex_pair : mat->textures()){ display_textures.push_back(tex_pair.second); }
+            }
+        }
+        else if(*m_use_deferred_render && m_deferred_renderer->g_buffer())
         {
             uint32_t  i = 0;
 
@@ -218,18 +227,10 @@ void ModelViewer::draw()
                 textures()[i + 2] = m_deferred_renderer->g_buffer().texture(i);
             }
             textures()[i + 2] = m_deferred_renderer->final_texture();
-        }
 
-        if(m_mesh)
-        {
-            std::vector<gl::Texture> comb_texs = textures();
-
-            for(auto &mat : m_mesh->materials())
-            {
-                for(auto &tex_pair : mat->textures()){ comb_texs.push_back(tex_pair.second); }
-            }
-            draw_textures(comb_texs);
+            display_textures = textures();
         }
+        draw_textures(display_textures);
     }
 }
 
@@ -743,7 +744,7 @@ void ModelViewer::update_shader()
             if(shader){ mat->set_shader(shader); }
 
             if(use_normal_map){ mat->add_texture(m_normal_map, gl::Material::TextureType::NORMAL); }
-            else{ mat->clear_texture(gl::Material::TextureType::NORMAL); }
+//            else{ mat->clear_texture(gl::Material::TextureType::NORMAL); }
         }
     }
 }

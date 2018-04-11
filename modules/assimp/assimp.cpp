@@ -46,6 +46,8 @@ void create_bone_animation(const aiNode *theNode, const aiAnimation *theAnimatio
 
 //void get_node_transform(const aiNode *the_node, mat4 &the_transform);
 
+bool get_mesh_transform(const aiScene *the_scene, const aiMesh *the_ai_mesh, glm::mat4& the_out_transform);
+
 void process_node(const aiScene *the_scene, const aiNode *the_in_node, const gl::Object3DPtr &the_parent_node);
     
 /////////////////////////////////////////////////////////////////
@@ -89,10 +91,17 @@ inline gl::Color aicolor_convert(const aiColor3D &the_color)
 gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
 {
     gl::GeometryPtr geom = gl::Geometry::create();
-    
+
+    glm::mat4 model_matrix;
+    if(get_mesh_transform(theScene, aMesh, model_matrix)){ LOG_DEBUG << "found mesh transform"; }
+    glm::mat3 normal_matrix = glm::inverseTranspose(glm::mat3(model_matrix));
+
     geom->vertices().insert(geom->vertices().end(), (vec3*)aMesh->mVertices,
                             (vec3*)aMesh->mVertices + aMesh->mNumVertices);
-    
+
+    // transform loaded verts
+    for(auto &v : geom->vertices()){ v = (model_matrix * vec4(v, 1.f)).xyz; }
+
     if(aMesh->HasTextureCoords(0))
     {
         geom->tex_coords().reserve(aMesh->mNumVertices);
@@ -119,13 +128,16 @@ gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
     {
         geom->normals().insert(geom->normals().end(), (vec3*)aMesh->mNormals,
                                (vec3*) aMesh->mNormals + aMesh->mNumVertices);
+
+        // transform loaded normals
+        for(auto &n : geom->normals()){ n = normal_matrix * n; }
     }
     else
     {
         geom->compute_vertex_normals();
     }
     
-    if(aMesh->HasVertexColors(0))//TODO: test
+    if(aMesh->HasVertexColors(0))
     {
         geom->colors().insert(geom->colors().end(), (vec4*)aMesh->mColors,
                               (vec4*) aMesh->mColors + aMesh->mNumVertices);
@@ -136,6 +148,9 @@ gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
     {
         geom->tangents().insert(geom->tangents().end(), (vec3*)aMesh->mTangents,
                                 (vec3*) aMesh->mTangents + aMesh->mNumVertices);
+
+        // transform loaded tangents
+        for(auto &t : geom->tangents()){ t = normal_matrix * t; }
     }
     else
     {
@@ -238,12 +253,11 @@ gl::LightPtr create_light(const aiLight* the_light)
     l->set_spot_cutoff(the_light->mAngleOuterCone);
     l->set_diffuse(aicolor_convert(the_light->mColorDiffuse));
     l->set_ambient(aicolor_convert(the_light->mColorAmbient));
-//    l->set_specular(aicolor_convert(the_light->mColorSpecular));
     l->set_attenuation(the_light->mAttenuationConstant, the_light->mAttenuationLinear,
                        the_light->mAttenuationQuadratic);
 
     auto pos = aivector_to_glm_vec3(the_light->mPosition);
-    auto y_axis = gl::Y_AXIS;//glm::normalize(aivector_to_glm_vec3(the_light->mUp));
+    auto y_axis = glm::normalize(aivector_to_glm_vec3(the_light->mUp));
     auto z_axis = glm::normalize(-aivector_to_glm_vec3(the_light->mDirection));
     auto x_axis = glm::normalize(glm::cross(z_axis, y_axis));
     glm::mat4 m(vec4(x_axis, 0.f), vec4(y_axis, 0.f), vec4(z_axis, 0.f), vec4(pos, 1.f));
@@ -308,17 +322,8 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &c))
     {
         //TODO: needed ?
+        LOG_DEBUG << "encountered \"AI_MATKEY_COLOR_TRANSPARENT\"";
     }
-//        float opacity = 1.f;
-//        mtl->Get(AI_MATKEY_OPACITY, opacity);
-//        if(opacity < 1.f)
-//        {
-//            Color d = theMaterial->diffuse();
-//            d.a = opacity;
-//            theMaterial->setDiffuse(d);
-//            theMaterial->setBlending();
-//            //theMaterial->setDepthWrite(false);
-//        }
     
     ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);
     ret2 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength);
@@ -349,11 +354,11 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
         theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::EMISSION);
     }
     
-    // ROUGHNESS / SHINYNESS
+    // SHINYNESS
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SPECULAR), 0, &texPath))
     {
         LOG_TRACE << "adding spec/roughness map: '" << string(texPath.data) << "'";
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::ROUGHNESS);
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::SPECULAR);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &texPath))
@@ -372,6 +377,12 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     {
         LOG_TRACE << "adding normalmap: '" << string(texPath.data) << "'";
         theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
+    }
+
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_UNKNOWN), 0, &texPath))
+    {
+        LOG_TRACE << "unknown texture usage (assuming AO/METAL/ROUGHNESS ): '" << string(texPath.data) << "'";
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::ROUGH_METAL);
     }
     return theMaterial;
 }
@@ -483,6 +494,21 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
         geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->root_bone()) << " bones";
         LOG_DEBUG<<"bounds: " <<to_string(mesh->aabb().min)<<" - "<< to_string(mesh->aabb().max);
+
+        // load animations
+        if(theScene && mesh)
+        {
+            for(uint32_t i = 0; i < theScene->mNumAnimations; i++)
+            {
+                aiAnimation *assimpAnimation = theScene->mAnimations[i];
+                gl::MeshAnimation anim;
+                anim.duration = assimpAnimation->mDuration;
+                anim.ticks_per_sec = assimpAnimation->mTicksPerSecond;
+                create_bone_animation(theScene->mRootNode, assimpAnimation, mesh->root_bone(), anim);
+                mesh->add_animation(anim);
+            }
+        }
+
         importer.FreeScene();
         return mesh;
     }
@@ -538,6 +564,48 @@ gl::ScenePtr load_scene(const std::string &the_path)
         importer.FreeScene();
     }
     return ret;
+}
+
+/////////////////////////////////////////////////////////////////
+
+bool get_mesh_transform(const aiScene *the_scene, const aiMesh *the_ai_mesh, glm::mat4& the_out_transform)
+{
+    std::deque<const aiNode*> node_queue;
+    node_queue.push_back(the_scene->mRootNode);
+
+    std::deque<glm::mat4> transform_queue;
+    transform_queue.push_back(glm::mat4());
+
+    while(!node_queue.empty())
+    {
+        // dequeue node
+        const aiNode* p = node_queue.front();
+        node_queue.pop_front();
+
+        // dequeue transform
+        glm::mat4 node_transform = transform_queue.front();
+        transform_queue.pop_front();
+
+        for(uint32_t i = 0; i < p->mNumMeshes; ++i)
+        {
+            const aiMesh *m = the_scene->mMeshes[p->mMeshes[i]];
+
+            // we found the mesh and are done
+            if(m == the_ai_mesh)
+            {
+                the_out_transform = node_transform;
+                return true;
+            }
+        }
+
+        for(uint32_t c = 0; c < p->mNumChildren; ++c)
+        {
+            // enqueue child node + transform
+            node_queue.push_back(p->mChildren[c]);
+            transform_queue.push_back(node_transform * aimatrix_to_glm_mat4(p->mChildren[c]->mTransformation));
+        }
+    }
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////
