@@ -153,7 +153,7 @@ namespace kinski { namespace gl {
     
     bool Material::has_texture(TextureType the_type)
     {
-        return m_textures.find(static_cast<uint32_t>(the_type)) != std::end(m_textures);
+        return has_texture(static_cast<uint32_t>(the_type));
     }
     
     bool Material::has_texture(uint32_t the_key)

@@ -385,7 +385,8 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
         {
             case fs::FileType::MODEL:
                 *m_model_path = f;
-                break;
+                return;
+//                break;
 
             case fs::FileType::IMAGE:
             case fs::FileType::DIRECTORY:
@@ -709,7 +710,7 @@ void ModelViewer::update_shader()
         m_dirty_shader  = false;
         
         bool use_bones = m_mesh->geometry()->has_bones() && *m_use_bones;
-        bool use_normal_map = *m_use_normal_map && *m_use_lighting && m_normal_map;
+        bool use_normal_map = *m_use_normal_map && *m_use_lighting;
         gl::ShaderPtr shader;
         gl::ShaderType type;
 
@@ -743,8 +744,8 @@ void ModelViewer::update_shader()
         {
             if(shader){ mat->set_shader(shader); }
 
-            if(use_normal_map){ mat->add_texture(m_normal_map, gl::Material::TextureType::NORMAL); }
-//            else{ mat->clear_texture(gl::Material::TextureType::NORMAL); }
+            auto t = gl::Material::TextureType::NORMAL;
+            if(use_normal_map && !mat->has_texture(t)){ mat->add_texture(m_normal_map, t); }
         }
     }
 }

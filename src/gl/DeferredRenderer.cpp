@@ -203,7 +203,8 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         bool has_rough_metal_map = m->material()->has_texture(gl::Material::TextureType::ROUGH_METAL);
         bool has_emmision_map = m->material()->has_texture(gl::Material::TextureType::EMISSION);
 
-        uint32_t key =  PROP_DEFAULT;
+        uint32_t key = PROP_DEFAULT;
+        if(m->root_bone()){ key |= PROP_SKIN; }
         if(has_normal_map){ key |= PROP_NORMAL; }
         if(has_emmision_map){ key |= PROP_EMMISION; }
         if(has_rough_metal_map){ key |= PROP_ROUGH_METAL; }
