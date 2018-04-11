@@ -86,9 +86,11 @@ void DeferredRenderer::init()
     m_shader_map[PROP_SKIN | PROP_NORMAL] = gl::Shader::create(phong_tangent_skin_vert,
                                                                create_g_buffer_normalmap_frag);
     m_shader_map[PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_vert,
-                                                               create_g_buffer_normal_rough_frag);
+                                                               create_g_buffer_normal_spec_frag);
     m_shader_map[PROP_NORMAL | PROP_ROUGH_METAL] = gl::Shader::create(phong_tangent_vert,
-                                                                      create_g_buffer_normal_spec_frag);
+                                                                      create_g_buffer_normal_rough_frag);
+    m_shader_map[PROP_NORMAL | PROP_ROUGH_METAL | PROP_EMMISION] =
+            gl::Shader::create(phong_tangent_vert, create_g_buffer_normal_rough_emmision_frag);
     m_shader_map[PROP_SKIN | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_skin_vert,
                                                                            create_g_buffer_normal_spec_frag);
 
@@ -199,10 +201,13 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         bool has_normal_map = m->material()->has_texture(gl::Material::TextureType::NORMAL);
         bool has_spec_map = m->material()->has_texture(gl::Material::TextureType::SPECULAR);
         bool has_rough_metal_map = m->material()->has_texture(gl::Material::TextureType::ROUGH_METAL);
+        bool has_emmision_map = m->material()->has_texture(gl::Material::TextureType::EMISSION);
 
-        uint32_t key =  PROP_DEFAULT | (has_normal_map ? PROP_NORMAL : 0) |
-                        (m->geometry()->has_bones() ? PROP_SKIN : 0) | (has_spec_map ? PROP_SPEC : 0) |
-                        (has_rough_metal_map ? PROP_ROUGH_METAL : 0);
+        uint32_t key =  PROP_DEFAULT;
+        if(has_normal_map){ key |= PROP_NORMAL; }
+        if(has_emmision_map){ key |= PROP_EMMISION; }
+        if(has_rough_metal_map){ key |= PROP_ROUGH_METAL; }
+        else if(has_spec_map){ key |= PROP_SPEC; }
         return m_shader_map[key];
     };
     

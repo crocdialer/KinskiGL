@@ -570,21 +570,21 @@ gl::ScenePtr load_scene(const std::string &the_path)
 
 bool get_mesh_transform(const aiScene *the_scene, const aiMesh *the_ai_mesh, glm::mat4& the_out_transform)
 {
-    std::deque<const aiNode*> node_queue;
-    node_queue.push_back(the_scene->mRootNode);
+    struct node_t
+    {
+        const aiNode* node;
+        glm::mat4 global_transform;
+    };
 
-    std::deque<glm::mat4> transform_queue;
-    transform_queue.push_back(glm::mat4());
+    std::deque<node_t> node_queue;
+    node_queue.push_back({the_scene->mRootNode, glm::mat4()});
 
     while(!node_queue.empty())
     {
-        // dequeue node
-        const aiNode* p = node_queue.front();
+        // dequeue node struct
+        const aiNode* p = node_queue.front().node;
+        glm::mat4 node_transform = node_queue.front().global_transform;
         node_queue.pop_front();
-
-        // dequeue transform
-        glm::mat4 node_transform = transform_queue.front();
-        transform_queue.pop_front();
 
         for(uint32_t i = 0; i < p->mNumMeshes; ++i)
         {
@@ -600,9 +600,10 @@ bool get_mesh_transform(const aiScene *the_scene, const aiMesh *the_ai_mesh, glm
 
         for(uint32_t c = 0; c < p->mNumChildren; ++c)
         {
-            // enqueue child node + transform
-            node_queue.push_back(p->mChildren[c]);
-            transform_queue.push_back(node_transform * aimatrix_to_glm_mat4(p->mChildren[c]->mTransformation));
+            glm::mat4 child_transform = aimatrix_to_glm_mat4(p->mChildren[c]->mTransformation);
+
+            // enqueue child node and transform
+            node_queue.push_back({p->mChildren[c], node_transform * child_transform});
         }
     }
     return false;
