@@ -158,6 +158,8 @@ namespace kinski { namespace gl {
     
     bool Material::has_texture(uint32_t the_key)
     {
+        // search queued textures
+        for(const auto &p : m_queued_textures){ if(p.second.first == the_key){ return true; } }
         return m_textures.find(the_key) != std::end(m_textures);
     }
     

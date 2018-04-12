@@ -744,8 +744,12 @@ void ModelViewer::update_shader()
         {
             if(shader){ mat->set_shader(shader); }
 
-            auto t = gl::Material::TextureType::NORMAL;
-            if(use_normal_map && !mat->has_texture(t)){ mat->add_texture(m_normal_map, t); }
+            auto t = (uint32_t)gl::Material::TextureType::NORMAL;
+            if(use_normal_map && !mat->has_texture(t))
+            {
+//                mat->add_texture(m_normal_map, t);
+                mat->enqueue_texture(*m_normalmap_path, t);
+            }
         }
     }
 }
