@@ -34,8 +34,8 @@ void DeferredRenderer::init()
     m_mat_lighting->set_blend_equation(GL_FUNC_ADD);
     m_mat_lighting->set_blend_factors(GL_ONE, GL_ONE);
     
-    m_mat_transfer = gl::Material::create(gl::ShaderType::UNLIT_DEPTH);
-    m_mat_transfer->set_blending();
+    m_mat_resolve = gl::Material::create(gl::ShaderType::RESOLVE);
+    m_mat_resolve->set_blending();
     
     // lighting with shadowmapping
     m_mat_lighting_shadow = gl::Material::create();
@@ -148,9 +148,9 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
         gl::draw_mesh(the_scene->skybox());
     }
     // draw light texture
-    m_mat_transfer->add_texture(m_fbo_lighting.texture());
-    m_mat_transfer->add_texture(m_fbo_geometry.depth_texture(), gl::Material::TextureType::DEPTH);
-    gl::draw_quad(gl::window_dimension(), m_mat_transfer);
+    m_mat_resolve->add_texture(m_fbo_lighting.texture());
+    m_mat_resolve->add_texture(m_fbo_geometry.depth_texture(), gl::Material::TextureType::DEPTH);
+    gl::draw_quad(gl::window_dimension(), m_mat_resolve);
     
     // draw emission texture
     gl::draw_quad(gl::window_dimension(), m_mat_lighting_emissive);

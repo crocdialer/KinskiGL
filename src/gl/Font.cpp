@@ -17,11 +17,11 @@
 #include "Font.hpp"
 
 #define STB_RECT_PACK_IMPLEMENTATION
-#include "stb_rect_pack.inl"
+#include "stb_rect_pack.h"
 
 //#define STBTT_RASTERIZER_VERSION 1
 #define STB_TRUETYPE_IMPLEMENTATION
-#include "stb_truetype.inl"
+#include "stb_truetype.h"
 
 // still causing trouble with gcc 5.4
 //#include <codecvt>

@@ -43,5 +43,4 @@ void main()
     float depth = texture(u_sampler_2D[DEPTH], vertex_in.texCoord.st).x;
     gl_FragDepth = depth;
     fragData = u_material.diffuse * texColors;
-    // fragData = vec4(mix(vec3(0), vec3(1), linear_depth(depth)), texColors.a);
 }

@@ -220,7 +220,7 @@ KINSKI_API void reset_state();
 
 /*********************************** Shader loading *******************************************/
 
-enum class ShaderType {NONE, UNLIT, UNLIT_MASK, UNLIT_SKIN, UNLIT_CUBE, UNLIT_DEPTH, BLUR,
+enum class ShaderType {NONE, UNLIT, UNLIT_MASK, UNLIT_SKIN, UNLIT_CUBE, RESOLVE, BLUR,
     GOURAUD, GOURAUD_SKIN, PHONG, PHONG_SHADOWS,
     PHONG_SKIN_SHADOWS, PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR,
     POINTS_SPHERE, RECT_2D, NOISE_3D, DEPTH_OF_FIELD, SDF_FONT};
