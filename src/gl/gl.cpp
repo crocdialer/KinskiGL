@@ -333,6 +333,7 @@ namespace kinski { namespace gl {
             geom->append_indices(indices, num_indices);
         }
 
+        geom->colors().resize(geom->vertices().size(), gl::COLOR_WHITE);
         geom->compute_aabb();
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
