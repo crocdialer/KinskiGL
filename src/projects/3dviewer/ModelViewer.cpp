@@ -109,6 +109,24 @@ void ModelViewer::update(float timeDelta)
     }
 
     process_joystick(timeDelta);
+
+    // test ImGui
+    {
+        float f = 0.0f;
+        int counter = 0;
+        ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
+        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+
+        if(ImGui::ColorEdit4("clear color", (float*)&m_clear_color->value())){ m_clear_color->notify_observers(); }
+        ImGui::Checkbox("draw fps", &m_draw_fps->value());
+
+        if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
+            counter++;
+        ImGui::SameLine();
+        ImGui::Text("counter = %d", counter);
+
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -409,6 +427,7 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
 
 void ModelViewer::teardown()
 {
+    BaseApp::teardown();
     LOG_PRINT << "ciao " << name();
 }
 

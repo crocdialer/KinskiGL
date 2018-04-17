@@ -60,13 +60,13 @@ int App::run()
 {
     try{init(); m_running = GL_TRUE;}
     catch(std::exception &e){LOG_ERROR<<e.what();}
-    double timeStamp = 0.0;
+    double time_stamp = 0.0;
 
     // Main loop
-    while( m_running )
+    while(m_running)
     {
         // update application time
-        timeStamp = get_application_time();
+        time_stamp = get_application_time();
 
         // poll io_service if no seperate worker-threads exist
         if(!m_main_queue.get_num_threads()) m_main_queue.poll();
@@ -75,12 +75,12 @@ int App::run()
         poll_events();
 
         // time elapsed since last frame
-        double time_delta = timeStamp - m_lastTimeStamp;
+        double time_delta = time_stamp - m_lastTimeStamp;
 
         // call update callback
         update(time_delta);
 
-        m_lastTimeStamp = timeStamp;
+        m_lastTimeStamp = time_stamp;
 
         if(needs_redraw())
         {
@@ -92,7 +92,7 @@ int App::run()
         }
 
         // perform fps-timing
-        timing(timeStamp);
+        timing(time_stamp);
 
         // Check if ESC key was pressed or window was closed or whatever
         m_running = is_running();

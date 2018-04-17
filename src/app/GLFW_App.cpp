@@ -9,8 +9,9 @@
 
 #include "gl/gl.hpp"
 #include "gl/Material.hpp"
-#include "AntTweakBarConnector.hpp"
 #include "GLFW_App.hpp"
+#include "AntTweakBarConnector.hpp"
+#include "imgui/imgui_impl_glfw_gl3.h"
 
 #if defined(KINSKI_LINUX)
 #include <GL/glx.h>
@@ -233,6 +234,15 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, nullptr);
         set_window_size(main_window->size());
 
+        // ImGui
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+        ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
+        ImGui::StyleColorsDark();
+        ImGui_ImplGlfwGL3_NewFrame();
+
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
         glfwSetJoystickCallback(&GLFW_App::s_joystick_cb);
 #endif
@@ -247,6 +257,7 @@ namespace kinski
         {
             glfwSwapBuffers(window->handle());
         }
+        ImGui_ImplGlfwGL3_NewFrame();
     }
 
     void GLFW_App::set_window_size(const glm::vec2 &size)
@@ -335,6 +346,12 @@ namespace kinski
     double GLFW_App::get_application_time()
     {
         return glfwGetTime();
+    }
+
+    void GLFW_App::teardown()
+    {
+        LOG_DEBUG << "ImGui_ImplGlfwGL3_Shutdown()";
+        ImGui_ImplGlfwGL3_Shutdown();
     }
 
     void GLFW_App::set_fullscreen(bool b, int monitor_index)
@@ -439,6 +456,10 @@ namespace kinski
                     // TODO: remove this, as soon as the side-effect making this necessary is found
                     glDepthMask(GL_TRUE);
                 }
+
+                // render and draw ImGui
+                ImGui::Render();
+                ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
             });
         }
 
@@ -497,22 +518,26 @@ namespace kinski
 
     void GLFW_App::s_mouseMove(GLFWwindow* window, double x, double y)
     {
-        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->display_tweakbar() && app->windows().front()->handle() == window)
-        {
-            auto &w = app->windows().front();
-            auto fb_pos = w->framebuffer_size() * gl::ivec2(x, y) / w->size();
-            TwEventMousePosGLFW(fb_pos.x, fb_pos.y);
-        }
-        uint32_t buttonModifiers, keyModifiers, bothMods;
-        s_getModifiers(window, buttonModifiers, keyModifiers);
-        bothMods = buttonModifiers | keyModifiers;
-        MouseEvent e(buttonModifiers, (int)x, (int)y, bothMods, glm::ivec2(0));
+        auto imgui_io = ImGui::GetIO();
 
-        if(buttonModifiers)
-            app->mouse_drag(e);
-        else
-            app->mouse_move(e);
+        if(!imgui_io.WantCaptureMouse)
+        {
+            GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+
+            if(app->display_tweakbar() && app->windows().front()->handle() == window)
+            {
+                auto &w = app->windows().front();
+                auto fb_pos = w->framebuffer_size() * gl::ivec2(x, y) / w->size();
+                TwEventMousePosGLFW(fb_pos.x, fb_pos.y);
+            }
+            uint32_t buttonModifiers, keyModifiers, bothMods;
+            s_getModifiers(window, buttonModifiers, keyModifiers);
+            bothMods = buttonModifiers | keyModifiers;
+            MouseEvent e(buttonModifiers, (int)x, (int)y, bothMods, glm::ivec2(0));
+
+            if(buttonModifiers){ app->mouse_drag(e); }
+            else{ app->mouse_move(e); }
+        }
     }
 
     void GLFW_App::s_mouseButton(GLFWwindow* window, int button, int action, int modifier_mask)
@@ -528,77 +553,99 @@ namespace kinski
         double posX, posY;
         glfwGetCursorPos(window, &posX, &posY);
 
-        MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
+        // ImGUI
+        ImGui_ImplGlfw_MouseButtonCallback(window,button, action, modifier_mask);
+        auto imgui_io = ImGui::GetIO();
 
-        switch(action)
+        if(!imgui_io.WantCaptureMouse)
         {
-            case GLFW_PRESS:
-                app->mouse_press(e);
-                break;
+            MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
 
-            case GLFW_RELEASE:
-                app->mouse_release(e);
-                break;
+            switch(action)
+            {
+                case GLFW_PRESS:
+                    app->mouse_press(e);
+                    break;
+
+                case GLFW_RELEASE:
+                    app->mouse_release(e);
+                    break;
+            }
         }
     }
 
     void GLFW_App::s_mouseWheel(GLFWwindow* window,double offset_x, double offset_y)
     {
-        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
-        app->m_lastWheelPos -= offset;
-        if(app->display_tweakbar() && app->windows().front()->handle() == window)
-            TwMouseWheel(app->m_lastWheelPos.y);
+        ImGui_ImplGlfw_ScrollCallback(window, offset_x, offset_y);
+        auto imgui_io = ImGui::GetIO();
 
-        double posX, posY;
-        glfwGetCursorPos(window, &posX, &posY);
-        uint32_t buttonMod, keyModifiers = 0;
-        s_getModifiers(window, buttonMod, keyModifiers);
-        MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
-        if(app->running()) app->mouse_wheel(e);
+        if(!imgui_io.WantCaptureMouse)
+        {
+            GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+            glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
+            app->m_lastWheelPos -= offset;
+            if(app->display_tweakbar() && app->windows().front()->handle() == window)
+                TwMouseWheel(app->m_lastWheelPos.y);
+
+            double posX, posY;
+            glfwGetCursorPos(window, &posX, &posY);
+            uint32_t buttonMod, keyModifiers = 0;
+            s_getModifiers(window, buttonMod, keyModifiers);
+            MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
+            if(app->running()) app->mouse_wheel(e);
+        }
     }
 
     void GLFW_App::s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask)
     {
-        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->display_tweakbar() && app->windows().front()->handle() == window)
-            TwEventKeyGLFW(key, action);
+        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, modifier_mask);
+        auto imgui_io = ImGui::GetIO();
 
-        uint32_t buttonMod, keyMod;
-        s_getModifiers(window, buttonMod, keyMod);
-
-        KeyEvent e(key, key, keyMod);
-
-        switch(action)
+        if(!imgui_io.WantCaptureKeyboard)
         {
-            case GLFW_PRESS:
-            case GLFW_REPEAT:
-                app->key_press(e);
-                break;
+            GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+            if(app->display_tweakbar() && app->windows().front()->handle() == window)
+                TwEventKeyGLFW(key, action);
 
-            case GLFW_RELEASE:
-                app->key_release(e);
-                break;
+            uint32_t buttonMod, keyMod;
+            s_getModifiers(window, buttonMod, keyMod);
+
+            KeyEvent e(key, key, keyMod);
+
+            switch(action)
+            {
+                case GLFW_PRESS:
+                case GLFW_REPEAT:
+                    app->key_press(e);
+                    break;
+
+                case GLFW_RELEASE:
+                    app->key_release(e);
+                    break;
 
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
     }
 
     void GLFW_App::s_charFunc(GLFWwindow* window, unsigned int key)
     {
-        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->display_tweakbar() && app->windows().front()->handle() == window)
-            TwEventCharGLFW(key, GLFW_PRESS);
+        ImGui_ImplGlfw_CharCallback(window, key);
+        auto imgui_io = ImGui::GetIO();
 
-        if(key == GLFW_KEY_SPACE){return;}
+        if(!imgui_io.WantCaptureKeyboard)
+        {
+            GLFW_App *app = static_cast<GLFW_App *>(glfwGetWindowUserPointer(window));
+            if(app->display_tweakbar() && app->windows().front()->handle() == window)
+                TwEventCharGLFW(key, GLFW_PRESS);
 
-        uint32_t buttonMod, keyMod;
-        s_getModifiers(window, buttonMod, keyMod);
+            if(key == GLFW_KEY_SPACE) { return; }
 
-//        KeyEvent e(0, key, keyMod);
-//        app->key_press(e);
+            uint32_t buttonMod, keyMod;
+            s_getModifiers(window, buttonMod, keyMod);
+        }
     }
 
     void GLFW_App::s_getModifiers(GLFWwindow* window,

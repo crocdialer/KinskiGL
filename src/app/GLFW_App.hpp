@@ -14,6 +14,7 @@
 
 #include "App.hpp"
 #include "OutstreamGL.hpp"
+#include "imgui/imgui.h"
 
 struct CTwBar;
 
@@ -71,8 +72,8 @@ namespace kinski
     {
     public:
         
-        typedef std::shared_ptr<GLFW_App> Ptr;
-        typedef std::weak_ptr<GLFW_App> WeakPtr;
+//        typedef std::shared_ptr<GLFW_App> Ptr;
+//        typedef std::weak_ptr<GLFW_App> WeakPtr;
         
         GLFW_App(int argc = 0, char *argv[] = nullptr);
         virtual ~GLFW_App();
@@ -81,6 +82,7 @@ namespace kinski
         void set_window_title(const std::string &the_title) override;
         void swap_buffers() override;
         double get_application_time() override;
+        void teardown() override;
         
         void set_fullscreen(bool b, int monitor_index) override;
         void set_cursor_visible(bool b = true) override;
