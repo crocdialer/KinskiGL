@@ -24,7 +24,10 @@ DeferredRenderer::DeferredRenderer()
 void DeferredRenderer::init()
 {
 #if !defined(KINSKI_GLES)
-    auto shader = gl::Shader::create(unlit_vert, deferred_lighting_frag);
+    std::string glsl_version = "#version 410";
+
+    std::string frag_src = glsl_version + "\n" + brdf_glsl + "\n" + deferred_lighting_frag;
+    auto shader = gl::Shader::create(unlit_vert, frag_src);
     m_mat_lighting = gl::Material::create(shader);
     m_mat_lighting->set_depth_write(false);
     m_mat_lighting->set_stencil_test(true);
@@ -36,23 +39,23 @@ void DeferredRenderer::init()
     
     m_mat_resolve = gl::Material::create(gl::ShaderType::RESOLVE);
     m_mat_resolve->set_blending();
-    
+
     // lighting with shadowmapping
     m_mat_lighting_shadow = gl::Material::create();
     *m_mat_lighting_shadow = *m_mat_lighting;
-    m_mat_lighting_shadow->set_shader(gl::Shader::create(unlit_vert, deferred_lighting_shadow_frag));
+    frag_src = glsl_version + "\n" + brdf_glsl + "\n" + deferred_lighting_shadow_frag;
+    m_mat_lighting_shadow->set_shader(gl::Shader::create(unlit_vert, frag_src));
     
     // lighting with cube-shadowmapping
     m_mat_lighting_shadow_omni = gl::Material::create();
     *m_mat_lighting_shadow_omni = *m_mat_lighting;
-    m_mat_lighting_shadow_omni->set_shader(gl::Shader::create(unlit_vert,
-                                                              deferred_lighting_shadow_omni_frag));
+    frag_src = glsl_version + "\n" + brdf_glsl + "\n" + deferred_lighting_shadow_omni_frag;
+    m_mat_lighting_shadow_omni->set_shader(gl::Shader::create(unlit_vert, frag_src));
     
     // lighting from enviroment
     m_mat_lighting_enviroment = gl::Material::create();
     *m_mat_lighting_enviroment = *m_mat_lighting;
-    m_mat_lighting_enviroment->set_shader(gl::Shader::create(unlit_vert,
-                                                             deferred_lighting_enviroment_frag));
+    m_mat_lighting_enviroment->set_shader(gl::Shader::create(unlit_vert, deferred_lighting_enviroment_frag));
     
     // lighting from emissive lighting
     m_mat_lighting_emissive = gl::Material::create();

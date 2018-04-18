@@ -23,6 +23,16 @@ using namespace std;
 
 namespace kinski
 {
+
+/////////////////////////////////////////////////////////////////
+
+    ImVec4 im_color_cast(const gl::Color &the_color)
+    {
+        return *reinterpret_cast<const ImVec4*>(&the_color);
+    }
+
+/////////////////////////////////////////////////////////////////
+
     GLFW_WindowPtr GLFW_Window::create(int width, int height, const std::string &theName,
                                        bool fullscreen, int monitor_index, GLFWwindow* share)
     {
@@ -240,7 +250,8 @@ namespace kinski
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
         ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
-        ImGui::StyleColorsDark();
+        ImGuiStyle& im_style = ImGui::GetStyle();
+        im_style.Colors[ImGuiCol_TitleBgActive] = im_color_cast(gl::COLOR_ORANGE * 0.5f);
         ImGui_ImplGlfwGL3_NewFrame();
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
@@ -350,7 +361,6 @@ namespace kinski
 
     void GLFW_App::teardown()
     {
-        LOG_DEBUG << "ImGui_ImplGlfwGL3_Shutdown()";
         ImGui_ImplGlfwGL3_Shutdown();
     }
 
@@ -518,9 +528,7 @@ namespace kinski
 
     void GLFW_App::s_mouseMove(GLFWwindow* window, double x, double y)
     {
-        auto imgui_io = ImGui::GetIO();
-
-        if(!imgui_io.WantCaptureMouse)
+        if(!ImGui::GetIO().WantCaptureMouse)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
 
@@ -542,23 +550,21 @@ namespace kinski
 
     void GLFW_App::s_mouseButton(GLFWwindow* window, int button, int action, int modifier_mask)
     {
-        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->display_tweakbar() && app->windows().front()->handle() == window)
-            TwEventMouseButtonGLFW(button, action);
-
-        uint32_t initiator, keyModifiers, bothMods;
-        s_getModifiers(window, initiator, keyModifiers);
-        bothMods = initiator | keyModifiers;
-
-        double posX, posY;
-        glfwGetCursorPos(window, &posX, &posY);
-
         // ImGUI
         ImGui_ImplGlfw_MouseButtonCallback(window,button, action, modifier_mask);
-        auto imgui_io = ImGui::GetIO();
 
-        if(!imgui_io.WantCaptureMouse)
+        if(!ImGui::GetIO().WantCaptureMouse)
         {
+            GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+            if(app->display_tweakbar() && app->windows().front()->handle() == window)
+                TwEventMouseButtonGLFW(button, action);
+
+            uint32_t initiator, keyModifiers, bothMods;
+            s_getModifiers(window, initiator, keyModifiers);
+            bothMods = initiator | keyModifiers;
+
+            double posX, posY;
+            glfwGetCursorPos(window, &posX, &posY);
             MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
 
             switch(action)
@@ -577,9 +583,8 @@ namespace kinski
     void GLFW_App::s_mouseWheel(GLFWwindow* window,double offset_x, double offset_y)
     {
         ImGui_ImplGlfw_ScrollCallback(window, offset_x, offset_y);
-        auto imgui_io = ImGui::GetIO();
 
-        if(!imgui_io.WantCaptureMouse)
+        if(!ImGui::GetIO().WantCaptureMouse)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
             glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
@@ -599,9 +604,8 @@ namespace kinski
     void GLFW_App::s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask)
     {
         ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, modifier_mask);
-        auto imgui_io = ImGui::GetIO();
 
-        if(!imgui_io.WantCaptureKeyboard)
+        if(!ImGui::GetIO().WantCaptureKeyboard)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
             if(app->display_tweakbar() && app->windows().front()->handle() == window)
@@ -633,9 +637,8 @@ namespace kinski
     void GLFW_App::s_charFunc(GLFWwindow* window, unsigned int key)
     {
         ImGui_ImplGlfw_CharCallback(window, key);
-        auto imgui_io = ImGui::GetIO();
 
-        if(!imgui_io.WantCaptureKeyboard)
+        if(!ImGui::GetIO().WantCaptureKeyboard)
         {
             GLFW_App *app = static_cast<GLFW_App *>(glfwGetWindowUserPointer(window));
             if(app->display_tweakbar() && app->windows().front()->handle() == window)

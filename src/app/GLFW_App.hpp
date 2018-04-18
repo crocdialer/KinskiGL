@@ -25,7 +25,7 @@ namespace kinski
     class GLFW_Window;
     
     typedef std::shared_ptr<GLFW_Window> GLFW_WindowPtr;
-    
+
     class GLFW_Window : public Window
     {
     public:

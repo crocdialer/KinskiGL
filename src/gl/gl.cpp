@@ -1533,6 +1533,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         ShaderPtr ret;
         auto it = use_cached_shader ? g_shaders.find(type) : g_shaders.end();
 
+
         if(it == g_shaders.end())
         {
             std::string vert_src, frag_src, geom_src;
