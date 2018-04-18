@@ -7,7 +7,6 @@ struct Lightsource
     int type;
     vec4 diffuse;
     vec4 ambient;
-    vec4 specular;
     vec3 direction;
     float intensity;
     float radius;

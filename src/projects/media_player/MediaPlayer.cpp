@@ -351,6 +351,7 @@ void MediaPlayer::file_drop(const MouseEvent &e, const std::vector<std::string> 
 
 void MediaPlayer::teardown()
 {
+    BaseApp::teardown();
     LOG_PRINT << "ciao " << name();
 }
 

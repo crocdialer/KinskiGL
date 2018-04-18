@@ -364,14 +364,11 @@ void SceneRenderer::set_light_uniforms(MaterialPtr &the_mat,
         the_mat->uniform(light_str + ".direction", glm::normalize(-vec3(l.transform[2].xyz())));
         the_mat->uniform(light_str + ".diffuse", l.light->diffuse());
         the_mat->uniform(light_str + ".ambient", l.light->ambient());
-//        the_mat->uniform(light_str + ".specular", l.light->specular());
         the_mat->uniform(light_str + ".intensity", l.light->intensity());
         
         // point + spot
         if(l.light->type() > 0)
         {
-//            the_mat->uniform(light_str + ".constantAttenuation", l.light->attenuation().constant);
-//            the_mat->uniform(light_str + ".linearAttenuation", l.light->attenuation().linear);
             the_mat->uniform(light_str + ".radius", l.light->radius());
             the_mat->uniform(light_str + ".quadraticAttenuation", l.light->attenuation().quadratic);
             
@@ -396,16 +393,13 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         int type;
         vec4 diffuse;
         vec4 ambient;
-        vec4 specular;
         vec3 direction;
         float intensity;
         float radius;
         float spotCosCutoff;
         float spotExponent;
-//        float constantAttenuation;
-//        float linearAttenuation;
         float quadraticAttenuation;
-//        float pad[1];
+//        int pad[1];
     };
     
     if(!m_uniform_buffer[LIGHT_UNIFORM_BUFFER])
@@ -424,11 +418,8 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         buf.direction = glm::normalize(-vec3(l.transform[2].xyz()));
         buf.diffuse = l.light->diffuse();
         buf.ambient = l.light->ambient();
-//        buf.specular = l.light->specular();
         buf.intensity = l.light->intensity();
         buf.radius = l.light->radius();
-//        buf.constantAttenuation = l.light->attenuation().constant;
-//        buf.linearAttenuation = l.light->attenuation().linear;
         buf.quadraticAttenuation = l.light->attenuation().quadratic;
         buf.spotCosCutoff = cosf(glm::radians(l.light->spot_cutoff()));
         buf.spotExponent = l.light->spot_exponent();

@@ -88,16 +88,14 @@ out vec4 fragData;
 
 void main()
 {
-    vec2 tex_coord = gl_FragCoord.xy / u_window_dimension;
+    vec2 tex_coord = gl_FragCoord.xy / textureSize(u_sampler_2D[ALBEDO], 0);
     vec4 color = texture(u_sampler_2D[ALBEDO], tex_coord);
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
-    // vec4 specular = texture(u_sampler_2D[SPECULAR], tex_coord);
     vec4 mat_prop = texture(u_sampler_2D[MATERIAL_PROPS], tex_coord);
     bool receive_shadow = bool(mat_prop.b);
     const float min_shade = 0.1, max_shade = 1.0;
-    float sf = receive_shadow ?
-        shadow_factor(u_sampler_cube[0], position, u_lights[u_light_index].position) : 1.0;
+    float sf = receive_shadow ? shadow_factor(u_sampler_cube[0], position, u_lights[u_light_index].position) : 1.0;
     sf = mix(min_shade, max_shade, sf);
     fragData = shade(u_lights[u_light_index], normal, position, color, mat_prop, sf);
 }

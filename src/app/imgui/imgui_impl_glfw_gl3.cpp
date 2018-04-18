@@ -356,7 +356,7 @@ static void ImGui_ImplGlfw_InstallCallbacks(GLFWwindow* window)
     glfwSetCharCallback(window, ImGui_ImplGlfw_CharCallback);
 }
 
-bool    ImGui_ImplGlfwGL3_Init(GLFWwindow* window, bool install_callbacks, const char* glsl_version)
+bool ImGui_ImplGlfwGL3_Init(GLFWwindow* window, bool install_callbacks, const char* glsl_version)
 {
     g_Window = window;
 

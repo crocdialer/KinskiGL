@@ -26,6 +26,7 @@ void DeferredRenderer::init()
 #if !defined(KINSKI_GLES)
     std::string glsl_version = "#version 410";
 
+    // default lighting
     std::string frag_src = glsl_version + "\n" + brdf_glsl + "\n" + deferred_lighting_frag;
     auto shader = gl::Shader::create(unlit_vert, frag_src);
     m_mat_lighting = gl::Material::create(shader);

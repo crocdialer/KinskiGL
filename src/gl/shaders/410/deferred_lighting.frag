@@ -33,7 +33,8 @@ out vec4 fragData;
 
 void main()
 {
-    vec2 tex_coord = gl_FragCoord.xy / u_window_dimension;
+//    vec2 tex_coord = gl_FragCoord.xy / u_window_dimension;
+    vec2 tex_coord = gl_FragCoord.xy / textureSize(u_sampler_2D[ALBEDO], 0);
     vec4 color = texture(u_sampler_2D[ALBEDO], tex_coord);
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;

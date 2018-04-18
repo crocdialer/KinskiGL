@@ -247,12 +247,12 @@ namespace kinski
         // ImGui
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+//        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+//        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
         ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
         ImGuiStyle& im_style = ImGui::GetStyle();
         im_style.Colors[ImGuiCol_TitleBgActive] = im_color_cast(gl::COLOR_ORANGE * 0.5f);
-        ImGui_ImplGlfwGL3_NewFrame();
+//        ImGui_ImplGlfwGL3_NewFrame();
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
         glfwSetJoystickCallback(&GLFW_App::s_joystick_cb);
@@ -268,7 +268,6 @@ namespace kinski
         {
             glfwSwapBuffers(window->handle());
         }
-        ImGui_ImplGlfwGL3_NewFrame();
     }
 
     void GLFW_App::set_window_size(const glm::vec2 &size)
@@ -323,6 +322,7 @@ namespace kinski
     void GLFW_App::poll_events()
     {
         glfwPollEvents();
+        ImGui_ImplGlfwGL3_NewFrame();
     }
 
     void GLFW_App::draw_internal()
@@ -408,6 +408,8 @@ namespace kinski
             TwInit(TW_OPENGL_CORE, nullptr);
             for(auto &c : comps){ add_tweakbar_for_component(c); }
             set_window_size(new_res);
+
+            ImGui_ImplGlfwGL3_Init(window->handle(), false, "#version 410");
 
             gl::reset_state();
             set_cursor_visible(cursor_visible());
