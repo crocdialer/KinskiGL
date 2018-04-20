@@ -20,15 +20,12 @@ struct Lightsource
     int type;
     vec4 diffuse;
     vec4 ambient;
-    vec4 specular;
     vec3 direction;
     float intensity;
+    float radius;
     float spotCosCutoff;
     float spotExponent;
-    float constantAttenuation;
-    float linearAttenuation;
     float quadraticAttenuation;
-    float pad_0, pad_1, pad_2;
 };
 
 vec4 BRDF_Lambertian(vec4 color, float metalness)
