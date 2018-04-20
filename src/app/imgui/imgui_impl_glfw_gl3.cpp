@@ -478,19 +478,19 @@ void ImGui_ImplGlfwGL3_NewFrame()
     }
 
     // Update OS/hardware mouse cursor if imgui isn't drawing a software cursor
-    if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && glfwGetInputMode(g_Window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
-    {
-        ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
-        if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None)
-        {
-            glfwSetInputMode(g_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        }
-        else
-        {
-            glfwSetCursor(g_Window, g_MouseCursors[cursor] ? g_MouseCursors[cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
-            glfwSetInputMode(g_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-    }
+//    if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0 && glfwGetInputMode(g_Window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
+//    {
+//        ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+//        if (io.MouseDrawCursor || cursor == ImGuiMouseCursor_None)
+//        {
+//            glfwSetInputMode(g_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+//        }
+//        else
+//        {
+//            glfwSetCursor(g_Window, g_MouseCursors[cursor] ? g_MouseCursors[cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
+//            glfwSetInputMode(g_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+//        }
+//    }
 
     // Gamepad navigation mapping [BETA]
     memset(io.NavInputs, 0, sizeof(io.NavInputs));

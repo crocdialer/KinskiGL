@@ -33,13 +33,13 @@ namespace kinski
         gl::MaterialPtr m_post_process_mat;
         
         Property_<float>::Ptr
-        m_focal_depth = Property_<float>::create("focal depth", 300.f),
-        m_focal_length = Property_<float>::create("focal length", 50.f),
+        m_focal_length = Property_<float>::create("focal length", 200.f),
+        m_focal_depth = RangedProperty<float>::create("focal depth", 50.f, 0.f, 200.f),
         m_circle_of_confusion_sz = Property_<float>::create("circle of confusion size", 0.03f),
-        m_fstop = Property_<float>::create("fstop", 1.f),
-        m_gain = Property_<float>::create("gain", 2.f),
-        m_fringe = Property_<float>::create("fringe", .7f),
-        m_ground_plane_texture_scale = Property_<float>::create("groundplane texture scale", 1.f),
+        m_fstop = RangedProperty<float>::create("fstop", 1.f, 0.f, 200.f),
+        m_gain = RangedProperty<float>::create("gain", 1.f, 0.f, 20.f),
+        m_fringe = RangedProperty<float>::create("fringe", .7f, 0.f, 10.f),
+        m_ground_plane_texture_scale = RangedProperty<float>::create("groundplane texture scale", 1.f, -5.f, 5.f),
         m_mesh_metalness = RangedProperty<float>::create("metalness", 0.f, 0.f, 1.f),
         m_mesh_roughness = RangedProperty<float>::create("roughness", 1.f, 0.f, 1.f);
         

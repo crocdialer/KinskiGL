@@ -252,7 +252,7 @@ namespace kinski
         ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
         ImGuiStyle& im_style = ImGui::GetStyle();
         im_style.Colors[ImGuiCol_TitleBgActive] = im_color_cast(gl::COLOR_ORANGE * 0.5f);
-//        ImGui_ImplGlfwGL3_NewFrame();
+        im_style.Colors[ImGuiCol_HeaderActive] = im_color_cast(gl::COLOR_ORANGE * 0.5f);
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
         glfwSetJoystickCallback(&GLFW_App::s_joystick_cb);
@@ -463,15 +463,18 @@ namespace kinski
                 {
                     // console output
                     outstream_gl().draw();
-                    TwDraw();
-                    
+
+//                    // AntTweakbar
+//                    TwDraw();
+
                     // TODO: remove this, as soon as the side-effect making this necessary is found
                     glDepthMask(GL_TRUE);
-                }
 
-                // render and draw ImGui
-                ImGui::Render();
-                ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+                    // render and draw ImGui
+                    ImGui::Render();
+                    ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+                }
+                else{ ImGui::EndFrame(); }
             });
         }
 

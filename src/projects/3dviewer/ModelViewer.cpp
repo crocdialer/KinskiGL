@@ -95,6 +95,15 @@ void ModelViewer::setup()
 void ModelViewer::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+
+    // construct ImGui window for this frame
+    if(display_tweakbar())
+    {
+        gl::draw_component_ui(shared_from_this());
+        gl::draw_component_ui(m_light_component);
+        if(*m_use_warping){ gl::draw_component_ui(m_warp_component); }
+    }
+
     update_shader();
     update_fbos();
 
@@ -110,26 +119,6 @@ void ModelViewer::update(float timeDelta)
     }
 
     process_joystick(timeDelta);
-
-    // test ImGui
-//    {
-//        float f = 0.0f;
-//        int counter = 0;
-//        ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-//        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-//
-//        if(ImGui::ColorEdit4("clear color", (float*)&m_clear_color->value())){ m_clear_color->notify_observers(); }
-//        ImGui::Checkbox("draw fps", &m_draw_fps->value());
-//
-//        if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
-//            counter++;
-//        ImGui::SameLine();
-//        ImGui::Text("counter = %d", counter);
-//
-//        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-//    }
-
-    gl::draw_component_ui(shared_from_this());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -565,6 +554,14 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
                 mat->set_roughness(*m_mesh_roughness);
             }
         }
+    }
+    else if(theProperty == m_focal_length)
+    {
+        auto range_prop = std::dynamic_pointer_cast<RangedProperty<float>>(m_focal_depth);
+        range_prop->set_range(0.f, m_focal_length->value());
+
+        range_prop = std::dynamic_pointer_cast<RangedProperty<float>>(m_fstop);
+        range_prop->set_range(0.f, m_focal_length->value());
     }
 }
 

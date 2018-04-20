@@ -126,7 +126,8 @@ namespace kinski {
 
         // ImGui Font
         ImGuiIO& io = ImGui::GetIO();
-//        io.
+        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 15);
+
         gl::ShaderPtr unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
         for (int i = 0; i < 8; i++)
