@@ -26,14 +26,14 @@ WarpComponent::WarpComponent()
 {
     set_name("quad_warping");
 
-    m_index = RangedProperty<uint32_t>::create("index", 0, 0, 9);
+    m_index = RangedProperty<int>::create("index", 0, 0, 9);
     m_enabled = Property_<bool>::create("enabled", false);
-    m_num_subdivisions_x = RangedProperty<uint32_t>::create("num subdivisions x", 1, 1,
+    m_num_subdivisions_x = RangedProperty<int>::create("num subdivisions x", 1, 1,
                                                             gl::Warp::s_max_num_subdivisions.x);
-    m_num_subdivisions_y = RangedProperty<uint32_t>::create("num subdivisions y", 1, 1,
+    m_num_subdivisions_y = RangedProperty<int>::create("num subdivisions y", 1, 1,
                                                             gl::Warp::s_max_num_subdivisions.y);
-    m_grid_resolution_x = RangedProperty<uint32_t>::create("grid resolution x", 32, 1, 160);
-    m_grid_resolution_y = RangedProperty<uint32_t>::create("grid resolution y", 18, 1, 160);
+    m_grid_resolution_x = RangedProperty<int>::create("grid resolution x", 32, 1, 160);
+    m_grid_resolution_y = RangedProperty<int>::create("grid resolution y", 18, 1, 160);
     m_draw_grid = Property_<bool>::create("draw grid", false);
     m_draw_control_points = Property_<bool>::create("draw control points", false);
     m_perspective = Property_<bool>::create("perspective", true);
@@ -253,7 +253,7 @@ void WarpComponent::update_property(const Property::ConstPtr &the_property)
     }
 }
 
-void WarpComponent::render_output(uint32_t the_index, const gl::Texture &the_tex,
+void WarpComponent::render_output(int the_index, const gl::Texture &the_tex,
                                   const float the_brightness)
 {
     m_quad_warp[the_index].render_output(the_tex, the_brightness);

@@ -27,7 +27,7 @@ void draw_property_ui(const Property_<int>::Ptr &the_property)
     }
     else
     {
-        if(ImGui::InputInt(prop_name.c_str(), &the_property->value(), 1, 10))
+        if(ImGui::InputInt(prop_name.c_str(), &the_property->value(), 1, 10, ImGuiInputTextFlags_EnterReturnsTrue))
         {
             the_property->notify_observers();
         }
@@ -50,7 +50,8 @@ void draw_property_ui(const Property_<float>::Ptr &the_property)
     else
     {
         if(ImGui::InputFloat(prop_name.c_str(), &the_property->value(), 0.f, 0.f,
-                             (std::abs(the_property->value()) < 1.f) ? 5 : 2))
+                             (std::abs(the_property->value()) < 1.f) ? 5 : 2,
+                             ImGuiInputTextFlags_EnterReturnsTrue))
         {
             the_property->notify_observers();
         }
@@ -73,13 +74,26 @@ void draw_property_ui(const Property_<gl::vec2>::Ptr &the_property)
 {
     std::string prop_name = the_property->name();
 
-    if(ImGui::InputFloat2(prop_name.c_str(), &the_property->value()[0], 2))
+    if(ImGui::InputFloat2(prop_name.c_str(), &the_property->value()[0], 2,
+                          ImGuiInputTextFlags_EnterReturnsTrue))
     {
         the_property->notify_observers();
     }
 }
 
-// gl::Color
+// gl::vec3
+void draw_property_ui(const Property_<gl::vec3>::Ptr &the_property)
+{
+    std::string prop_name = the_property->name();
+
+    if(ImGui::InputFloat3(prop_name.c_str(), &the_property->value()[0], 2,
+                          ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        the_property->notify_observers();
+    }
+}
+
+// gl::Color (a.k.a. gl::vec4)
 void draw_property_ui(const Property_<gl::Color>::Ptr &the_property)
 {
     std::string prop_name = the_property->name();
@@ -100,6 +114,18 @@ void draw_property_ui(const Property_<std::string>::Ptr &the_property)
                         ImGuiInputTextFlags_EnterReturnsTrue))
     {
         the_property->value(g_text_buf);
+    }
+}
+
+// std::vector<std::string>>
+void draw_property_ui(const Property_<std::vector<std::string>>::Ptr &the_property)
+{
+    std::string prop_name = the_property->name();
+
+    if(ImGui::TreeNode(prop_name.c_str()))
+    {
+        for(auto &str : the_property->value()){ ImGui::Text(str.c_str()); }
+        ImGui::TreePop();
     }
 }
 
@@ -145,6 +171,11 @@ void draw_component_ui(const ComponentConstPtr &the_component)
             auto cast_prop = std::dynamic_pointer_cast<Property_<gl::vec2>>(p);
             draw_property_ui(cast_prop);
         }
+        else if(p->is_of_type<gl::vec3>())
+        {
+            auto cast_prop = std::dynamic_pointer_cast<Property_<gl::vec3>>(p);
+            draw_property_ui(cast_prop);
+        }
         else if(p->is_of_type<gl::Color>())
         {
             auto cast_prop = std::dynamic_pointer_cast<Property_<gl::Color>>(p);
@@ -153,6 +184,11 @@ void draw_component_ui(const ComponentConstPtr &the_component)
         else if(p->is_of_type<std::string>())
         {
             auto cast_prop = std::dynamic_pointer_cast<Property_<std::string>>(p);
+            draw_property_ui(cast_prop);
+        }
+        else if(p->is_of_type<std::vector<std::string>>())
+        {
+            auto cast_prop = std::dynamic_pointer_cast<Property_<std::vector<std::string>>>(p);
             draw_property_ui(cast_prop);
         }
         else{ draw_property_ui(p); }

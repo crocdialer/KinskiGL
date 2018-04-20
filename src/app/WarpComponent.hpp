@@ -37,7 +37,7 @@ namespace kinski
         
         gl::Warp& quad_warp(int i = -1);
         
-        void render_output(uint32_t the_index, const gl::Texture &the_tex, const float the_brightness = 1.f);
+        void render_output(int the_index, const gl::Texture &the_tex, const float the_brightness = 1.f);
         void set_from(gl::Warp &the_quadwarp, uint32_t the_index = 0);
         uint32_t index() const{ return *m_index; }
         void set_index(int the_index) { *m_index = the_index; }
@@ -83,9 +83,9 @@ namespace kinski
         bool m_show_cursor = false;
         gl::Font m_font;
         
-        Property_<uint32_t>::Ptr m_index;
-        Property_<uint32_t>::Ptr m_num_subdivisions_x, m_num_subdivisions_y;
-        Property_<uint32_t>::Ptr m_grid_resolution_x, m_grid_resolution_y;
+        Property_<int>::Ptr m_index;
+        Property_<int>::Ptr m_num_subdivisions_x, m_num_subdivisions_y;
+        Property_<int>::Ptr m_grid_resolution_x, m_grid_resolution_y;
         Property_<bool>::Ptr m_enabled, m_draw_grid, m_draw_control_points, m_perspective,
                              m_cubic_interpolation;
         

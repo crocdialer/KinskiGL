@@ -60,7 +60,7 @@ namespace kinski {
         m_distance->set_tweakable(false);
         register_property(m_distance);
 
-        m_camera_fov = Property_<float>::create("camera fov", 45.f);
+        m_camera_fov = RangedProperty<float>::create("camera fov", 45.f, 1.f, 180.f);
         register_property(m_camera_fov);
 
         m_rotation = Property_<glm::mat3>::create("geometry rotation", glm::mat3());
@@ -254,7 +254,7 @@ namespace kinski {
         if(e.isLeft() || e.is_touch())
         {
             if(e.isAltDown() && *m_use_warping){ m_warp_component->mouse_drag(e); }
-            else if(!display_tweakbar() || e.isAltDown())
+            else
             {
                 *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
@@ -293,46 +293,43 @@ namespace kinski {
         }
         
         if(*m_use_warping && e.isAltDown()){ m_warp_component->key_press(e); }
-        
-        if(!display_tweakbar())
+
+        switch (e.getCode())
         {
-            switch (e.getCode())
-            {
-                case Key::_W:
-                    *m_use_warping = !*m_use_warping;
-                    break;
+            case Key::_W:
+                *m_use_warping = !*m_use_warping;
+                break;
 
-                case Key::_C:
-                    m_center_selected = !m_center_selected;
-                    break;
+            case Key::_C:
+                m_center_selected = !m_center_selected;
+                break;
 
-                case Key::_S:
-                    save_settings();
-                    break;
+            case Key::_S:
+                save_settings();
+                break;
 
-                case Key::_F:
-                    *m_fullscreen = !*m_fullscreen;
-                    break;
-                    
-                case Key::_H:
-                    *m_hide_cursor = !*m_hide_cursor;
-                    break;
+            case Key::_F:
+                *m_fullscreen = !*m_fullscreen;
+                break;
 
-                case Key::_R:
-                    try
-                    {
-                        m_inertia = glm::vec2(0);
-                        m_selected_mesh.reset();
-                        load_settings();
-                    }catch(Exception &e)
-                    {
-                        LOG_WARNING << e.what();
-                    }
-                    break;
+            case Key::_H:
+                *m_hide_cursor = !*m_hide_cursor;
+                break;
 
-                default:
-                    break;
-            }
+            case Key::_R:
+                try
+                {
+                    m_inertia = glm::vec2(0);
+                    m_selected_mesh.reset();
+                    load_settings();
+                }catch(Exception &e)
+                {
+                    LOG_WARNING << e.what();
+                }
+                break;
+
+            default:
+                break;
         }
     }
     
