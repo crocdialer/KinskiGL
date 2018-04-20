@@ -123,7 +123,10 @@ namespace kinski {
         
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
-        
+
+        // ImGui Font
+        ImGuiIO& io = ImGui::GetIO();
+//        io.
         gl::ShaderPtr unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
         for (int i = 0; i < 8; i++)
