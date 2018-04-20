@@ -10,7 +10,6 @@
 #include "gl/gl.hpp"
 #include "gl/Material.hpp"
 #include "GLFW_App.hpp"
-#include "AntTweakBarConnector.hpp"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
 #if defined(KINSKI_LINUX)
@@ -171,8 +170,6 @@ namespace kinski
 
     GLFW_App::~GLFW_App()
     {
-        TwTerminate();
-
         // close all windows
         m_windows.clear();
 
@@ -245,8 +242,6 @@ namespace kinski
 #endif
         //---------------------------------
 
-        // AntTweakbar
-        TwInit(TW_OPENGL_CORE, nullptr);
         set_window_size(main_window->size());
 
         // ImGui
@@ -287,7 +282,6 @@ namespace kinski
             m_windows.front()->set_size(size);
             
             auto fb_size = m_windows.front()->framebuffer_size();
-            TwWindowSize(fb_size.x, fb_size.y);
         }
     }
 
@@ -401,19 +395,10 @@ namespace kinski
             if(!b){ window->set_position(m_win_params.zw()); }
             else{ window->set_position(gl::vec2(0)); }
 
-            // juggle tweakbars
-            std::list<ComponentPtr> comps;
-
-            for(auto &p : m_tweakBars){ comps.push_back(p.first); }
-            m_tweakBars.clear();
-            TwTerminate();
-
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
             add_window(window);
 
-            TwInit(TW_OPENGL_CORE, nullptr);
-            for(auto &c : comps){ add_tweakbar_for_component(c); }
             set_window_size(new_res);
 
             ImGui_ImplGlfwGL3_Init(window->handle(), false, "#version 410");
@@ -544,12 +529,6 @@ namespace kinski
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
 
-            if(app->display_tweakbar() && app->windows().front()->handle() == window)
-            {
-                auto &w = app->windows().front();
-                auto fb_pos = w->framebuffer_size() * gl::ivec2(x, y) / w->size();
-                TwEventMousePosGLFW(fb_pos.x, fb_pos.y);
-            }
             uint32_t buttonModifiers, keyModifiers, bothMods;
             s_getModifiers(window, buttonModifiers, keyModifiers);
             bothMods = buttonModifiers | keyModifiers;
@@ -568,8 +547,6 @@ namespace kinski
         if(!ImGui::GetIO().WantCaptureMouse)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-            if(app->display_tweakbar() && app->windows().front()->handle() == window)
-                TwEventMouseButtonGLFW(button, action);
 
             uint32_t initiator, keyModifiers, bothMods;
             s_getModifiers(window, initiator, keyModifiers);
@@ -600,9 +577,6 @@ namespace kinski
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
             glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
-            app->m_lastWheelPos -= offset;
-            if(app->display_tweakbar() && app->windows().front()->handle() == window)
-                TwMouseWheel(app->m_lastWheelPos.y);
 
             double posX, posY;
             glfwGetCursorPos(window, &posX, &posY);
@@ -620,8 +594,6 @@ namespace kinski
         if(!ImGui::GetIO().WantCaptureKeyboard)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-            if(app->display_tweakbar() && app->windows().front()->handle() == window)
-                TwEventKeyGLFW(key, action);
 
             uint32_t buttonMod, keyMod;
             s_getModifiers(window, buttonMod, keyMod);
@@ -652,14 +624,9 @@ namespace kinski
 
         if(!ImGui::GetIO().WantCaptureKeyboard)
         {
-            GLFW_App *app = static_cast<GLFW_App *>(glfwGetWindowUserPointer(window));
-            if(app->display_tweakbar() && app->windows().front()->handle() == window)
-                TwEventCharGLFW(key, GLFW_PRESS);
-
-            if(key == GLFW_KEY_SPACE) { return; }
-
-            uint32_t buttonMod, keyMod;
-            s_getModifiers(window, buttonMod, keyMod);
+//            GLFW_App *app = static_cast<GLFW_App *>(glfwGetWindowUserPointer(window));
+//            uint32_t buttonMod, keyMod;
+//            s_getModifiers(window, buttonMod, keyMod);
         }
     }
 
@@ -724,8 +691,6 @@ namespace kinski
             LOG_DEBUG << "joystick " << joy << " disconnected";
         }
     }
-
-/****************************  TweakBar + Properties **************************/
     
     void GLFW_App::set_display_tweakbar(bool b)
     {
@@ -737,110 +702,5 @@ namespace kinski
             set_cursor_visible(true);
             set_cursor_visible(c);
         }
-    }
-    
-    void GLFW_App::add_tweakbar_for_component(const ComponentPtr &the_component)
-    {
-        if(!the_component) return;
-        auto tw_bar = std::shared_ptr<CTwBar>(TwNewBar(the_component->name().c_str()), TwDeleteBar);
-        m_tweakBars[the_component] = tw_bar;
-
-        set_bar_color(glm::vec4(0, 0, 0, .5), tw_bar.get());
-        set_bar_size(glm::ivec2(250, 500), tw_bar.get());
-        glm::ivec2 offset(10, 40);
-        set_bar_position(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), tw_bar.get());
-        add_list_to_tweakbar(the_component->get_property_list(), "", tw_bar.get());
-    }
-
-    void GLFW_App::remove_tweakbar_for_component(const ComponentPtr &the_component)
-    {
-        auto it = m_tweakBars.find(the_component);
-
-        if(it != m_tweakBars.end())
-        {
-            m_tweakBars.erase(it);
-        }
-    }
-
-    void GLFW_App::add_property_to_tweakbar(const Property::Ptr propPtr,
-                                         const string &group,
-                                         TwBar *theBar)
-    {
-        if(!theBar)
-        {
-            if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()].get();
-        }
-
-        try { AntTweakBarConnector::connect(theBar, propPtr, group); }
-        catch (AntTweakBarConnector::PropertyUnsupportedException &e){ LOG_ERROR<<e.what(); }
-    }
-
-    void GLFW_App::add_list_to_tweakbar(const list<Property::Ptr> &theProps,
-                                        const string &group,
-                                        TwBar *theBar)
-    {
-        if(!theBar)
-        {
-            if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()].get();
-        }
-        for (const auto &property : theProps)
-        {
-            add_property_to_tweakbar(property, group, theBar);
-        }
-        TwAddSeparator(theBar, "sep1", NULL);
-    }
-
-    void GLFW_App::set_bar_position(const glm::ivec2 &thePos, TwBar *theBar)
-    {
-        if(!theBar)
-        {
-            if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()].get();
-        }
-        std::stringstream ss;
-        ss << TwGetBarName(theBar) << " position='" <<thePos.x
-        <<" " << thePos.y <<"'";
-        TwDefine(ss.str().c_str());
-    }
-
-    void GLFW_App::set_bar_size(const glm::ivec2 &theSize, TwBar *theBar)
-    {
-        if(!theBar)
-        {
-            if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()].get();
-        }
-        std::stringstream ss;
-        ss << TwGetBarName(theBar) << " size='" <<theSize.x
-        <<" " << theSize.y <<"'";
-        TwDefine(ss.str().c_str());
-    }
-
-    void GLFW_App::set_bar_color(const glm::vec4 &theColor, TwBar *theBar)
-    {
-        if(!theBar)
-        {
-            if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()].get();
-        }
-        std::stringstream ss;
-        glm::ivec4 color(theColor * 255.f);
-        ss << TwGetBarName(theBar) << " color='" <<color.r
-        <<" " << color.g << " " << color.b <<"' alpha="<<color.a;
-        TwDefine(ss.str().c_str());
-    }
-
-    void GLFW_App::set_bar_title(const std::string &theTitle, TwBar *theBar)
-    {
-        if(!theBar)
-        {
-            if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()].get();
-        }
-        std::stringstream ss;
-        ss << TwGetBarName(theBar) << " label='" << theTitle <<"'";
-        TwDefine(ss.str().c_str());
     }
 }

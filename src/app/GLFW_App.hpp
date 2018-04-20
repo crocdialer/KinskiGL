@@ -16,8 +16,6 @@
 #include "OutstreamGL.hpp"
 #include "imgui/imgui_util.h"
 
-struct CTwBar;
-
 namespace kinski
 {
     class MouseEvent;
@@ -98,22 +96,6 @@ namespace kinski
         
         void set_display_tweakbar(bool b) override;
         
-        void add_property_to_tweakbar(const Property::Ptr propPtr,
-                                      const std::string &group = "",
-                                      CTwBar *theBar = nullptr);
-        
-        void add_list_to_tweakbar(const std::list<Property::Ptr> &theProps,
-                                  const std::string &group = "",
-                                  CTwBar *theBar = nullptr);
-        
-        void set_bar_position(const glm::ivec2 &thePos, CTwBar *theBar = nullptr);
-        void set_bar_size(const glm::ivec2 &theSize, CTwBar *theBar = nullptr);
-        void set_bar_color(const glm::vec4 &theColor, CTwBar *theBar = nullptr);
-        void set_bar_title(const std::string &theTitle, CTwBar *theBar = nullptr);
-        
-        void add_tweakbar_for_component(const ComponentPtr &the_component) override;
-        void remove_tweakbar_for_component(const ComponentPtr &the_component) override;
-        
         int get_num_monitors() const;
         const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
         gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
@@ -154,7 +136,6 @@ namespace kinski
         static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,
                                    uint32_t &keyModifiers);
         
-        std::map<ComponentPtr, std::shared_ptr<CTwBar>> m_tweakBars;
         gl::OutstreamGL m_outstream_gl;
     };
 }
