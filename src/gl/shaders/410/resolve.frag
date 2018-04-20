@@ -30,10 +30,11 @@ in VertexData
 
 out vec4 fragData;
 
+uniform vec2 u_window_dimension;
 uniform int u_show_edges = 0;
 uniform int u_use_fxaa = 1;
 
-uniform float u_lumaThreshold = 0.5;
+uniform float u_luma_thresh = 0.5;
 uniform float u_mulReduce = 1.0 / 256.0;
 uniform float u_minReduce = 1.0 / 512.0;
 uniform float u_maxSpan = 16.0;
@@ -60,6 +61,7 @@ vec4 fxaa(sampler2D the_sampler, vec2 the_tex_coord)
 
     // determine texel-step size
     vec2 texel_step = 1.0 / textureSize(the_sampler, 0);
+//    vec2 texel_step = 1.0 / u_window_dimension;
 
     // NTSC luma formula
     const vec3 toLuma = vec3(0.299, 0.587, 0.114);
@@ -76,7 +78,7 @@ vec4 fxaa(sampler2D the_sampler, vec2 the_tex_coord)
     float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));
 
     // If contrast is lower than a maximum threshold ...
-    if(lumaMax - lumaMin < lumaMax * u_lumaThreshold)
+    if(lumaMax - lumaMin < lumaMax * u_luma_thresh)
     {
         // ... do no AA and return.
         return color;

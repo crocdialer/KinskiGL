@@ -46,7 +46,8 @@ namespace kinski
         Property_<bool>::Ptr
         m_debug_focus = Property_<bool>::create("debug focus", false),
         m_auto_focus = Property_<bool>::create("auto focus", false),
-        m_use_post_process = Property_<bool>::create("use post process", false);
+        m_use_post_process = Property_<bool>::create("use post process", false),
+        m_use_fxaa = Property_<bool>::create("use FXAA", true);
         
         Property_<gl::vec2>::Ptr
         m_offscreen_resolution = Property_<gl::vec2>::create("offscreen resolution", gl::vec2(0));

@@ -93,7 +93,7 @@ gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
     gl::GeometryPtr geom = gl::Geometry::create();
 
     glm::mat4 model_matrix;
-    if(get_mesh_transform(theScene, aMesh, model_matrix)){ LOG_DEBUG << "found mesh transform"; }
+    if(!get_mesh_transform(theScene, aMesh, model_matrix)){ LOG_WARNING << "could not find mesh transform"; }
     glm::mat3 normal_matrix = glm::inverseTranspose(glm::mat3(model_matrix));
 
     geom->vertices().insert(geom->vertices().end(), (vec3*)aMesh->mVertices,

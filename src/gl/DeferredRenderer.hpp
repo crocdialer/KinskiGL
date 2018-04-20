@@ -28,6 +28,11 @@ public:
                           const std::set<std::string> &the_tags = {}) override;
 
 
+    void set_g_buffer_resolution(const gl::vec2 &the_res){ m_g_buffer_resolution = the_res; };
+
+    bool use_fxaa() const{ return m_use_fxaa; };
+    void set_use_fxaa(bool b);
+
     gl::Fbo g_buffer(){ return m_fbo_geometry; }
 
     gl::Texture final_texture();
@@ -43,6 +48,8 @@ private:
     
     enum ShaderProperty{PROP_DEFAULT = 0, PROP_SKIN = 1, PROP_NORMAL = 2, PROP_SPEC = 4, PROP_ROUGH_METAL = 8,
         PROP_EMMISION = 16};
+
+    gl::vec2 m_g_buffer_resolution;
     std::map<uint32_t , gl::ShaderPtr> m_shader_map;
     
     gl::ShaderPtr m_shader_shadow, m_shader_shadow_skin, m_shader_shadow_omni, m_shader_shadow_omni_skin;
@@ -52,7 +59,7 @@ private:
     m_mat_lighting_emissive, m_mat_lighting_enviroment, m_mat_stencil, m_mat_resolve;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
     
-    bool m_skybox_loaded = false;
+    bool m_skybox_loaded = false, m_use_fxaa = true;
 };
 
 }}

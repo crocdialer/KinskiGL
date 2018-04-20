@@ -11,15 +11,21 @@
 
 namespace kinski{ namespace gl{
 
+///////////////////////////////////////////////////////////////////////////////
+
 DeferredRendererPtr DeferredRenderer::create()
 {
     return DeferredRendererPtr(new DeferredRenderer());
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 DeferredRenderer::DeferredRenderer()
 {
 
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 void DeferredRenderer::init()
 {
@@ -119,6 +125,8 @@ void DeferredRenderer::init()
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
@@ -128,6 +136,10 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
 
     gl::reset_state();
 
+    // determine internal resolution for rendering
+    gl::vec2 resolution = gl::window_dimension();
+    if(m_g_buffer_resolution.x > 0 && m_g_buffer_resolution.y > 0){ resolution = m_g_buffer_resolution; }
+
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
 
@@ -135,10 +147,10 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
         gl::SaveFramebufferBinding sfb;
 
         // create G-buffer, if necessary, and fill it
-        geometry_pass(gl::window_dimension(), render_bin);
+        geometry_pass(resolution, render_bin);
 
         // lighting pass
-        light_pass(gl::window_dimension(), render_bin);
+        light_pass(resolution, render_bin);
     }
 
     // skybox drawing
@@ -154,6 +166,8 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     // draw light texture
     m_mat_resolve->add_texture(m_fbo_lighting.texture());
     m_mat_resolve->add_texture(m_fbo_geometry.depth_texture(), gl::Material::TextureType::DEPTH);
+    m_mat_resolve->uniform("u_use_fxaa", m_use_fxaa ? 1 : 0);
+    m_mat_resolve->uniform("u_luma_thresh", .3f);
     gl::draw_quad(gl::window_dimension(), m_mat_resolve);
     
     // draw emission texture
@@ -165,6 +179,8 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin)
 {
 #if !defined(KINSKI_GLES)
@@ -174,7 +190,6 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         gl::Fbo::Format fmt;
         fmt.set_color_internal_format(GL_RGB32F);
         fmt.enable_stencil_buffer(true);
-//        fmt.set_num_samples(4);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
         m_fbo_geometry = gl::Fbo(the_size, fmt);
 
@@ -196,6 +211,8 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     opaque_items.insert(opaque_items.end(), blended_items.begin(), blended_items.end());
     
     // bind G-Buffer
+    gl::SaveViewPort sv;
+    gl::set_window_dimension(m_fbo_geometry.size());
     m_fbo_geometry.bind();
     gl::clear();
     KINSKI_CHECK_GL_ERRORS();
@@ -227,6 +244,8 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin)
 {
 #if !defined(KINSKI_GLES)
@@ -255,6 +274,8 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
         m_mat_lighting_shadow->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
         m_mat_lighting_shadow_omni->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
     }
+    gl::SaveViewPort sv;
+    gl::set_window_dimension(m_fbo_lighting.size());
     m_fbo_lighting.bind();
 
     // update frustum for directional and eviroment lights
@@ -284,6 +305,8 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
     render_light_volumes(the_renderbin, false);
 #endif
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbin,
                                                 const gl::LightPtr &l)
@@ -371,6 +394,8 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
     return gl::Texture();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, bool stencil_pass)
 {
     gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
@@ -449,9 +474,20 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 gl::Texture DeferredRenderer::final_texture()
 {
     return m_fbo_lighting.texture();
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+void DeferredRenderer::set_use_fxaa(bool b)
+{
+    m_use_fxaa = b;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 
 }}

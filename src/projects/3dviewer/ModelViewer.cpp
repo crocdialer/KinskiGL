@@ -32,6 +32,7 @@ void ModelViewer::setup()
     register_property(m_shadow_cast);
     register_property(m_shadow_receive);
     register_property(m_use_post_process);
+    register_property(m_use_fxaa);
     register_property(m_offscreen_resolution);
     register_property(m_use_normal_map);
     register_property(m_use_ground_plane);
@@ -306,6 +307,8 @@ void ModelViewer::update_fbos()
     {
         m_deferred_renderer = gl::DeferredRenderer::create();
         if(*m_use_deferred_render){ scene()->set_renderer(m_deferred_renderer); }
+        m_deferred_renderer->set_g_buffer_resolution(*m_offscreen_resolution);
+        m_deferred_renderer->set_use_fxaa(*m_use_fxaa);
         m_dirty_g_buffer = false;
     }
 }
@@ -454,6 +457,11 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_use_deferred_render)
     {
+        if(*m_use_deferred_render && !m_deferred_renderer)
+        {
+            m_deferred_renderer = gl::DeferredRenderer::create();
+            m_dirty_g_buffer = true;
+        }
         scene()->set_renderer(*m_use_deferred_render ? m_deferred_renderer : gl::SceneRenderer::create());
     }
     else if(theProperty == m_shadow_cast ||
@@ -482,6 +490,8 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
             }, true, false, 8.f);
         }
     }
+    else if(theProperty == m_offscreen_resolution){ m_dirty_g_buffer = true; }
+    else if(theProperty == m_use_fxaa){ m_dirty_g_buffer = true; }
     else if(theProperty == m_use_normal_map){ m_dirty_shader = true; }
     else if(theProperty == m_use_bones){ m_dirty_shader = true; }
     else if(theProperty == m_use_lighting){ m_dirty_shader = true; }
@@ -759,14 +769,14 @@ void ModelViewer::update_shader()
         try{ shader = gl::create_shader(type); }
         catch(Exception &e){ LOG_WARNING << e.what(); }
 
+        auto t = (uint32_t)gl::Material::TextureType::NORMAL;
+
         for(auto &mat : m_mesh->materials())
         {
             if(shader){ mat->set_shader(shader); }
 
-            auto t = (uint32_t)gl::Material::TextureType::NORMAL;
             if(use_normal_map && !mat->has_texture(t))
             {
-//                mat->add_texture(m_normal_map, t);
                 mat->enqueue_texture(*m_normalmap_path, t);
             }
         }
