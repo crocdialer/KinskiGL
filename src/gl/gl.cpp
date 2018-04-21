@@ -1176,18 +1176,18 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             
             for(auto &pair : the_mat->queued_textures())
             {
-                if(pair.second.second == gl::Material::AssetLoadStatus::NOT_LOADED)
+                if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
                 {
                     try
                     {
                         auto t = gl::create_texture_from_file(pair.first, true, true);
-                        the_mat->add_texture(t, pair.second.first);
-                        pair.second.second = gl::Material::AssetLoadStatus::LOADED;
+                        the_mat->add_texture(t, pair.second.key);
+                        pair.second.status = gl::Material::AssetLoadStatus::LOADED;
                     }
                     catch(Exception &e)
                     {
                         LOG_WARNING << e.what();
-                        pair.second.second = gl::Material::AssetLoadStatus::NOT_FOUND;
+                        pair.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
                     }
                 }
                 
@@ -1313,12 +1313,13 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 #endif
         char buf[512];
         auto texture_matrix = glm::mat4();
-        
+        bool got_tex_matrix = false;
+
         for(const auto &pair : the_mat->textures())
         {
             auto t = pair.second;
             if(!t){ continue; }
-            if(!pair.first){ texture_matrix = t.texture_matrix(); }
+            if(!got_tex_matrix){ texture_matrix = t.texture_matrix(); got_tex_matrix = true; }
             
             num_textures++;
             t.bind(tex_unit);

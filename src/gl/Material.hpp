@@ -37,12 +37,19 @@ namespace kinski { namespace gl {
         
         enum class TextureType{COLOR = 0, NORMAL = 1, SPECULAR = 2, ROUGH_METAL = 3, EMISSION = 4,
             DISPLACEMENT = 5, SHADOW = 6, DEPTH = 7, ENVIROMENT = 8, NOISE = 9, MASK = 10};
-        
+//        enum class TextureType{COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, ROUGH_METAL = 1 << 3,
+//            EMISSION = 1 << 4, DISPLACEMENT = 1 << 5, SHADOW = 1 << 6, DEPTH = 1 << 7, ENVIROMENT = 1 << 8,
+//            NOISE = 1 << 9, MASK = 1 << 10};
         enum class AssetLoadStatus{ NOT_LOADED = 0, LOADED = 1, NOT_FOUND = 2 };
         
         using texture_map_t = std::map<uint32_t, gl::Texture>;
-        
-        using texture_load_map_t = std::map<std::string, std::pair<uint32_t, AssetLoadStatus>>;
+
+        struct texture_load_status_t
+        {
+            uint32_t key;
+            AssetLoadStatus status;
+        };
+        using texture_load_map_t = std::map<std::string, texture_load_status_t>;
         
         static MaterialPtr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
         static MaterialPtr create(const ShaderPtr &theShader);

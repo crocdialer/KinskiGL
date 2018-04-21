@@ -692,14 +692,14 @@ void ModelViewer::async_load_asset(const std::string &the_path,
                         
                         if(img)
                         {
-                            tex_imgs.push_back(std::make_pair(p.second.first, img));
-                            p.second.second = gl::Material::AssetLoadStatus::LOADED;
+                            tex_imgs.push_back(std::make_pair(p.second.key, img));
+                            p.second.status = gl::Material::AssetLoadStatus::LOADED;
                         }
                     }
                     catch(Exception &e)
                     {
                         LOG_WARNING << e.what();
-                        p.second.second = gl::Material::AssetLoadStatus::NOT_FOUND;
+                        p.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
                     }
                 }
                 mat_img_map[mat] = tex_imgs;

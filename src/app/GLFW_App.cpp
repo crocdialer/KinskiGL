@@ -246,9 +246,9 @@ namespace kinski
 
         // ImGui
         ImGui::CreateContext();
-//        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io = ImGui::GetIO();
 //        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-//        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
         ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
         ImGuiStyle& im_style = ImGui::GetStyle();
         im_style.Colors[ImGuiCol_TitleBgActive] = im_color_cast(gl::COLOR_ORANGE.rgb * 0.5f);
@@ -441,6 +441,7 @@ namespace kinski
             glfwSetWindowSizeCallback(w, &GLFW_App::s_resize);
             the_window->set_draw_function([this]()
             {
+                glDepthMask(GL_TRUE);
                 draw();
 
                 // draw tweakbar
@@ -449,11 +450,8 @@ namespace kinski
                     // console output
                     outstream_gl().draw();
 
-//                    // AntTweakbar
-//                    TwDraw();
-
                     // TODO: remove this, as soon as the side-effect making this necessary is found
-                    glDepthMask(GL_TRUE);
+//                    glDepthMask(GL_TRUE);
 
                     // render and draw ImGui
                     ImGui::Render();
@@ -617,9 +615,7 @@ namespace kinski
 
         if(!ImGui::GetIO().WantCaptureKeyboard)
         {
-//            GLFW_App *app = static_cast<GLFW_App *>(glfwGetWindowUserPointer(window));
-//            uint32_t buttonMod, keyMod;
-//            s_getModifiers(window, buttonMod, keyMod);
+
         }
     }
 

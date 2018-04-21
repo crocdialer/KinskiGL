@@ -26,7 +26,7 @@ namespace kinski { namespace gl {
         :m_shader(theShader), m_uniform(theUniform){};
         
         template <typename T>
-        void operator()( T &value ) const
+        inline void operator()(T &value) const
         {
             m_shader->uniform(m_uniform, value);
         }
@@ -159,7 +159,7 @@ namespace kinski { namespace gl {
     bool Material::has_texture(uint32_t the_key)
     {
         // search queued textures
-        for(const auto &p : m_queued_textures){ if(p.second.first == the_key){ return true; } }
+        for(const auto &p : m_queued_textures){ if(p.second.key == the_key){ return true; } }
         return m_textures.find(the_key) != std::end(m_textures);
     }
     
@@ -189,7 +189,7 @@ namespace kinski { namespace gl {
     
     void Material::enqueue_texture(const std::string &the_texture_path, uint32_t the_key)
     {
-        m_queued_textures[the_texture_path] = std::make_pair(the_key, AssetLoadStatus::NOT_LOADED);
+        m_queued_textures[the_texture_path] = {the_key, AssetLoadStatus::NOT_LOADED};
     }
     
     void Material::enqueue_shader(gl::ShaderType the_type)
@@ -214,7 +214,7 @@ namespace kinski { namespace gl {
             float metalness;
             float roughness;
             int shadow_properties;
-            uint32_t pad[1];
+            int texture_properties;
         };
         
         if(m_dirty_uniform_buffer)
