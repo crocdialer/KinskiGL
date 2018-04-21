@@ -17,6 +17,7 @@ struct Material
     float metalness;
     float roughness;
     int shadow_properties;
+    int texture_properties;
 };
 
 layout(std140) uniform MaterialBlock

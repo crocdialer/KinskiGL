@@ -230,6 +230,8 @@ namespace kinski { namespace gl {
             m.metalness = m_metalness;
             m.roughness = m_roughness;
             m.shadow_properties = m_shadow_properties;
+            m.texture_properties = 0;
+            for(const auto &pair : m_textures){ m.texture_properties |= pair.first; }
             m_uniform_buffer.set_data(&m, sizeof(m));
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());

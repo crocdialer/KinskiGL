@@ -532,7 +532,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         int i = 0;
         for(const auto &f : m_ground_textures->value())
         {
-            m_ground_mesh->material()->enqueue_texture(f, i++);
+            m_ground_mesh->material()->enqueue_texture(f, 1 << i++);
         }
     }
     else if(theProperty == m_ground_plane_texture_scale)

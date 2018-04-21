@@ -1168,12 +1168,9 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         // weak copy of current mat
         weak_last = the_mat;
 
-        // process load queues
-        // texture queue
+        // process texture queue
         if(!the_mat->queued_textures().empty())
         {
-//            int i = 0;
-            
             for(auto &pair : the_mat->queued_textures())
             {
                 if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
