@@ -90,22 +90,24 @@ void DeferredRenderer::init()
     }
 
     // create our shaders
-    m_shader_map[PROP_DEFAULT] = gl::Shader::create(phong_vert, create_g_buffer_frag);
-    m_shader_map[PROP_SKIN] = gl::Shader::create(phong_skin_vert, create_g_buffer_frag);
-    m_shader_map[PROP_NORMAL] = gl::Shader::create(phong_tangent_vert, create_g_buffer_normalmap_frag);
-    m_shader_map[PROP_SKIN | PROP_NORMAL] = gl::Shader::create(phong_tangent_skin_vert,
-                                                               create_g_buffer_normalmap_frag);
-    m_shader_map[PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_vert,
-                                                               create_g_buffer_normal_spec_frag);
-    m_shader_map[PROP_NORMAL | PROP_ROUGH_METAL] = gl::Shader::create(phong_tangent_vert,
-                                                                      create_g_buffer_normal_rough_frag);
-    m_shader_map[PROP_NORMAL | PROP_ROUGH_METAL | PROP_EMMISION] =
+    m_shader_map[PROP_DEFAULT] = m_shader_map[PROP_ALBEDO] = gl::Shader::create(phong_vert, create_g_buffer_frag);
+    m_shader_map[PROP_SKIN] = m_shader_map[PROP_SKIN | PROP_ALBEDO] = gl::Shader::create(phong_skin_vert, create_g_buffer_frag);
+    m_shader_map[PROP_ALBEDO | PROP_NORMAL] = gl::Shader::create(phong_tangent_vert, create_g_buffer_normalmap_frag);
+    m_shader_map[PROP_ALBEDO | PROP_SKIN | PROP_NORMAL] = gl::Shader::create(phong_tangent_skin_vert,
+                                                                             create_g_buffer_normalmap_frag);
+    m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_vert,
+                                                                             create_g_buffer_normal_spec_frag);
+    m_shader_map[PROP_ROUGH_METAL] = gl::Shader::create(phong_vert, create_g_buffer_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_ROUGH_METAL] = gl::Shader::create(phong_vert, create_g_buffer_color_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_ROUGH_METAL] = gl::Shader::create(phong_tangent_vert,
+                                                                                    create_g_buffer_normal_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_ROUGH_METAL | PROP_EMMISION] =
             gl::Shader::create(phong_tangent_vert, create_g_buffer_normal_rough_emmision_frag);
-    m_shader_map[PROP_SKIN | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_skin_vert,
-                                                                           create_g_buffer_normal_spec_frag);
+    m_shader_map[PROP_ALBEDO | PROP_SKIN | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_skin_vert,
+                                                                                         create_g_buffer_normal_spec_frag);
 
-    m_shader_map[PROP_SKIN | PROP_NORMAL | PROP_ROUGH_METAL] = gl::Shader::create(phong_tangent_skin_vert,
-                                                                                  create_g_buffer_normal_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_SKIN | PROP_NORMAL | PROP_ROUGH_METAL] = gl::Shader::create(phong_tangent_skin_vert,
+                                                                                                create_g_buffer_normal_rough_frag);
     m_shader_shadow = gl::Shader::create(empty_vert, empty_frag);
     m_shader_shadow_skin = gl::Shader::create(empty_skin_vert, empty_frag);
     
@@ -167,7 +169,7 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     m_mat_resolve->add_texture(m_fbo_lighting.texture());
     m_mat_resolve->add_texture(m_fbo_geometry.depth_texture(), gl::Material::TextureType::DEPTH);
     m_mat_resolve->uniform("u_use_fxaa", m_use_fxaa ? 1 : 0);
-    m_mat_resolve->uniform("u_luma_thresh", .3f);
+    m_mat_resolve->uniform("u_luma_thresh", .4f);
     gl::draw_quad(gl::window_dimension(), m_mat_resolve);
     
     // draw emission texture
@@ -219,12 +221,14 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     
     auto select_shader = [this](const gl::MeshPtr &m) -> gl::ShaderPtr
     {
+        bool has_albedo = m->material()->has_texture(gl::Material::TextureType::COLOR);
         bool has_normal_map = m->material()->has_texture(gl::Material::TextureType::NORMAL);
         bool has_spec_map = m->material()->has_texture(gl::Material::TextureType::SPECULAR);
         bool has_rough_metal_map = m->material()->has_texture(gl::Material::TextureType::ROUGH_METAL);
         bool has_emmision_map = m->material()->has_texture(gl::Material::TextureType::EMISSION);
 
         uint32_t key = PROP_DEFAULT;
+        if(has_albedo){ key |= PROP_ALBEDO; }
         if(m->root_bone()){ key |= PROP_SKIN; }
         if(has_normal_map){ key |= PROP_NORMAL; }
         if(has_emmision_map){ key |= PROP_EMMISION; }

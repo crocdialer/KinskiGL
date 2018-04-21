@@ -138,7 +138,9 @@ void ModelViewer::draw()
             auto aabb = m_selected_mesh->aabb();
             gl::draw_boundingbox(aabb);
             vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
-            gl::draw_text_2D(m_selected_mesh->name(), fonts()[0], gl::COLOR_WHITE, p2d);
+            std::string txt_label = m_selected_mesh->name() + "\nvertices: " + to_string(m_selected_mesh->geometry()->vertices().size()) +
+                    "\nfaces: " + to_string(m_selected_mesh->geometry()->faces().size());
+            gl::draw_text_2D(txt_label, fonts()[0], gl::COLOR_WHITE, p2d);
         }
 
         // draw enabled light dummies

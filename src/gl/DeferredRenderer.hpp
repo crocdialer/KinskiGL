@@ -46,8 +46,8 @@ private:
     void render_light_volumes(const RenderBinPtr &the_renderbin, bool stencil_pass);
     gl::Texture create_shadow_map(const RenderBinPtr &the_renderbin, const gl::LightPtr &l);
     
-    enum ShaderProperty{PROP_DEFAULT = 0, PROP_SKIN = 1, PROP_NORMAL = 2, PROP_SPEC = 4, PROP_ROUGH_METAL = 8,
-        PROP_EMMISION = 16};
+    enum ShaderProperty{PROP_DEFAULT = 0, PROP_ALBEDO = 1 << 0, PROP_SKIN = 1 << 1, PROP_NORMAL = 1 << 2,
+        PROP_SPEC = 1 << 3, PROP_ROUGH_METAL = 1 << 4, PROP_EMMISION = 1 << 5};
 
     gl::vec2 m_g_buffer_resolution;
     std::map<uint32_t , gl::ShaderPtr> m_shader_map;

@@ -414,7 +414,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         LOG_ERROR << e.what();
         return gl::MeshPtr();
     }
-    load_scene(theModelPath);
+//    load_scene(theModelPath);
 
     LOG_DEBUG << "loading model '" << theModelPath << "' ...";
     const aiScene *theScene = importer.ReadFile(found_path, 0);
@@ -491,6 +491,10 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         {
             materials[i]->enqueue_shader(sh_type);
         }
+
+        // extract model name from filename
+        mesh->set_name(fs::get_filename_part(found_path));
+
         LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
         geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->root_bone()) << " bones";
         LOG_DEBUG<<"bounds: " <<to_string(mesh->aabb().min)<<" - "<< to_string(mesh->aabb().max);
