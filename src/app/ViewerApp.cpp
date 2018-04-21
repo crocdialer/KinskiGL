@@ -126,7 +126,7 @@ namespace kinski {
 
         // ImGui Font
         ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 15);
+        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 14);
 
         gl::ShaderPtr unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
@@ -412,11 +412,6 @@ namespace kinski {
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
             m_camera->transform() = tmp;
-        }
-        else if(theProperty == m_use_warping)
-        {
-            remove_tweakbar_for_component(m_warp_component);
-            if(*m_use_warping){ add_tweakbar_for_component(m_warp_component); }
         }
     }
 

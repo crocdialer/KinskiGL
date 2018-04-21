@@ -95,9 +95,6 @@ namespace kinski
         
         virtual void add_window(WindowPtr the_window){};
         
-        virtual void add_tweakbar_for_component(const ComponentPtr &the_component){};
-        virtual void remove_tweakbar_for_component(const ComponentPtr &the_component){};
-        
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
         
         inline bool running() const { return m_running; };

@@ -276,13 +276,6 @@ namespace kinski
     {
         App::set_window_size(size);
         resize(size.x, size.y);
-
-        if(!m_windows.empty())
-        {
-            m_windows.front()->set_size(size);
-            
-            auto fb_size = m_windows.front()->framebuffer_size();
-        }
     }
 
     void GLFW_App::set_window_title(const std::string &the_title)

@@ -59,8 +59,8 @@ namespace kinski
         m_volume = RangedProperty<float>::create("volume", 1.f, 0.f , 1.f),
         m_brightness = RangedProperty<float>::create("brightness", 1.f, 0.f , 2.f);
         
-        Property_<uint32_t>::Ptr
-        m_broadcast_port = Property_<uint32_t>::create("discovery broadcast port", 55555);
+        Property_<int>::Ptr
+        m_broadcast_port = Property_<int>::create("discovery broadcast port", 55555);
         
         std::string secs_to_time_str(float the_secs) const;
         void setup_rpc_interface();

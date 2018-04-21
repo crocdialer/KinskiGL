@@ -35,9 +35,8 @@ void TouchSample::setup()
 {
     ViewerApp::setup();
     fonts()[FONT_LARGE].load(fonts()[FONT_NORMAL].path(), 63.f);
-    observe_properties();
     register_property(m_circle_radius);
-    add_tweakbar_for_component(shared_from_this());
+    observe_properties();
     m_noise.set_scale(vec2(0.02f));
     load_settings();
 }
@@ -47,6 +46,13 @@ void TouchSample::setup()
 void TouchSample::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+
+    // construct ImGui window for this frame
+    if(display_tweakbar())
+    {
+        gl::draw_component_ui(shared_from_this());
+    }
+
     textures()[TEXTURE_SIMPLEX] = m_noise.simplex(get_application_time() * .3f);
 }
 

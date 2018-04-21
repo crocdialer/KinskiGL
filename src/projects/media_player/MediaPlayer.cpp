@@ -60,7 +60,6 @@ void MediaPlayer::setup()
     register_property(m_broadcast_port);
     register_property(m_text_overlay);
     observe_properties();
-    add_tweakbar_for_component(shared_from_this());
 
     remote_control().set_components({ shared_from_this(), m_warp_component });
 //    set_default_config_path("~/");
@@ -106,6 +105,13 @@ void MediaPlayer::setup()
 
 void MediaPlayer::update(float timeDelta)
 {
+    // construct ImGui window for this frame
+    if(display_tweakbar())
+    {
+        gl::draw_component_ui(shared_from_this());
+        if(*m_use_warping){ gl::draw_component_ui(m_warp_component); }
+    }
+
     if(m_reload_media){ reload_media(); }
 
     if(m_camera_control && m_camera_control->is_capturing())
@@ -115,10 +121,6 @@ void MediaPlayer::update(float timeDelta)
         m_needs_redraw = m_media->copy_frame_to_texture(textures()[TEXTURE_INPUT], true) || m_needs_redraw;
     else
         m_needs_redraw = true;
-    
-//    auto mat = textures()[TEXTURE_MASK].texture_matrix();
-//    textures()[TEXTURE_MASK].set_texture_matrix(glm::rotate(mat, 2.f * (float)get_application_time(),
-//                                                            gl::Z_AXIS));
 }
 
 /////////////////////////////////////////////////////////////////

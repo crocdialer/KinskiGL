@@ -18,8 +18,8 @@ using namespace glm;
 void EmptySample::setup()
 {
     ViewerApp::setup();
+    // register properties here
     observe_properties();
-    add_tweakbar_for_component(shared_from_this());
     load_settings();
 }
 
@@ -28,6 +28,12 @@ void EmptySample::setup()
 void EmptySample::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+
+    // construct ImGui window for this frame
+    if(display_tweakbar())
+    {
+        gl::draw_component_ui(shared_from_this());
+    }
 }
 
 /////////////////////////////////////////////////////////////////

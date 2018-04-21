@@ -58,9 +58,7 @@ void ModelViewer::setup()
     
     observe_properties();
 
-    // create our UI
-    add_tweakbar_for_component(shared_from_this());
-    add_tweakbar_for_component(m_light_component);
+    // create our remote interface
     remote_control().set_components({ shared_from_this(), m_light_component, m_warp_component });
 
     auto light_geom = gl::Geometry::create_sphere(2.f, 24);
