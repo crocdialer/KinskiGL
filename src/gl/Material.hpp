@@ -35,7 +35,7 @@ namespace kinski { namespace gl {
 
         enum ShadowProperties{SHADOW_NONE = 0, SHADOW_CAST = 1, SHADOW_RECEIVE = 2};
 
-        enum class TextureType{COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, ROUGH_METAL = 1 << 3,
+        enum class TextureType : uint32_t {COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, ROUGH_METAL = 1 << 3,
             EMISSION = 1 << 4, DISPLACEMENT = 1 << 5, SHADOW = 1 << 6, DEPTH = 1 << 7, ENVIROMENT = 1 << 8,
             NOISE = 1 << 9, MASK = 1 << 10};
         enum class AssetLoadStatus{ NOT_LOADED = 0, NOT_FOUND = 1, IMAGE_LOADED = 2, DONE = 3 };

@@ -1172,11 +1172,14 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         {
             for(auto &pair : the_mat->queued_textures())
             {
+                // no DXT compression for normal maps
+                bool use_compression = pair.second.key != (uint32_t)gl::Material::TextureType::NORMAL;
+
                 if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
                 {
                     try
                     {
-                        auto t = gl::create_texture_from_file(pair.first, true, true);
+                        auto t = gl::create_texture_from_file(pair.first, true, use_compression);
                         the_mat->add_texture(t, pair.second.key);
                         pair.second.status = gl::Material::AssetLoadStatus::DONE;
                     }
@@ -1188,7 +1191,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 }
                 else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
                 {
-                    auto t = gl::create_texture_from_image(pair.second.image, true, true);
+                    auto t = gl::create_texture_from_image(pair.second.image, true, use_compression);
                     the_mat->add_texture(t, pair.second.key);
                     pair.second.image = nullptr;
                     pair.second.status = gl::Material::AssetLoadStatus::DONE;

@@ -353,7 +353,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         if(the_img_map)
         {
             auto it = the_img_map->find(the_path);
-            if(it != the_img_map->end()){ img = it->second; LOG_DEBUG << "using cached image: " << the_path; }
+            if(it != the_img_map->end()){ img = it->second; LOG_TRACE << "using cached image: " << the_path; }
         }
         if(!img)
         {
@@ -455,7 +455,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
     
     // super useful postprocessing steps
     theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
-                                            | aiProcess_GenSmoothNormals
+//                                            | aiProcess_GenSmoothNormals
                                             | aiProcess_JoinIdenticalVertices
                                             | aiProcess_CalcTangentSpace
                                             | aiProcess_LimitBoneWeights);
@@ -500,9 +500,9 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         insertBoneVertexData(combined_geom, weightmap);
         
         gl::GeometryPtr geom = combined_geom;
-        gl::MeshPtr mesh = gl::Mesh::create(combined_geom, materials[0]);
+        gl::MeshPtr mesh = gl::Mesh::create(combined_geom, materials.empty() ? gl::Material::create(): materials[0]);
         mesh->entries() = entries;
-        mesh->materials() = materials;
+        if(!materials.empty()){ mesh->materials() = materials; }
         mesh->set_root_bone(create_bone_hierarchy(theScene->mRootNode, mat4(), bonemap));
         
         for (uint32_t i = 0; i < theScene->mNumAnimations; i++)
