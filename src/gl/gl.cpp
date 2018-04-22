@@ -1612,7 +1612,12 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     vert_src = unlit_cube_vert;
                     frag_src = unlit_cube_frag;
                     break;
-                    
+
+                case ShaderType::UNLIT_PANORAMA:
+                    vert_src = unlit_cube_vert;
+                    frag_src = unlit_cube_pano_frag;
+                    break;
+
                 case ShaderType::RESOLVE:
                     vert_src = unlit_vert;
                     frag_src = resolve_frag;

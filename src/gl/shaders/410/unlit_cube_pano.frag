@@ -1,6 +1,9 @@
 #version 410
 
-uniform samplerCube u_sampler_cube[1];
+#define PI 3.1415926535897932384626433832795
+#define ONE_OVER_PI	0.3183098861837907
+
+uniform sampler2D u_sampler_2D[1];
 
 struct Material
 {
@@ -28,7 +31,13 @@ in VertexData
 
 out vec4 fragData;
 
+// map normalized direction to panorama texture coordinate
+vec2 panorama(vec3 ray)
+{
+	return vec2(0.5 + 0.5 * atan(ray.x, -ray.z) * ONE_OVER_PI, acos(ray.y) * ONE_OVER_PI);
+}
+
 void main()
 {
-    fragData = texture(u_sampler_cube[0], vertex_in.eyeVec);
+    fragData = texture(u_sampler_2D[0], panorama(normalize(vertex_in.eyeVec)));
 }
