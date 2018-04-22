@@ -669,58 +669,21 @@ void ModelViewer::async_load_asset(const std::string &the_path,
         // load model on worker thread
         auto m = load_asset(*m_model_path);
 
-        std::map<gl::MaterialPtr, std::vector<std::pair<uint32_t, ImagePtr>>> mat_img_map;
-
         if(m)
         {
             // load and decode images on worker thread
             for(auto &mat : m->materials())
             {
-                std::vector<std::pair<uint32_t, ImagePtr>> tex_imgs;
                 mat->set_wireframe(wireframe());
                 int val = (*m_shadow_cast ? gl::Material::SHADOW_CAST : 0) |
                           (*m_shadow_receive ? gl::Material::SHADOW_RECEIVE : 0);
                 mat->set_shadow_properties(val);
-
-                for(auto &p : mat->queued_textures())
-                {
-                    try
-                    {
-                        LOG_DEBUG << "loading model texture: " << p.first;
-
-                        auto img = create_image_from_file(p.first);
-                        
-                        if(img)
-                        {
-                            tex_imgs.push_back(std::make_pair(p.second.key, img));
-                            p.second.status = gl::Material::AssetLoadStatus::LOADED;
-                        }
-                    }
-                    catch(Exception &e)
-                    {
-                        LOG_WARNING << e.what();
-                        p.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
-                    }
-                }
-                mat_img_map[mat] = tex_imgs;
             }
         }
 
         // work on this thread done, now queue texture creation on main queue
-        main_queue().submit([this, m, mat_img_map, the_completion_handler]()
+        main_queue().submit([this, m, the_completion_handler]()
         {
-            if(m)
-            {
-                for(auto &mat : m->materials())
-                {
-                    for(const auto &pair : mat_img_map.at(mat))
-                    {
-                        const ImagePtr &img = pair.second;
-                        gl::Texture tex = gl::create_texture_from_image(img, true, true);
-                        mat->add_texture(tex, pair.first);
-                    }
-                }
-            }
             the_completion_handler(m);
             
             // task done

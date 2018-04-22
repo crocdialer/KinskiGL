@@ -47,24 +47,29 @@ namespace kinski
     
     ImagePtr create_image_from_data(const std::vector<uint8_t> &the_data, int num_channels)
     {
+        return create_image_from_data(the_data.data(), the_data.size(), num_channels);
+    }
+
+    ImagePtr create_image_from_data(const uint8_t *the_data, size_t the_num_bytes, int num_channels)
+    {
         int width, height, num_components;
-        unsigned char *data = stbi_load_from_memory(&the_data[0], the_data.size(),
-                                                    &width, &height, &num_components, num_channels);
-        
+        unsigned char *data = stbi_load_from_memory(the_data, the_num_bytes, &width, &height, &num_components,
+                                                    num_channels);
+
         if(!data) throw ImageLoadException();
-        
+
         LOG_TRACE << "decoded image: " << width << " x " << height << " (" <<num_components<<" ch)";
-        
+
         // ... process data if not NULL ...
         // ... x = width, y = height, n = # 8-bit components per pixel ...
         // ... replace '0' with '1'..'4' to force that many components per pixel
         // ... but 'n' will always be the number that it would have been if you said 0
-        
+
         auto ret = Image::create(data, width, height, num_components);
         STBI_FREE(data);
         return ret;
     }
-    
+
     void copy_image(const ImagePtr &src_mat, ImagePtr &dst_mat)
     {
         if(!src_mat){ return; }

@@ -22,6 +22,7 @@ namespace kinski
     
     KINSKI_API ImagePtr create_image_from_file(const std::string &the_path, int num_channels = 0);
     KINSKI_API ImagePtr create_image_from_data(const std::vector<uint8_t> &the_data, int num_channels = 0);
+    KINSKI_API ImagePtr create_image_from_data(const uint8_t *the_data, size_t the_num_bytes, int num_channels = 0);
     KINSKI_API void copy_image(const ImagePtr &src_img, ImagePtr &dst_img);
     KINSKI_API bool save_image_to_file(const ImagePtr &the_img, const std::string &the_path);
     KINSKI_API std::vector<uint8_t> encode_png(const ImagePtr &the_img);

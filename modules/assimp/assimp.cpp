@@ -24,7 +24,7 @@ typedef map<uint32_t, list< pair<uint32_t, float>>> WeightMap;
     
 /////////////////////////////////////////////////////////////////
     
-void mergeGeometries(gl::GeometryPtr src, gl::GeometryPtr dst);
+void merge_geometries(gl::GeometryPtr src, gl::GeometryPtr dst);
 
 gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene);
 
@@ -285,7 +285,8 @@ gl::CameraPtr create_camera(const aiCamera* the_cam)
     
 /////////////////////////////////////////////////////////////////
     
-gl::MaterialPtr createMaterial(const aiMaterial *mtl)
+gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
+                                std::map<std::string, ImagePtr> *the_img_map = nullptr)
 {
     gl::MaterialPtr theMaterial = gl::Material::create();
     theMaterial->set_blending(true);
@@ -294,8 +295,10 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     float shininess, strength;
     int two_sided;
     int wireframe;
-    aiString texPath;
-    
+    aiString path_buf;
+
+    LOG_DEBUG_IF(the_scene->mNumTextures) << "num embedded textures: " << the_scene->mNumTextures;
+
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &c))
     {
         auto col = aicolor_convert(c);
@@ -340,56 +343,87 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     
     if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
         theMaterial->set_two_sided(two_sided);
-    
-    // DIFFUSE
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE), 0, &texPath))
+
+
+    auto enqueue_tex_image = [the_scene, &theMaterial, the_img_map](const std::string the_path,
+                                                                    gl::Material::TextureType the_type)
     {
-        LOG_TRACE << "adding color map: '" << string(texPath.data) << "'";
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::COLOR);
+        ImagePtr img;
+
+        if(the_img_map)
+        {
+            auto it = the_img_map->find(the_path);
+            if(it != the_img_map->end()){ img = it->second; LOG_DEBUG << "using cached image: " << the_path; }
+        }
+        if(!img)
+        {
+            if(!the_path.empty() && the_path[0] == '*')
+            {
+                size_t tex_index = string_to<size_t>(the_path.substr(1));
+                const aiTexture* ai_tex = the_scene->mTextures[tex_index];
+
+                // compressed image -> decode
+                if(ai_tex->mHeight == 0)
+                {
+                    img = kinski::create_image_from_data((uint8_t*)ai_tex->pcData, ai_tex->mWidth);
+                }
+            }
+            else{ img = kinski::create_image_from_file(the_path); }
+        }
+        if(the_img_map){ (*the_img_map)[the_path] = img; }
+        theMaterial->enqueue_texture(the_path, img, (uint32_t)the_type);
+    };
+
+    // DIFFUSE
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE), 0, &path_buf))
+    {
+        LOG_TRACE << "adding color map: '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Material::TextureType::COLOR);
     }
     
     // EMISSION
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_EMISSIVE), 0, &texPath))
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_EMISSIVE), 0, &path_buf))
     {
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::EMISSION);
+        LOG_TRACE << "adding emission map: '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Material::TextureType::EMISSION);
     }
     
     // SHINYNESS
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SPECULAR), 0, &texPath))
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SPECULAR), 0, &path_buf))
     {
-        LOG_TRACE << "adding spec/roughness map: '" << string(texPath.data) << "'";
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::SPECULAR);
+        LOG_TRACE << "adding spec/roughness map: '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Material::TextureType::SPECULAR);
     }
     
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &texPath))
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &path_buf))
     {
-        LOG_TRACE << "adding normalmap: '" << string(texPath.data) << "'";
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
+        LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Material::TextureType::NORMAL);
     }
     
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DISPLACEMENT), 0, &texPath))
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DISPLACEMENT), 0, &path_buf))
     {
-        LOG_TRACE << "adding normalmap: '" << string(texPath.data) << "'";
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
+        LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Material::TextureType::NORMAL);
     }
     
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_HEIGHT), 0, &texPath))
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_HEIGHT), 0, &path_buf))
     {
-        LOG_TRACE << "adding normalmap: '" << string(texPath.data) << "'";
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
+        LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Material::TextureType::NORMAL);
     }
 
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_UNKNOWN), 0, &texPath))
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_UNKNOWN), 0, &path_buf))
     {
-        LOG_TRACE << "unknown texture usage (assuming AO/METAL/ROUGHNESS ): '" << string(texPath.data) << "'";
-        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::ROUGH_METAL);
+        LOG_TRACE << "unknown texture usage (assuming AO/METAL/ROUGHNESS ): '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Material::TextureType::ROUGH_METAL);
     }
     return theMaterial;
 }
 
 /////////////////////////////////////////////////////////////////
     
-void mergeGeometries(gl::GeometryPtr src, gl::GeometryPtr dst)
+void merge_geometries(gl::GeometryPtr src, gl::GeometryPtr dst)
 {
     dst->append_vertices(src->vertices());
     dst->append_normals(src->normals());
@@ -436,7 +470,8 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         BoneMap bonemap;
         WeightMap weightmap;
         std::vector<gl::Mesh::Entry> entries;
-        
+        std::map<std::string, ImagePtr> mat_image_cache;
+
         for (uint32_t i = 0; i < theScene->mNumMeshes; i++)
         {
             aiMesh *aMesh = theScene->mMeshes[i];
@@ -453,8 +488,9 @@ gl::MeshPtr load_model(const std::string &theModelPath)
             current_base_index += g->indices().size();
             
             geometries.push_back(g);
-            mergeGeometries(g, combined_geom);
-            materials[aMesh->mMaterialIndex] = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
+            merge_geometries(g, combined_geom);
+            materials[aMesh->mMaterialIndex] = create_material(theScene, theScene->mMaterials[aMesh->mMaterialIndex],
+                                                               &mat_image_cache);
         }
         combined_geom->compute_aabb();
         

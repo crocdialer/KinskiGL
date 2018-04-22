@@ -38,13 +38,14 @@ namespace kinski { namespace gl {
         enum class TextureType{COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, ROUGH_METAL = 1 << 3,
             EMISSION = 1 << 4, DISPLACEMENT = 1 << 5, SHADOW = 1 << 6, DEPTH = 1 << 7, ENVIROMENT = 1 << 8,
             NOISE = 1 << 9, MASK = 1 << 10};
-        enum class AssetLoadStatus{ NOT_LOADED = 0, LOADED = 1, NOT_FOUND = 2 };
+        enum class AssetLoadStatus{ NOT_LOADED = 0, NOT_FOUND = 1, IMAGE_LOADED = 2, DONE = 3 };
         
         using texture_map_t = std::map<uint32_t, gl::Texture>;
 
         struct texture_load_status_t
         {
             uint32_t key;
+            ImagePtr image;
             AssetLoadStatus status;
         };
         using texture_load_map_t = std::map<std::string, texture_load_status_t>;
@@ -87,7 +88,9 @@ namespace kinski { namespace gl {
         const texture_load_map_t& queued_textures() const { return m_queued_textures; }
         
         void enqueue_texture(const std::string &the_texture_path, uint32_t the_key);
-        
+
+        void enqueue_texture(const std::string &the_texture_path, ImagePtr the_image, uint32_t the_key);
+
         void enqueue_shader(gl::ShaderType the_type);
         
         gl::ShaderType queued_shader() const { return m_queued_shader; };

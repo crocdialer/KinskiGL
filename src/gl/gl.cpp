@@ -900,7 +900,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             }
         }
         else
-
         {
             glDrawElements(the_mesh->geometry()->primitive_type(),
                            the_mesh->geometry()->indices().size(), the_mesh->geometry()->index_type(),
@@ -1179,7 +1178,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     {
                         auto t = gl::create_texture_from_file(pair.first, true, true);
                         the_mat->add_texture(t, pair.second.key);
-                        pair.second.status = gl::Material::AssetLoadStatus::LOADED;
+                        pair.second.status = gl::Material::AssetLoadStatus::DONE;
                     }
                     catch(Exception &e)
                     {
@@ -1187,7 +1186,13 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                         pair.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
                     }
                 }
-                
+                else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
+                {
+                    auto t = gl::create_texture_from_image(pair.second.image, true, true);
+                    the_mat->add_texture(t, pair.second.key);
+                    pair.second.image = nullptr;
+                    pair.second.status = gl::Material::AssetLoadStatus::DONE;
+                }
             }
         }
 

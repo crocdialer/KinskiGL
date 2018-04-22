@@ -189,9 +189,15 @@ namespace kinski { namespace gl {
     
     void Material::enqueue_texture(const std::string &the_texture_path, uint32_t the_key)
     {
-        m_queued_textures[the_texture_path] = {the_key, AssetLoadStatus::NOT_LOADED};
+        m_queued_textures[the_texture_path] = {the_key, nullptr, AssetLoadStatus::NOT_LOADED};
     }
-    
+
+    void Material::enqueue_texture(const std::string &the_texture_path, ImagePtr the_image, uint32_t the_key)
+    {
+        if(the_image){ m_queued_textures[the_texture_path] = {the_key, the_image, AssetLoadStatus::IMAGE_LOADED}; }
+        else{ enqueue_texture(the_texture_path, the_key); }
+    }
+
     void Material::enqueue_shader(gl::ShaderType the_type)
     {
         m_queued_shader = the_type;
