@@ -159,6 +159,8 @@ public:
     float far() const override { return m_far; };
     
     mat4 view_matrix(uint32_t the_face) const;
+
+    std::vector<glm::mat4> view_matrices() const;
     
 private:
     

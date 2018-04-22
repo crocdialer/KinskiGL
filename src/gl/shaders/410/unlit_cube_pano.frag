@@ -1,6 +1,5 @@
 #version 410
 
-#define PI 3.1415926535897932384626433832795
 #define ONE_OVER_PI	0.3183098861837907
 
 uniform sampler2D u_sampler_2D[1];
@@ -24,8 +23,8 @@ layout(std140) uniform MaterialBlock
 
 in VertexData
 {
-    vec4 color;
-    vec2 texCoord;
+    // vec4 color;
+    // vec2 texCoord;
     vec3 eyeVec;
 } vertex_in;
 

@@ -25,13 +25,7 @@ template class Property_<gl::vec2>;
 template class Property_<gl::vec3>;
 template class Property_<gl::vec4>;
 
-// threadsafe task-counting internals
-namespace
-{
-    std::atomic<uint32_t> num_tasks(0);
-    uint32_t next_task_id = 0;
-    std::mutex task_mutex;
-}
+std::atomic<uint32_t> App::Task::s_num_tasks(0);
 
 App::App(int argc, char *argv[]):
 Component(argc ? fs::get_filename_part(argv[0]) : "KinskiApp"),
@@ -138,21 +132,9 @@ void App::timing(double timeStamp)
     }
 }
 
-void App::inc_task()
-{
-    std::unique_lock<std::mutex> lock(task_mutex);
-    num_tasks++;
-}
-
-void App::dec_task()
-{
-    std::unique_lock<std::mutex> lock(task_mutex);
-    if(num_tasks){ num_tasks--; }
-}
-
 bool App::is_loading() const
 {
-    return num_tasks;
+    return Task::num_tasks();
 }
 
 /////////////////////////// Joystick ///////////////////////////////////////

@@ -111,8 +111,8 @@ void DeferredRenderer::init()
     m_shader_shadow = gl::Shader::create(empty_vert, empty_frag);
     m_shader_shadow_skin = gl::Shader::create(empty_skin_vert, empty_frag);
     
-    m_shader_shadow_omni = gl::Shader::create(empty_vert, linear_depth_frag, shadow_omni_geom);
-    m_shader_shadow_omni_skin = gl::Shader::create(empty_skin_vert, linear_depth_frag, shadow_omni_geom);
+    m_shader_shadow_omni = gl::Shader::create(empty_vert, linear_depth_frag, cube_layers_geom);
+    m_shader_shadow_omni_skin = gl::Shader::create(empty_skin_vert, linear_depth_frag, cube_layers_geom);
     
     const uint32_t sz = 1024, cube_sz = 512;
     
@@ -352,12 +352,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         
         auto cube_cam = std::dynamic_pointer_cast<CubeCamera>(shadow_cam);
         
-        std::vector<glm::mat4> cam_matrices(6);
-        
-        for(uint32_t i = 0; i < 6; ++i)
-        {
-            cam_matrices[i] = cube_cam->view_matrix(i);
-        }
+        std::vector<glm::mat4> cam_matrices = cube_cam->view_matrices();
         
         m_shader_shadow_omni->bind();
         m_shader_shadow_omni->uniform("u_view_matrix", cam_matrices);

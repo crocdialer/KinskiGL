@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <atomic>
 #include "core/file_functions.hpp"
 #include "core/Component.hpp"
 #include "core/ThreadPool.hpp"
@@ -130,23 +131,19 @@ namespace kinski
          */
         const std::vector<std::string>& args() const{ return m_args; };
         
-        /*!
-         * increase the internal task count by 1, indicating that a loading operation started
-         */
-        void inc_task();
-        
-        /*!
-         * decrease the internal task count by 1, indicating that a loading operation ended
-         */
-        void dec_task();
-        
         //! RAII helper class
+        class Task;
+        using TaskPtr = std::shared_ptr<Task>;
+
         class Task
         {
         public:
-            explicit Task(App *the_app):m_app(the_app){ m_app->inc_task(); }
-            virtual ~Task(){ m_app->dec_task(); }
+            static TaskPtr create(){ return TaskPtr(new Task()); }
+            static uint32_t num_tasks(){ return s_num_tasks; };
+            ~Task(){ s_num_tasks--; }
         private:
+            explicit Task(){ s_num_tasks++; }
+            static std::atomic<uint32_t> s_num_tasks;
             App* m_app;
         };
         

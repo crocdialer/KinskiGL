@@ -662,11 +662,10 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
 void ModelViewer::async_load_asset(const std::string &the_path,
                                    std::function<void(gl::MeshPtr)> the_completion_handler)
 {
-    background_queue().submit([this, the_completion_handler]()
+    auto task = Task::create();
+
+    background_queue().submit([this, task, the_completion_handler]()
     {
-        // publish our task
-        inc_task();
-        
         // load model on worker thread
         auto m = load_asset(*m_model_path);
 
@@ -683,12 +682,9 @@ void ModelViewer::async_load_asset(const std::string &the_path,
         }
 
         // work on this thread done, now queue texture creation on main queue
-        main_queue().submit([this, m, the_completion_handler]()
+        main_queue().submit([this, m, task, the_completion_handler]()
         {
             the_completion_handler(m);
-            
-            // task done
-            dec_task();
         });
     });
 }

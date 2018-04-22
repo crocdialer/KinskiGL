@@ -21,8 +21,8 @@ layout(std140) uniform MaterialBlock
 
 in VertexData
 {
-    vec4 color;
-    vec2 texCoord;
+    // vec4 color;
+    // vec2 texCoord;
     vec3 eyeVec;
 } vertex_in;
 

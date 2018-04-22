@@ -417,7 +417,7 @@ namespace kinski {
 
     bool ViewerApp::save_settings(const std::string &the_path)
     {
-        inc_task();
+        auto task = Task::create();
         std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
         path_prefix = fs::get_directory_part(path_prefix);
         
@@ -450,7 +450,7 @@ namespace kinski {
         }
         
         background_queue().submit([this, path_prefix, light_components, material_components,
-                                   warp_components]()
+                                   warp_components, task]()
         {
             
             try
@@ -470,14 +470,13 @@ namespace kinski {
                 
             }
             catch(Exception &e){ LOG_ERROR << e.what(); }
-            dec_task();
         });
         return true;
     }
 
     bool ViewerApp::load_settings(const std::string &the_path)
     {
-        App::Task t(this);
+        auto task = Task::create();
         
         std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
         path_prefix = fs::get_directory_part(path_prefix);
@@ -571,8 +570,8 @@ namespace kinski {
                                        bool compress,
                                        GLfloat anisotropic_filter_lvl)
     {
-        inc_task();
-        background_queue().submit([this, the_path, the_callback, mip_map, compress,
+        auto task = Task::create();
+        background_queue().submit([this, task, the_path, the_callback, mip_map, compress,
                                    anisotropic_filter_lvl]()
         {
             std::string abs_path = the_path;
@@ -585,12 +584,11 @@ namespace kinski {
             {
                 auto img = create_image_from_file(abs_path);
                 
-                main_queue().submit([this, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
+                main_queue().submit([this, task, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
                 {
                     auto tex = gl::create_texture_from_image(img, mip_map, compress,
                                                              anisotropic_filter_lvl);
                     the_callback(tex);
-                    dec_task();
                 });
             }
             else if(file_type == fs::FileType::DIRECTORY)
@@ -605,25 +603,16 @@ namespace kinski {
                         images[i] = create_image_from_file(img_paths[i]);
                     }
                     
-                    main_queue().submit([this, the_path, images, the_callback]()
+                    main_queue().submit([this, task, the_path, images, the_callback]()
                     {
                         auto cubemap = gl::create_cube_texture_from_images(images);
                         LOG_DEBUG << "loaded cubemap folder: " << the_path;
                         the_callback(cubemap);
-                        dec_task();
                     });
                 }
-                else
-                {
-                    LOG_WARNING << "got " << img_paths.size() << " images, expected 6";
-                    dec_task();
-                }
+                else{ LOG_WARNING << "got " << img_paths.size() << " images, expected 6"; }
             }
-            else
-            {
-                LOG_WARNING << "could not load texture: " << the_path;
-                dec_task();
-            }
+            else{ LOG_WARNING << "could not load texture: " << the_path; }
         });
     }
     

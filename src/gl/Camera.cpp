@@ -145,5 +145,16 @@ namespace kinski { namespace gl{
         the_face = clamp<uint32_t>(the_face, 0, 5);
         return glm::lookAt(p, p + vals[2 * the_face], vals[2 * the_face + 1]);
     }
-    
+
+    std::vector<glm::mat4> CubeCamera::view_matrices() const
+    {
+        std::vector<glm::mat4> out_matrices(6);
+
+        for(uint32_t i = 0; i < 6; ++i)
+        {
+            out_matrices[i] = view_matrix(i);
+        }
+        return out_matrices;
+    }
+
 }}//namespace
