@@ -1168,34 +1168,48 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         weak_last = the_mat;
 
         // process texture queue
-        if(!the_mat->queued_textures().empty())
-        {
-            for(auto &pair : the_mat->queued_textures())
-            {
-                // no DXT compression for normal maps
-                bool use_compression = pair.second.key != (uint32_t)gl::Material::TextureType::NORMAL;
+        auto it = the_mat->queued_textures().begin(), end = the_mat->queued_textures().end();
 
-                if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
+        for(;it != end;)
+        {
+            auto &pair = *it;
+
+            // no DXT compression for normal maps
+            bool use_compression = pair.second.key != (uint32_t)gl::Material::TextureType::NORMAL;
+
+            if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
+            {
+                try
                 {
-                    try
-                    {
-                        auto t = gl::create_texture_from_file(pair.first, true, use_compression);
-                        the_mat->add_texture(t, pair.second.key);
-                        pair.second.status = gl::Material::AssetLoadStatus::DONE;
-                    }
-                    catch(Exception &e)
-                    {
-                        LOG_WARNING << e.what();
-                        pair.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
-                    }
-                }
-                else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
-                {
-                    auto t = gl::create_texture_from_image(pair.second.image, true, use_compression);
+                    auto t = gl::create_texture_from_file(pair.first, true, use_compression);
                     the_mat->add_texture(t, pair.second.key);
-                    pair.second.image = nullptr;
-                    pair.second.status = gl::Material::AssetLoadStatus::DONE;
+//                    pair.second.status = gl::Material::AssetLoadStatus::DONE;
+
+                    // copy iterator before incrementing
+                    auto delete_it = it++;
+
+                    // remove last iterator from map
+                    the_mat->queued_textures().erase(delete_it);
                 }
+                catch(Exception &e)
+                {
+                    LOG_WARNING << e.what();
+                    pair.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
+                    it++;
+                }
+            }
+            else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
+            {
+                auto t = gl::create_texture_from_image(pair.second.image, true, use_compression);
+                the_mat->add_texture(t, pair.second.key);
+//                pair.second.image = nullptr;
+//                pair.second.status = gl::Material::AssetLoadStatus::DONE;
+
+                // copy iterator before incrementing
+                auto delete_it = it++;
+
+                // remove last iterator from map
+                the_mat->queued_textures().erase(delete_it);
             }
         }
 

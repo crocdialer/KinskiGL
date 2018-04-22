@@ -241,6 +241,7 @@ void ModelViewer::draw()
             display_textures = textures();
         }
         draw_textures(display_textures);
+//        gl::draw_textures_ui(display_textures);
     }
 }
 

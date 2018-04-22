@@ -3,13 +3,29 @@
 //
 
 #include "imgui_util.h"
-#include "gl/gl.hpp"
+#include "gl/Texture.hpp"
 
 namespace kinski{ namespace gl{
 
 namespace
 {
     char g_text_buf[512] = "\0";
+}
+
+const ImVec2& im_vec_cast(const gl::vec2 &the_vec)
+{
+    return *reinterpret_cast<const ImVec2*>(&the_vec);
+}
+
+const ImVec4& im_vec_cast(const gl::vec4 &the_vec)
+{
+    return *reinterpret_cast<const ImVec4*>(&the_vec);
+}
+
+const ImVec4 im_vec_cast(const gl::vec3 &the_vec)
+{
+    auto tmp = gl::vec4(the_vec, 1.f);
+    return *reinterpret_cast<const ImVec4*>(&tmp);
 }
 
 // int
@@ -121,10 +137,21 @@ void draw_property_ui(const Property_<std::string>::Ptr &the_property)
 void draw_property_ui(const Property_<std::vector<std::string>>::Ptr &the_property)
 {
     std::string prop_name = the_property->name();
+    std::vector<std::string> &array = the_property->value();
 
     if(ImGui::TreeNode(prop_name.c_str()))
     {
-        for(auto &str : the_property->value()){ ImGui::Text(str.c_str()); }
+        for(size_t i = 0; i < array.size(); ++i)
+        {
+            strcpy(g_text_buf, array[i].c_str());
+
+            if(ImGui::InputText(to_string(i).c_str(), g_text_buf, IM_ARRAYSIZE(g_text_buf),
+                                ImGuiInputTextFlags_EnterReturnsTrue))
+            {
+                array[i] = g_text_buf;
+                the_property->notify_observers();
+            }
+        }
         ImGui::TreePop();
     }
 }
@@ -195,6 +222,30 @@ void draw_component_ui(const ComponentConstPtr &the_component)
     }
 
     ImGui::End();
+}
+
+void draw_textures_ui(const std::vector<gl::Texture> &the_textures)
+{
+    int index = 0;
+
+    for(auto &t : the_textures)
+    {
+        if(t && ImGui::TreeNode(to_string(index++).c_str()))
+        {
+            ImGui::Image(reinterpret_cast<ImTextureID>(t.id()), im_vec_cast(t.size()));
+            ImGui::TreePop();
+        }
+    }
+}
+
+void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights)
+{
+
+}
+
+void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
+{
+
 }
 
 }}

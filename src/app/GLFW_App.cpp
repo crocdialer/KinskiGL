@@ -25,18 +25,6 @@ namespace kinski
 
 /////////////////////////////////////////////////////////////////
 
-    ImVec4 im_color_cast(const gl::Color &the_color)
-    {
-        return *reinterpret_cast<const ImVec4*>(&the_color);
-    }
-
-    inline ImVec4 im_color_cast(const gl::vec3 &the_color)
-    {
-        return im_color_cast(gl::Color(the_color, 1.f));
-    }
-
-/////////////////////////////////////////////////////////////////
-
     GLFW_WindowPtr GLFW_Window::create(int width, int height, const std::string &theName,
                                        bool fullscreen, int monitor_index, GLFWwindow* share)
     {
@@ -251,10 +239,10 @@ namespace kinski
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
         ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
         ImGuiStyle& im_style = ImGui::GetStyle();
-        im_style.Colors[ImGuiCol_TitleBgActive] = im_color_cast(gl::COLOR_ORANGE.rgb * 0.5f);
-        im_style.Colors[ImGuiCol_FrameBg] = im_color_cast(gl::COLOR_WHITE.rgb * 0.07f);
+        im_style.Colors[ImGuiCol_TitleBgActive] = gl::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
+        im_style.Colors[ImGuiCol_FrameBg] = gl::im_vec_cast(gl::COLOR_WHITE.rgb * 0.07f);
         im_style.Colors[ImGuiCol_FrameBgHovered] = im_style.Colors[ImGuiCol_FrameBgActive] =
-                im_color_cast(gl::COLOR_ORANGE.rgb * 0.5f);
+                gl::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
         glfwSetJoystickCallback(&GLFW_App::s_joystick_cb);
