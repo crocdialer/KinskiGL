@@ -1615,7 +1615,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
                 case ShaderType::UNLIT_PANORAMA:
                     vert_src = unlit_cube_vert;
-                    frag_src = unlit_cube_pano_frag;
+                    frag_src = unlit_panorama_frag;
                     break;
 
                 case ShaderType::RESOLVE:
@@ -1692,5 +1692,267 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         if(it != g_shader_names.end()){ return it->second; }
         return g_shader_names[ShaderType::NONE];
     }
-    
+
+///////////////////////////////////////////////////////////////////////////////
+
+void get_format(int the_num_comps, bool compress, GLenum *out_format, GLenum *out_internal_format)
+{
+    switch(the_num_comps)
+    {
+#ifdef KINSKI_GLES
+        case 1:
+            *out_internal_format = *out_format = GL_LUMINANCE;
+            break;
+        case 2:
+            *out_internal_format = *out_format = GL_LUMINANCE_ALPHA;
+            break;
+        case 3:
+            *out_internal_format = *out_format = GL_RGB;
+            // needs precompressed image and call to glCompressedTexImage2D
+            //                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
+            break;
+        case 4:
+            *out_internal_format = *out_format = GL_RGBA;
+        default:
+            break;
+#else
+        case 1:
+            *out_format = GL_RED;
+            *out_internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RGBA;
+            break;
+        case 2:
+            *out_format = GL_RG;
+            *out_internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RGBA;
+            break;
+        case 3:
+            *out_format = GL_RGB;
+            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGBA;
+            break;
+        case 4:
+            *out_format = GL_RGBA;
+            *out_internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
+        default:
+            break;
+#endif
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
+                                  bool compress, GLfloat anisotropic_filter_lvl)
+{
+    Texture ret;
+
+    if(!the_img){ return ret; }
+    GLenum format = 0, internal_format = 0;
+    get_format(the_img->m_num_components, compress, &format, &internal_format);
+
+    Texture::Format fmt;
+    fmt.set_internal_format(internal_format);
+
+    if(mipmap)
+    {
+        fmt.set_mipmapping();
+        fmt.set_min_filter(GL_LINEAR_MIPMAP_NEAREST);
+    }
+    uint8_t *data = the_img->data;
+
+#if !defined(KINSKI_GLES)
+    gl::Buffer pixel_buf;
+    pixel_buf.set_data(the_img->data, the_img->num_bytes());
+    pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
+    data = nullptr;
+#endif
+    ret = Texture(data, format, the_img->width, the_img->height, fmt);
+    ret.set_flipped();
+    KINSKI_CHECK_GL_ERRORS();
+
+#if !defined(KINSKI_GLES)
+    Image::Type bgr_types[] = {Image::Type::BGR, Image::Type::BGRA};
+    if(contains(bgr_types, the_img->m_type)){ ret.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
+#endif
+
+    ret.set_anisotropic_filter(anisotropic_filter_lvl);
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipmap,
+                                 bool compress, GLfloat anisotropic_filter_lvl)
+{
+    ImagePtr img;
+    Texture ret;
+    try {img = create_image_from_data(the_data);}
+    catch (ImageLoadException &e)
+    {
+        LOG_ERROR << e.what();
+        return ret;
+    }
+    ret = create_texture_from_image(img, mipmap, compress, anisotropic_filter_lvl);
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bool compress,
+                                 GLfloat anisotropic_filter_lvl)
+{
+    ImagePtr img = create_image_from_file(theFileName);
+    Texture ret = create_texture_from_image(img);
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+ImagePtr create_image_from_texture(const gl::Texture &the_texture)
+{
+    ImagePtr ret;
+    if(!the_texture){ return ret; }
+#if !defined(KINSKI_GLES)
+    ret = Image::create(the_texture.width(), the_texture.height(), 4);
+    the_texture.bind();
+    glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
+    ret->flip();
+    ret->m_type = Image::Type::RGBA;
+#endif
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLayout the_layout,
+                                      bool compress)
+{
+    // load image
+    auto img = create_image_from_file(the_path);
+
+    if(img && the_layout == CubeTextureLayout::H_CROSS)
+    {
+        uint32_t sub_w = img->width / 4, sub_h = img->height / 3;
+
+        // TODO: take layout into account
+        // create 6 images
+        std::vector<ImagePtr> out_images(6);
+        gl::ivec2 offsets[6] =
+                {
+                        gl::ivec2(2, 1),
+                        gl::ivec2(0, 1),
+                        gl::ivec2(1, 0),
+                        gl::ivec2(1, 2),
+                        gl::ivec2(3, 1),
+                        gl::ivec2(1, 1),
+                };
+
+        for(int i = 0; i < 6; i++)
+        {
+            img->roi.x0 = offsets[i].x * sub_w;
+            img->roi.y0 = offsets[i].y * sub_h;
+            img->roi.x1 = img->roi.x0 + sub_w;
+            img->roi.y1 = img->roi.y0 + sub_h;
+            out_images[i] = Image::create(sub_w, sub_h, img->num_components());
+            copy_image(img, out_images[i]);
+//            out_images[i]->flip(true);
+        }
+        return create_cube_texture_from_images(out_images, compress);
+    }
+    return Texture();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes, bool compress)
+{
+    gl::Texture ret;
+#if !defined(KINSKI_GLES)
+    // check if number and sizes of input textures match
+    if(the_planes.size() != 6 || !the_planes[0])
+    {
+        LOG_WARNING << "cube map creation failed. number of input textures must be 6 -- "
+                    << the_planes.size() << " provided";
+        return ret;
+    }
+
+    uint32_t width = the_planes[0]->width, height = the_planes[0]->height;
+    uint32_t num_components = the_planes[0]->num_components();
+
+    for(auto img : the_planes)
+    {
+        if(!img || img->width != width || img->height != height ||
+           img->num_components() != num_components)
+        {
+            LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
+            return ret;
+        }
+    }
+
+    // create and bind cube map
+    GLenum format = 0, internal_format = 0;
+    get_format(num_components, compress, &format, &internal_format);
+
+    gl::Texture::Format fmt;
+    fmt.set_target(GL_TEXTURE_CUBE_MAP);
+    fmt.set_internal_format(internal_format);
+    ret = gl::Texture(nullptr, format, width, height, fmt);
+    ret.bind();
+
+    // create PBO
+    gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
+
+    for(uint32_t i = 0; i < 6; i++)
+    {
+        // copy data to PBO
+        pixel_buf.set_data(the_planes[i]->data, the_planes[i]->num_bytes());
+
+        // bind PBO
+        pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
+
+        // copy data from PBO to appropriate image plane
+        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, format,
+                        GL_UNSIGNED_BYTE, nullptr);
+    }
+#endif
+    return ret;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, size_t the_size, bool compress)
+{
+    if(!the_panorama || the_panorama.target() != GL_TEXTURE_2D)
+    {
+        LOG_WARNING << "could not convert panorma to cubemap";
+        return gl::Texture();
+    }
+    LOG_DEBUG << "creating cubemap from panorama ...";
+    auto mat = gl::Material::create();
+    mat->set_culling(gl::Material::CULL_FRONT);
+    mat->add_texture(the_panorama, gl::Material::TextureType::ENVIROMENT);
+    mat->set_depth_test(false);
+    auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
+
+    // render enviroment cubemap here
+    auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
+    auto cube_fbo = gl::create_cube_framebuffer(the_size, true);
+    auto cube_shader = gl::Shader::create(empty_vert, unlit_panorama_frag, cube_layers_env_geom);
+
+    auto cam_matrices = cube_cam->view_matrices();
+
+    cube_shader->bind();
+    cube_shader->uniform("u_view_matrix", cam_matrices);
+    cube_shader->uniform("u_projection_matrix", cube_cam->projection_matrix());
+
+    auto cube_tex = gl::render_to_texture(cube_fbo, [box_mesh, cube_shader]()
+    {
+        gl::clear();
+        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+        gl::load_identity(gl::PROJECTION_MATRIX);
+        gl::load_identity(gl::MODEL_VIEW_MATRIX);
+        gl::draw_mesh(box_mesh, cube_shader);
+    });
+    KINSKI_CHECK_GL_ERRORS();
+    return cube_tex;
+}
+
 }}//namespace

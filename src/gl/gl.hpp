@@ -10,6 +10,7 @@
 #pragma once
 
 #include "core/core.hpp"
+#include "core/Image.hpp"
 #include "Platform.h"
 
 
@@ -232,6 +233,37 @@ KINSKI_API ShaderPtr create_shader_from_file(const std::string &vertPath, const 
 KINSKI_API const std::string& get_shader_name(ShaderType the_type);
 KINSKI_API const std::set<std::string>& get_extensions();
 KINSKI_API bool is_extension_supported(const std::string &theName);
+
+/************************************* Texture loading ****************************************/
+
+KINSKI_API Texture create_texture_from_file(const std::string &the_path,
+                                            bool mipmap = false,
+                                            bool compress = false,
+                                            GLfloat anisotropic_filter_lvl = 1.f);
+
+KINSKI_API Texture create_texture_from_image(const ImagePtr &the_img, bool mipmap = false,
+                                             bool compress = false,
+                                             GLfloat anisotropic_filter_lvl = 1.f);
+
+KINSKI_API Texture create_texture_from_data(const std::vector<uint8_t> &the_data,
+                                            bool mipmap = false,
+                                            bool compress = false,
+                                            GLfloat anisotropic_filter_lvl = 1.f);
+
+KINSKI_API ImagePtr create_image_from_texture(const gl::Texture &the_texture);
+
+enum class CubeTextureLayout{V_CROSS, H_CROSS, V_STRIP, H_STRIP};
+
+KINSKI_API Texture create_cube_texture_from_file(const std::string &the_path,
+                                                 CubeTextureLayout the_layout = CubeTextureLayout::H_CROSS,
+                                                 bool compress = false);
+
+KINSKI_API gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
+                                                       bool compress = false);
+
+KINSKI_API gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama,
+                                                         size_t the_size,
+                                                         bool compress = false);
 
 //! Convenience class which pushes and pops the current viewport dimension
 class SaveViewPort

@@ -242,32 +242,5 @@ namespace kinski{ namespace gl{
     public:	
         TextureDataExc(const std::string &log):Exception("TextureData Error: " + log){};
     };
-    
-    /*********************************** inbuilt Texture loading **********************************/
-    
-    KINSKI_API Texture create_texture_from_file(const std::string &the_path,
-                                                bool mipmap = false,
-                                                bool compress = false,
-                                                GLfloat anisotropic_filter_lvl = 1.f);
-    
-    KINSKI_API Texture create_texture_from_image(const ImagePtr &the_img, bool mipmap = false,
-                                                 bool compress = false,
-                                                 GLfloat anisotropic_filter_lvl = 1.f);
-    
-    KINSKI_API Texture create_texture_from_data(const std::vector<uint8_t> &the_data,
-                                                bool mipmap = false,
-                                                bool compress = false,
-                                                GLfloat anisotropic_filter_lvl = 1.f);
-    
-    KINSKI_API ImagePtr create_image_from_texture(const gl::Texture &the_texture);
-    
-    enum class CubeTextureLayout{V_CROSS, H_CROSS, V_STRIP, H_STRIP};
-    
-    KINSKI_API Texture create_cube_texture_from_file(const std::string &the_path,
-                                                     CubeTextureLayout the_layout = CubeTextureLayout::H_CROSS,
-                                                     bool compress = false);
-    
-    KINSKI_API Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
-                                                       bool compress = false);
-    
+
 }}// namespace

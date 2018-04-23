@@ -159,51 +159,20 @@ namespace kinski { namespace gl {
         if(!t){ m_skybox.reset(); return; }
         
         auto mat = gl::Material::create();
-//        mat->set_depth_write(false);
-
         mat->set_culling(gl::Material::CULL_FRONT);
-        mat->add_texture(t, gl::Material::TextureType::ENVIROMENT);
+        mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_CUBE));
         m_skybox = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
-
-        if(t.target() == GL_TEXTURE_2D)
-        {
-            LOG_DEBUG << "creating cubemap from panorama ...";
-            mat->set_depth_test(false);
-
-            // render enviroment cubemap here
-            auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
-            auto cube_fbo = gl::create_cube_framebuffer(1024, true);
-
-            gl::ShaderPtr cube_shader = gl::Shader::create(empty_vert, unlit_cube_pano_frag, cube_layers_env_geom);
-            auto cam_matrices = cube_cam->view_matrices();
-
-            cube_shader->bind();
-            cube_shader->uniform("u_view_matrix", cam_matrices);
-            cube_shader->uniform("u_projection_matrix", cube_cam->projection_matrix());
-
-            auto cube_tex = gl::render_to_texture(cube_fbo, [this, cube_shader]()
-            {
-                gl::clear();
-                gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
-                gl::load_identity(gl::PROJECTION_MATRIX);
-                gl::load_identity(gl::MODEL_VIEW_MATRIX);
-                gl::draw_mesh(m_skybox, cube_shader);
-            });
-            KINSKI_CHECK_GL_ERRORS();
-
-            set_skybox(cube_fbo.texture());
-            return;
-        }
 
         switch(t.target())
         {
             case GL_TEXTURE_CUBE_MAP:
-                mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_CUBE));
                 LOG_DEBUG << "adding cubical skybox";
+                mat->add_texture(t, gl::Material::TextureType::ENVIROMENT);
                 break;
             case GL_TEXTURE_2D:
-                mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_PANORAMA));
                 LOG_DEBUG << "adding panorama skybox";
+                mat->add_texture(gl::create_cube_texture_from_panorama(t, 1024),
+                                 gl::Material::TextureType::ENVIROMENT);
                 break;
             default:
                 break;
