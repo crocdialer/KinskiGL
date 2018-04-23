@@ -1935,7 +1935,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
 
     // render enviroment cubemap here
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
-    auto cube_fbo = gl::create_cube_framebuffer(the_size, true, false);
+    auto cube_fbo = gl::create_cube_framebuffer(the_size, true);
     auto cube_shader = gl::Shader::create(empty_vert, unlit_panorama_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
