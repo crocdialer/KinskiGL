@@ -17,9 +17,8 @@ void main()
     {
         for(int i = 0; i < 3; ++i)
         {
-            vec4 tmp = u_view_matrix[j] * gl_in[i].gl_Position;
-            vertex_out.eyeVec = tmp.xyz;
-            gl_Position = u_projection_matrix * tmp;
+            vertex_out.eyeVec = (gl_in[i].gl_Position).xyz;
+            gl_Position = u_projection_matrix * u_view_matrix[j] * gl_in[i].gl_Position;
             gl_Layer = j;
             EmitVertex();
         }

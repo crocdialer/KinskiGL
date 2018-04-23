@@ -8,7 +8,7 @@
 //               Distributed under the MIT License. See LICENSE file.
 //               https://github.com/ashima/webgl-noise
 //
-#version 330
+#version 410 core
 
 uniform vec2 u_scale = vec2(1.0);
 uniform float u_seed = 0.0;

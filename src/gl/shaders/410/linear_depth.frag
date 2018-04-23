@@ -1,4 +1,4 @@
-#version 410
+#version 410 core
 
 uniform vec2 u_clip_planes;
 

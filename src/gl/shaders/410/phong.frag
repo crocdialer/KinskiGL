@@ -1,4 +1,4 @@
-#version 410
+#version 410 core
 
 #define PI 3.1415926535897932384626433832795
 #define ONE_OVER_PI	0.318309886

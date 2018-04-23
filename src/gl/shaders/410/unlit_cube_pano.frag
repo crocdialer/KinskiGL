@@ -1,4 +1,4 @@
-#version 410
+#version 450
 
 #define ONE_OVER_PI	0.3183098861837907
 
@@ -23,8 +23,6 @@ layout(std140) uniform MaterialBlock
 
 in VertexData
 {
-    // vec4 color;
-    // vec2 texCoord;
     vec3 eyeVec;
 } vertex_in;
 

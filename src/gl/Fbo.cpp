@@ -35,7 +35,11 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer)
     {
         gl::Texture::Format cube_fmt;
         cube_fmt.set_target(GL_TEXTURE_CUBE_MAP);
-        auto cube_tex = gl::Texture(cube_sz, cube_sz, cube_fmt);
+        cube_fmt.set_internal_format(GL_RGBA);
+        cube_fmt.set_min_filter(GL_NEAREST);
+        cube_fmt.set_mag_filter(GL_NEAREST);
+        auto cube_tex = gl::Texture(nullptr, GL_RGB, cube_sz, cube_sz, cube_fmt);
+//		auto cube_tex = gl::Texture(cube_sz, cube_sz, cube_fmt);
         fbo.add_attachment(cube_tex, 0);
     }
     return fbo;

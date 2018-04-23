@@ -159,7 +159,6 @@ namespace kinski { namespace gl {
         if(!t){ m_skybox.reset(); return; }
         
         auto mat = gl::Material::create();
-        mat->set_depth_test(false);
 //        mat->set_depth_write(false);
 
         mat->set_culling(gl::Material::CULL_FRONT);
@@ -169,17 +168,18 @@ namespace kinski { namespace gl {
         if(t.target() == GL_TEXTURE_2D)
         {
             LOG_DEBUG << "creating cubemap from panorama ...";
+            mat->set_depth_test(false);
 
             // render enviroment cubemap here
-            auto cube_cam = gl::CubeCamera::create(.1f, 100.f);
+            auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
             auto cube_fbo = gl::create_cube_framebuffer(1024, true);
 
-            gl::ShaderPtr cube_shader = gl::Shader::create(empty_vert, unlit_cube_pano_frag, cube_layers_geom);
+            gl::ShaderPtr cube_shader = gl::Shader::create(empty_vert, unlit_cube_pano_frag, cube_layers_env_geom);
+            auto cam_matrices = cube_cam->view_matrices();
 
             cube_shader->bind();
-            cube_shader->uniform("u_view_matrix", cube_cam->view_matrices());
+            cube_shader->uniform("u_view_matrix", cam_matrices);
             cube_shader->uniform("u_projection_matrix", cube_cam->projection_matrix());
-//            cube_shader->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
 
             auto cube_tex = gl::render_to_texture(cube_fbo, [this, cube_shader]()
             {
@@ -191,7 +191,7 @@ namespace kinski { namespace gl {
             });
             KINSKI_CHECK_GL_ERRORS();
 
-            set_skybox(cube_tex);
+            set_skybox(cube_fbo.texture());
             return;
         }
 

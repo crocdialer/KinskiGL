@@ -1,4 +1,4 @@
-#version 410
+#version 410 core
 
 #define MAX_NUM_LIGHTS 8
 #define PI 3.1415926535897932384626433832795

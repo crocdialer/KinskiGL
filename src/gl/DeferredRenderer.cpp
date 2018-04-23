@@ -30,7 +30,7 @@ DeferredRenderer::DeferredRenderer()
 void DeferredRenderer::init()
 {
 #if !defined(KINSKI_GLES)
-    std::string glsl_version = "#version 410";
+    std::string glsl_version = "#version 410 core";
 
     // default lighting
     std::string frag_src = glsl_version + "\n" + brdf_glsl + "\n" + deferred_lighting_frag;
