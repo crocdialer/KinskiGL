@@ -21,7 +21,7 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer)
     gl::Fbo::Format fbo_fmt;
     fbo_fmt.set_num_color_buffers(0);
     gl::Fbo fbo(cube_sz, cube_sz, fbo_fmt);
-
+    
     gl::Texture::Format cube_depth_fmt;
     cube_depth_fmt.set_target(GL_TEXTURE_CUBE_MAP);
     cube_depth_fmt.set_data_type(GL_FLOAT);
@@ -33,13 +33,14 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer)
 
     if(with_color_buffer)
     {
+        GLenum format, internal_format;
+        gl::get_texture_format(3, false, &format, &internal_format);
         gl::Texture::Format cube_fmt;
         cube_fmt.set_target(GL_TEXTURE_CUBE_MAP);
-        cube_fmt.set_internal_format(GL_RGBA);
+        cube_fmt.set_internal_format(internal_format);
         cube_fmt.set_min_filter(GL_NEAREST);
         cube_fmt.set_mag_filter(GL_NEAREST);
-        auto cube_tex = gl::Texture(nullptr, GL_RGB, cube_sz, cube_sz, cube_fmt);
-//		auto cube_tex = gl::Texture(cube_sz, cube_sz, cube_fmt);
+        auto cube_tex = gl::Texture(nullptr, format, cube_sz, cube_sz, cube_fmt);
         fbo.add_attachment(cube_tex, 0);
     }
     return fbo;
@@ -294,7 +295,11 @@ void Fbo::init()
 		vector<GLenum> drawBuffers;
 		for(size_t c = 0; c < m_impl->m_color_textures.size(); ++c)
         {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, target(),
+#if defined(KINSKI_GLES_2)
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, target()
+                                 m_impl->m_color_textures[c].id(), 0);
+#endif
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c,
                                    m_impl->m_color_textures[c].id(), 0);
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 		}
@@ -352,7 +357,7 @@ void Fbo::init()
 
 		FboExceptionInvalidSpecification exc;
         // failed creation; throw
-		if(!check_status(&exc)) { throw exc; }
+		if(!check_status(&exc)) { LOG_ERROR << exc.what(); }
 	}
 	
 	m_impl->m_needs_resolve = false;

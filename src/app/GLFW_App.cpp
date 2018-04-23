@@ -429,6 +429,7 @@ namespace kinski
             glfwSetWindowSizeCallback(w, &GLFW_App::s_resize);
             the_window->set_draw_function([this]()
             {
+                // TODO: remove this, as soon as the side-effect making this necessary is found
                 glDepthMask(GL_TRUE);
                 draw();
 
@@ -437,9 +438,6 @@ namespace kinski
                 {
                     // console output
                     outstream_gl().draw();
-
-                    // TODO: remove this, as soon as the side-effect making this necessary is found
-//                    glDepthMask(GL_TRUE);
 
                     // render and draw ImGui
                     ImGui::Render();

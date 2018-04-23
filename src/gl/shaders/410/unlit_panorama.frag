@@ -1,4 +1,4 @@
-#version 450
+#version 410
 
 #define ONE_OVER_PI	0.3183098861837907
 

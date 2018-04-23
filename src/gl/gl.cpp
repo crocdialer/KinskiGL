@@ -1695,7 +1695,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void get_format(int the_num_comps, bool compress, GLenum *out_format, GLenum *out_internal_format)
+void get_texture_format(int the_num_comps, bool compress, GLenum *out_format,
+                        GLenum *out_internal_format)
 {
     switch(the_num_comps)
     {
@@ -1746,7 +1747,7 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
 
     if(!the_img){ return ret; }
     GLenum format = 0, internal_format = 0;
-    get_format(the_img->m_num_components, compress, &format, &internal_format);
+    get_texture_format(the_img->m_num_components, compress, &format, &internal_format);
 
     Texture::Format fmt;
     fmt.set_internal_format(internal_format);
@@ -1889,7 +1890,7 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
 
     // create and bind cube map
     GLenum format = 0, internal_format = 0;
-    get_format(num_components, compress, &format, &internal_format);
+    get_texture_format(num_components, compress, &format, &internal_format);
 
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);
@@ -1934,7 +1935,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
 
     // render enviroment cubemap here
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
-    auto cube_fbo = gl::create_cube_framebuffer(the_size, true);
+    auto cube_fbo = gl::create_cube_framebuffer(the_size, true, false);
     auto cube_shader = gl::Shader::create(empty_vert, unlit_panorama_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
@@ -1952,6 +1953,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
         gl::draw_mesh(box_mesh, cube_shader);
     });
     KINSKI_CHECK_GL_ERRORS();
+    cube_tex.set_mipmapping();
     return cube_tex;
 }
 
