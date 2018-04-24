@@ -682,7 +682,7 @@ void ModelViewer::async_load_asset(const std::string &the_path,
         }
 
         // work on this thread done, now queue texture creation on main queue
-        main_queue().submit([this, m, task, the_completion_handler]()
+        main_queue().submit([m, task, the_completion_handler]()
         {
             the_completion_handler(m);
         });

@@ -46,7 +46,7 @@ namespace kinski
         Property_<float>::Ptr m_position_x, m_position_y, m_position_z;
         Property_<glm::vec3>::Ptr m_direction;
         Property_<gl::Color>::Ptr m_ambient, m_diffuse;
-        RangedProperty<float>::Ptr m_att_constant, m_att_linear, m_att_quadratic;
+        RangedProperty<float>::Ptr m_att_constant, m_att_quadratic;
         RangedProperty<float>::Ptr m_spot_cutoff, m_spot_exponent;
     };
 }

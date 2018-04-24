@@ -25,7 +25,7 @@ namespace kinski { namespace gl {
     Light::Light(Type theType):
     Object3D(),
     m_type(theType),
-    m_attenuation(Attenuation(1.f, 0.f, 0.05f)),
+    m_attenuation(Attenuation(1.f, 0.05f)),
     m_spot_cutoff(25.f),
     m_spot_exponent(1.f),
     m_intensity(1.f),
@@ -70,21 +70,18 @@ namespace kinski { namespace gl {
     void Light::set_attenuation(const Attenuation &theAttenuation)
     {
         m_attenuation = Attenuation(std::max(theAttenuation.constant, 0.f),
-                                    std::max(theAttenuation.linear, 0.f),
                                     std::max(theAttenuation.quadratic, 0.f));
     }
     
-    void Light::get_attenuation(float &constant, float &linear, float &quadratic) const
+    void Light::get_attenuation(float &constant, float &quadratic) const
     {
         constant = m_attenuation.constant;
-        linear = m_attenuation.linear;
         quadratic = m_attenuation.quadratic;
     }
     
-    void Light::set_attenuation(float constant, float linear, float quadratic)
+    void Light::set_attenuation(float constant, float quadratic)
     {
         m_attenuation = Attenuation(std::max(constant, 0.f),
-                                    std::max(linear, 0.f),
                                     std::max(quadratic, 0.f));
     }
     

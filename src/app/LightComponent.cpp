@@ -36,7 +36,6 @@ m_direction(Property_<glm::vec3>::create("direction", glm::vec3(1))),
 m_ambient(Property_<gl::Color>::create("ambient", gl::Color(0))),
 m_diffuse(Property_<gl::Color>::create("diffuse", gl::Color())),
 m_att_constant(RangedProperty<float>::create("attenuation, constant", 1, 0, 10)),
-m_att_linear(RangedProperty<float>::create("attenuation, linear", 0, 0, 10.f)),
 m_att_quadratic(RangedProperty<float>::create("attenuation, quadratic", 0, 0, 10.f)),
 m_spot_cutoff(RangedProperty<float>::create("spot cutoff", 45.f, 0.f, 360.f)),
 m_spot_exponent(RangedProperty<float>::create("spot exponent", 0, 0, 256.f))
@@ -55,7 +54,6 @@ m_spot_exponent(RangedProperty<float>::create("spot exponent", 0, 0, 256.f))
     register_property(m_ambient);
     register_property(m_diffuse);
     register_property(m_att_constant);
-    register_property(m_att_linear);
     register_property(m_att_quadratic);
     register_property(m_spot_cutoff);
     register_property(m_spot_exponent);
@@ -112,10 +110,10 @@ void LightComponent::update_property(const Property::ConstPtr &theProperty)
     {
         active_light->set_ambient(*m_ambient);
     }
-    else if(theProperty == m_att_constant || theProperty == m_att_linear ||
+    else if(theProperty == m_att_constant ||
             theProperty == m_att_quadratic)
     {
-        active_light->set_attenuation(*m_att_constant, *m_att_linear, *m_att_quadratic);
+        active_light->set_attenuation(*m_att_constant, *m_att_quadratic);
     }
     else if(theProperty == m_spot_cutoff)
     {
@@ -179,7 +177,6 @@ void LightComponent::refresh()
     *m_diffuse = light->diffuse();
     *m_ambient = light->ambient();
     *m_att_constant = light->attenuation().constant;
-    *m_att_linear = light->attenuation().linear;
     *m_att_quadratic = light->attenuation().quadratic;
     *m_spot_cutoff = light->spot_cutoff();
     *m_spot_exponent = light->spot_exponent();

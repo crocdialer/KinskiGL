@@ -22,13 +22,13 @@ namespace kinski { namespace gl {
     public:
         
         //! type enum
-        enum Type {DIRECTIONAL = 0, POINT = 1, SPOT = 2, AREA = 3, ENVIROMENT = 4, UNKNOWN = 5};
+        enum Type {DIRECTIONAL = 0, POINT = 1, SPOT = 2, AREA = 3, UNKNOWN = 5};
         
         //! Helper struct to bundle attenuation params
         struct Attenuation
         {
-            float constant, linear, quadratic;
-            Attenuation(float c, float l, float q):constant(c), linear(l), quadratic(q){}
+            float constant, quadratic;
+            Attenuation(float c, float q):constant(c), quadratic(q){}
         };
         
         static LightPtr create(Type theType);
@@ -37,10 +37,10 @@ namespace kinski { namespace gl {
         
         const Color& diffuse() const { return m_diffuse; };
         const Color& ambient() const { return m_ambient; };
-//        const Color& specular() const { return m_specular; };
+
         void set_diffuse(const Color &theColor);
         void set_ambient(const Color &theColor);
-//        void set_specular(const Color &theColor);
+
         float intensity() const { return m_intensity; }
         void set_intensity(float the_intensity);
         
@@ -49,8 +49,9 @@ namespace kinski { namespace gl {
         
         const Attenuation& attenuation() const;
         void set_attenuation(const Attenuation &theAttenuation);
-        void get_attenuation(float &constant, float &linear, float &quadratic) const;
-        void set_attenuation(float constant, float linear, float quadratic);
+        void get_attenuation(float &constant, float &quadratic) const;
+        void set_attenuation(float constant, float quadratic);
+        
         float spot_exponent() const {return m_spot_exponent;}
         float spot_cutoff() const {return m_spot_cutoff;}
         void set_spot_exponent(float f){m_spot_exponent = f;}

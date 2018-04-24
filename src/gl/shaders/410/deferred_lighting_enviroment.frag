@@ -4,16 +4,16 @@
 uniform vec2 u_window_dimension;
 uniform mat4 u_camera_transform;
 
-// regular textures
-uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[5];
-uniform samplerCube u_sampler_cube[1];
-
 #define ALBEDO 0
 #define NORMAL 1
 #define POSITION 2
 #define EMISSION 3
 #define MATERIAL_PROPS 4
+uniform sampler2D u_sampler_2D[5];
+
+#define ENV_DIFFUSE 0
+#define ENV_SPEC 1
+uniform samplerCube u_sampler_cube[2];
 
 vec4 sample_enviroment(in samplerCube env_map, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
                        in vec4 the_params)

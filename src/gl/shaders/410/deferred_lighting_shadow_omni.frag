@@ -97,5 +97,5 @@ void main()
     const float min_shade = 0.1, max_shade = 1.0;
     float sf = receive_shadow ? shadow_factor(u_sampler_cube[0], position, u_lights[u_light_index].position) : 1.0;
     sf = mix(min_shade, max_shade, sf);
-    fragData = shade(u_lights[u_light_index], normal, position, color, mat_prop, sf);
+    fragData = shade(u_lights[u_light_index], normal, position, color, mat_prop.y, mat_prop.x, sf);
 }

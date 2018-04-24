@@ -144,7 +144,6 @@ namespace kinski
         private:
             explicit Task(){ s_num_tasks++; }
             static std::atomic<uint32_t> s_num_tasks;
-            App* m_app;
         };
         
         /*!

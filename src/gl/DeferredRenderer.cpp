@@ -472,7 +472,21 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
         }
     }
 }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
+{
+    return gl::Texture();
+}
 
+///////////////////////////////////////////////////////////////////////////////
+    
+gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
+{
+    return gl::Texture();
+}
+    
 ///////////////////////////////////////////////////////////////////////////////
 
 gl::Texture DeferredRenderer::final_texture()

@@ -584,7 +584,7 @@ namespace kinski {
             {
                 auto img = create_image_from_file(abs_path);
                 
-                main_queue().submit([this, task, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
+                main_queue().submit([task, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
                 {
                     auto tex = gl::create_texture_from_image(img, mip_map, compress,
                                                              anisotropic_filter_lvl);
@@ -603,7 +603,7 @@ namespace kinski {
                         images[i] = create_image_from_file(img_paths[i]);
                     }
                     
-                    main_queue().submit([this, task, the_path, images, the_callback]()
+                    main_queue().submit([task, the_path, images, the_callback]()
                     {
                         auto cubemap = gl::create_cube_texture_from_images(images);
                         LOG_DEBUG << "loaded cubemap folder: " << the_path;
