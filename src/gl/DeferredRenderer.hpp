@@ -61,10 +61,10 @@ private:
     m_mat_lighting_emissive, m_mat_lighting_enviroment, m_mat_stencil, m_mat_resolve;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
     
-    bool m_skybox_loaded = false, m_use_fxaa = true;
+    bool m_use_fxaa = true;
 
     gl::MeshPtr m_skybox;
-    gl::Texture m_env_conv_diff;
+    gl::Texture m_env_conv_diff, m_env_conv_spec;
 };
 
 }}

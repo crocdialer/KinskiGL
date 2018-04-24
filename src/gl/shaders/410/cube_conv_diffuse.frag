@@ -2,10 +2,8 @@
 
 // #extension GL_ARB_separate_shader_objects : enable
 
-#define PI 3.14159265358979323
-#define INV_PI 0.31830988618379067239521257108191
-
-// layout (set = 0, binding = 1) uniform samplerCube hdrProbe;
+#define PI 3.1415926535897932384626433832795
+#define ONE_OVER_PI 0.31830988618379067153776752674503
 
 // unfiltered map with mips
 uniform samplerCube u_sampler_cube[1];
@@ -50,7 +48,7 @@ vec3 ImportanceSample(vec3 N)
 			// Compute Lod using inverse solid angle and pdf.
             // From Chapter 20.4 Mipmap filtered samples in GPU Gems 3.
             // http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
-			float pdf = NoL * INV_PI;
+			float pdf = NoL * ONE_OVER_PI;
 			float solidAngleTexel = 4.0 * PI / (6.0 * cubeWidth * cubeWidth);
 			float solidAngleSample = 1.0 / (numSamples * pdf);
 			float lod = 0.5 * log2(solidAngleSample / solidAngleTexel);
@@ -59,7 +57,7 @@ vec3 ImportanceSample(vec3 N)
 			result += vec4(hdrRadiance / pdf, 1.0);
 		}
 	}
-	return INV_PI * result.rgb / result.w;
+	return ONE_OVER_PI * result.rgb / result.w;
 }
 
 in VertexData

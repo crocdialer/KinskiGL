@@ -460,8 +460,9 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
         if(t && m_skybox != the_renderbin->scene->skybox())
         {
             m_env_conv_diff = create_env_diff(t);
+            m_env_conv_spec = create_env_spec(t);
             m_skybox = the_renderbin->scene->skybox();
-//            the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT);
+//            the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
         }
 
         if(t && t.target() == GL_TEXTURE_CUBE_MAP)
@@ -469,7 +470,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             if(!stencil_pass)
             {
                 m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
-                m_mat_lighting_enviroment->add_texture(t, Texture::Usage::ENVIROMENT_CONV_SPEC);
+                m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
                 m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
                 m_frustum_mesh->material() = m_mat_lighting_enviroment;
             }
@@ -522,7 +523,40 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
     
 gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 {
-    return gl::Texture();
+    LOG_DEBUG << "creating cubemap specular convolution ...";
+    constexpr uint32_t conv_size = 1024;
+
+    auto mat = gl::Material::create();
+    mat->set_culling(gl::Material::CULL_FRONT);
+    mat->add_texture(the_env_tex, Texture::Usage::ENVIROMENT);
+    mat->set_depth_test(false);
+    mat->set_depth_write(false);
+    auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
+
+    // render enviroment cubemap here
+    auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
+    auto cube_fbo = gl::create_cube_framebuffer(conv_size);
+    auto cube_shader = gl::Shader::create(empty_vert, cube_conv_spec_frag, cube_layers_env_geom);
+
+    auto cam_matrices = cube_cam->view_matrices();
+
+    cube_shader->bind();
+    cube_shader->uniform("u_view_matrix", cam_matrices);
+    cube_shader->uniform("u_projection_matrix", cube_cam->projection_matrix());
+    cube_shader->uniform("u_roughness", 0.f);
+
+    auto cube_tex = gl::render_to_texture(cube_fbo, [box_mesh, cube_shader]()
+    {
+        gl::clear();
+        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+        gl::load_identity(gl::PROJECTION_MATRIX);
+        gl::load_identity(gl::MODEL_VIEW_MATRIX);
+        gl::draw_mesh(box_mesh, cube_shader);
+    });
+    cube_tex.set_mag_filter(GL_LINEAR);
+    KINSKI_CHECK_GL_ERRORS();
+
+    return cube_tex;
 }
     
 ///////////////////////////////////////////////////////////////////////////////
