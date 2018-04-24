@@ -671,7 +671,7 @@ namespace kinski { namespace gl {
 
         // add the texture to the material
         material->add_texture(the_texture);
-        material->add_texture(the_mask, gl::Material::TextureType::MASK);
+        material->add_texture(the_mask, Texture::Usage::MASK);
         material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
 
         vec2 sz = theSize;
@@ -1175,7 +1175,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             auto &pair = *it;
 
             // no DXT compression for normal maps
-            bool use_compression = pair.second.key != (uint32_t)gl::Material::TextureType::NORMAL;
+            bool use_compression = pair.second.key != (uint32_t)Texture::Usage::NORMAL;
 
             if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
             {
@@ -1931,7 +1931,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     LOG_DEBUG << "creating cubemap from panorama ...";
     auto mat = gl::Material::create();
     mat->set_culling(gl::Material::CULL_FRONT);
-    mat->add_texture(the_panorama, gl::Material::TextureType::ENVIROMENT);
+    mat->add_texture(the_panorama, Texture::Usage::ENVIROMENT);
     mat->set_depth_test(false);
     mat->set_depth_write(false);
     auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
@@ -1967,21 +1967,20 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
         fmt.set_target(GL_TEXTURE_CUBE_MAP);
         fmt.set_internal_format(internal_format);
         auto ret = gl::Texture(nullptr, format, the_size, the_size, fmt);
-        ret.bind();
 
         // create PBO
         gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
         pixel_buf.set_data(nullptr, the_size * the_size * 4);
 
+        // bind PBO for reading and writing
+        pixel_buf.bind(GL_PIXEL_PACK_BUFFER);
+        pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
+
         for(uint32_t i = 0; i < 6; i++)
         {
             // copy data to PBO
-            pixel_buf.bind(GL_PIXEL_PACK_BUFFER);
             cube_tex.bind();
             glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, GL_UNSIGNED_BYTE, nullptr);
-
-            // bind PBO
-            pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
 
             // copy data from PBO to appropriate image plane
             ret.bind();

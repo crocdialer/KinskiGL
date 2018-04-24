@@ -399,7 +399,7 @@ namespace kinski{ namespace gl{
             roi_tex.set_roi(abs_roi);
         }
         
-        m_impl->m_mesh->material()->add_texture(roi_tex, gl::Material::TextureType::COLOR);
+        m_impl->m_mesh->material()->add_texture(roi_tex, Texture::Usage::COLOR);
         
         m_impl->m_mesh->material()->set_diffuse(gl::Color(the_brightness, the_brightness,
                                                           the_brightness, 1.f));

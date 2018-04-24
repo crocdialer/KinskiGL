@@ -127,15 +127,15 @@ namespace kinski { namespace gl {
         m_queued_shader = ShaderType::NONE;
     }
     
-    void Material::add_texture(const Texture &the_texture, TextureType the_type)
+    void Material::add_texture(const Texture &the_texture, Texture::Usage the_usage)
     {
-        m_textures[static_cast<uint32_t>(the_type)] = the_texture;
+        m_textures[static_cast<uint32_t>(the_usage)] = the_texture;
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::clear_texture(TextureType the_type)
+    void Material::clear_texture(Texture::Usage the_usage)
     {
-        m_textures.erase(static_cast<uint32_t>(the_type));
+        m_textures.erase(static_cast<uint32_t>(the_usage));
         m_dirty_uniform_buffer = true;
     }
     
@@ -151,9 +151,9 @@ namespace kinski { namespace gl {
         m_dirty_uniform_buffer = true;
     }
     
-    bool Material::has_texture(TextureType the_type)
+    bool Material::has_texture(Texture::Usage the_usage)
     {
-        return has_texture(static_cast<uint32_t>(the_type));
+        return has_texture(static_cast<uint32_t>(the_usage));
     }
     
     bool Material::has_texture(uint32_t the_key)
@@ -163,9 +163,9 @@ namespace kinski { namespace gl {
         return m_textures.find(the_key) != std::end(m_textures);
     }
     
-    gl::Texture Material::get_texture(TextureType the_type)
+    gl::Texture Material::get_texture(Texture::Usage the_usage)
     {
-        auto it = m_textures.find(static_cast<uint32_t>(the_type));
+        auto it = m_textures.find(static_cast<uint32_t>(the_usage));
         if(it != std::end(m_textures))
         {
             return it->second;

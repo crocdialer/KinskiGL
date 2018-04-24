@@ -61,7 +61,6 @@ vec4 fxaa(sampler2D the_sampler, vec2 the_tex_coord)
 
     // determine texel-step size
     vec2 texel_step = 1.0 / textureSize(the_sampler, 0);
-//    vec2 texel_step = 1.0 / u_window_dimension;
 
     // NTSC luma formula
     const vec3 toLuma = vec3(0.299, 0.587, 0.114);
@@ -127,11 +126,32 @@ vec4 fxaa(sampler2D the_sampler, vec2 the_tex_coord)
     return ret;
 }
 
+vec3 filmicTonemap(vec3 x)
+{
+    float A = 0.15;
+    float B = 0.50;
+    float C = 0.10;
+    float D = 0.20;
+    float E = 0.02;
+    float F = 0.30;
+    float W = 11.2;
+    return ((x*(A*x+C*B)+D*E) / (x*(A*x+B)+D*F))- E / F;
+}
+
+vec3 applyFilmicToneMap(vec3 color)
+{
+    color = 2.0 * filmicTonemap(color);
+    vec3 whiteScale = 1.0 / filmicTonemap(vec3(11.2));
+    color *= whiteScale;
+    return color;
+}
+
 void main()
 {
     vec4 texColors;
     if(u_use_fxaa != 0){ texColors = fxaa(u_sampler_2D[COLOR], vertex_in.texCoord.st); }
     else{ texColors = texture(u_sampler_2D[COLOR], vertex_in.texCoord.st); }
+    // texColors.rgb = applyFilmicToneMap(texColors.rgb);
 
     float depth = texture(u_sampler_2D[DEPTH], vertex_in.texCoord.st).x;
     gl_FragDepth = depth;

@@ -345,7 +345,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
 
 
     auto enqueue_tex_image = [the_scene, &theMaterial, the_img_map](const std::string the_path,
-                                                                    gl::Material::TextureType the_type)
+                                                                    gl::Texture::Usage the_type)
     {
         ImagePtr img;
 
@@ -377,45 +377,45 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE), 0, &path_buf))
     {
         LOG_TRACE << "adding color map: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Material::TextureType::COLOR);
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::COLOR);
     }
     
     // EMISSION
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_EMISSIVE), 0, &path_buf))
     {
         LOG_TRACE << "adding emission map: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Material::TextureType::EMISSION);
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::EMISSION);
     }
     
     // SHINYNESS
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SPECULAR), 0, &path_buf))
     {
         LOG_TRACE << "adding spec/roughness map: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Material::TextureType::SPECULAR);
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::SPECULAR);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &path_buf))
     {
         LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Material::TextureType::NORMAL);
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::NORMAL);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DISPLACEMENT), 0, &path_buf))
     {
         LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Material::TextureType::NORMAL);
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::NORMAL);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_HEIGHT), 0, &path_buf))
     {
         LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Material::TextureType::NORMAL);
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::NORMAL);
     }
 
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_UNKNOWN), 0, &path_buf))
     {
         LOG_TRACE << "unknown texture usage (assuming AO/METAL/ROUGHNESS ): '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Material::TextureType::ROUGH_METAL);
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::ROUGH_METAL);
     }
     return theMaterial;
 }

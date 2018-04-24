@@ -167,12 +167,11 @@ namespace kinski { namespace gl {
         {
             case GL_TEXTURE_CUBE_MAP:
                 LOG_DEBUG << "adding cubical skybox";
-                mat->add_texture(t, gl::Material::TextureType::ENVIROMENT);
+                mat->add_texture(t, Texture::Usage::ENVIROMENT);
                 break;
             case GL_TEXTURE_2D:
                 LOG_DEBUG << "adding panorama skybox";
-                mat->add_texture(gl::create_cube_texture_from_panorama(t, 1024, true, true),
-                                 gl::Material::TextureType::ENVIROMENT);
+                mat->add_texture(gl::create_cube_texture_from_panorama(t, 1024, true, true), Texture::Usage::ENVIROMENT);
                 break;
             default:
                 break;

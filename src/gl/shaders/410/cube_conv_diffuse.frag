@@ -12,7 +12,7 @@ uniform samplerCube u_sampler_cube[1];
 
 vec2 Hammersley(uint i, uint N)
 {
-	float vdc = bitfieldReverse(i) * 2.3283064365386963e-10; // Van der Corput
+	float vdc = float(bitfieldReverse(i)) * 2.3283064365386963e-10; // Van der Corput
 	return vec2(float(i) / float(N), vdc);
 }
 
@@ -35,7 +35,7 @@ vec3 ImportanceSample(vec3 N)
 {
 	vec4 result = vec4(0.0);
 
-	float cubeWidth = float(textureSize(hdrProbe, 0).x);
+	float cubeWidth = float(textureSize(u_sampler_cube[0], 0).x);
 
 	const uint numSamples = 1024;
 	for (uint i = 0; i < numSamples; ++i)
@@ -59,7 +59,7 @@ vec3 ImportanceSample(vec3 N)
 			result += vec4(hdrRadiance / pdf, 1.0);
 		}
 	}
-	return result.rgb / result.w;
+	return INV_PI * result.rgb / result.w;
 }
 
 in VertexData

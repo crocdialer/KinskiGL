@@ -167,7 +167,7 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     }
     // draw light texture
     m_mat_resolve->add_texture(m_fbo_lighting.texture());
-    m_mat_resolve->add_texture(m_fbo_geometry.depth_texture(), gl::Material::TextureType::DEPTH);
+    m_mat_resolve->add_texture(m_fbo_geometry.depth_texture(), Texture::Usage::DEPTH);
     m_mat_resolve->uniform("u_use_fxaa", m_use_fxaa ? 1 : 0);
     m_mat_resolve->uniform("u_luma_thresh", .4f);
     gl::draw_quad(gl::window_dimension(), m_mat_resolve);
@@ -203,7 +203,7 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         KINSKI_CHECK_GL_ERRORS();
         
         m_mat_lighting_emissive->add_texture(m_fbo_geometry.texture(G_BUFFER_EMISSION),
-                                             gl::Material::TextureType::COLOR);
+                                             Texture::Usage::COLOR);
     }
 
     std::list<RenderBin::item> opaque_items, blended_items;
@@ -221,11 +221,11 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     
     auto select_shader = [this](const gl::MeshPtr &m) -> gl::ShaderPtr
     {
-        bool has_albedo = m->material()->has_texture(gl::Material::TextureType::COLOR);
-        bool has_normal_map = m->material()->has_texture(gl::Material::TextureType::NORMAL);
-        bool has_spec_map = m->material()->has_texture(gl::Material::TextureType::SPECULAR);
-        bool has_rough_metal_map = m->material()->has_texture(gl::Material::TextureType::ROUGH_METAL);
-        bool has_emmision_map = m->material()->has_texture(gl::Material::TextureType::EMISSION);
+        bool has_albedo = m->material()->has_texture(Texture::Usage::COLOR);
+        bool has_normal_map = m->material()->has_texture(Texture::Usage::NORMAL);
+        bool has_spec_map = m->material()->has_texture(Texture::Usage::SPECULAR);
+        bool has_rough_metal_map = m->material()->has_texture(Texture::Usage::ROUGH_METAL);
+        bool has_emmision_map = m->material()->has_texture(Texture::Usage::EMISSION);
 
         uint32_t key = PROP_DEFAULT;
         if(has_albedo){ key |= PROP_ALBEDO; }
@@ -415,7 +415,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 {
                     mat = (l.light->type() == gl::Light::POINT) ?
                         m_mat_lighting_shadow_omni : m_mat_lighting_shadow;
-                    mat->add_texture(shadow_map, gl::Material::TextureType::SHADOW);
+                    mat->add_texture(shadow_map, Texture::Usage::SHADOW);
                 }
             }
             else{ mat = m_mat_lighting; }
@@ -429,7 +429,6 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
         switch(l.light->type())
         {
             case Light::DIRECTIONAL:
-//            case Light::ENVIROMENT:
             {
                 gl::load_identity(gl::MODEL_VIEW_MATRIX);
                 gl::draw_mesh(m_frustum_mesh);
@@ -456,14 +455,21 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
     // enviroment lighting / reflection
     if(the_renderbin->scene->skybox())
     {
-        auto tex_type = gl::Material::TextureType::ENVIROMENT;
-        auto t = the_renderbin->scene->skybox()->material()->get_texture(tex_type);
+        auto t = the_renderbin->scene->skybox()->material()->get_texture(Texture::Usage::ENVIROMENT);
+
+        if(t && m_skybox != the_renderbin->scene->skybox())
+        {
+            m_env_conv_diff = create_env_diff(t);
+            m_skybox = the_renderbin->scene->skybox();
+//            the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT);
+        }
 
         if(t && t.target() == GL_TEXTURE_CUBE_MAP)
         {
             if(!stencil_pass)
             {
-                m_mat_lighting_enviroment->add_texture(t, tex_type);
+                m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
+                m_mat_lighting_enviroment->add_texture(t, Texture::Usage::ENVIROMENT_CONV_SPEC);
                 m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
                 m_frustum_mesh->material() = m_mat_lighting_enviroment;
             }
@@ -477,7 +483,39 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
     
 gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 {
-    return gl::Texture();
+    LOG_DEBUG << "creating cubemap diffuse convolution ...";
+    constexpr uint32_t conv_size = 32;
+
+    auto mat = gl::Material::create();
+    mat->set_culling(gl::Material::CULL_FRONT);
+    mat->add_texture(the_env_tex, Texture::Usage::ENVIROMENT);
+    mat->set_depth_test(false);
+    mat->set_depth_write(false);
+    auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
+
+    // render enviroment cubemap here
+    auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
+    auto cube_fbo = gl::create_cube_framebuffer(conv_size);
+    auto cube_shader = gl::Shader::create(empty_vert, cube_conv_diffuse_frag, cube_layers_env_geom);
+
+    auto cam_matrices = cube_cam->view_matrices();
+
+    cube_shader->bind();
+    cube_shader->uniform("u_view_matrix", cam_matrices);
+    cube_shader->uniform("u_projection_matrix", cube_cam->projection_matrix());
+
+    auto cube_tex = gl::render_to_texture(cube_fbo, [box_mesh, cube_shader]()
+    {
+        gl::clear();
+        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+        gl::load_identity(gl::PROJECTION_MATRIX);
+        gl::load_identity(gl::MODEL_VIEW_MATRIX);
+        gl::draw_mesh(box_mesh, cube_shader);
+    });
+    cube_tex.set_mag_filter(GL_LINEAR);
+    KINSKI_CHECK_GL_ERRORS();
+
+    return cube_tex;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

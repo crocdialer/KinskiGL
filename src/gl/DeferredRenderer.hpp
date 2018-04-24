@@ -62,6 +62,9 @@ private:
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
     
     bool m_skybox_loaded = false, m_use_fxaa = true;
+
+    gl::MeshPtr m_skybox;
+    gl::Texture m_env_conv_diff;
 };
 
 }}

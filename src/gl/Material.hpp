@@ -35,9 +35,6 @@ namespace kinski { namespace gl {
 
         enum ShadowProperties{SHADOW_NONE = 0, SHADOW_CAST = 1, SHADOW_RECEIVE = 2};
 
-        enum class TextureType : uint32_t {COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, ROUGH_METAL = 1 << 3,
-            EMISSION = 1 << 4, DISPLACEMENT = 1 << 5, SHADOW = 1 << 6, DEPTH = 1 << 7, ENVIROMENT = 1 << 8,
-            NOISE = 1 << 9, MASK = 1 << 10};
         enum class AssetLoadStatus{ NOT_LOADED = 0, NOT_FOUND = 1, IMAGE_LOADED = 2, DONE = 3 };
         
         using texture_map_t = std::map<uint32_t, gl::Texture>;
@@ -55,16 +52,16 @@ namespace kinski { namespace gl {
         
         bool dirty() const { return m_dirty_uniform_buffer; };
         
-        void add_texture(const Texture &the_texture, TextureType the_type = TextureType::COLOR);
+        void add_texture(const Texture &the_texture, Texture::Usage the_usage = Texture::Usage::COLOR);
         void add_texture(const Texture &the_texture, uint32_t the_key);
         
-        void clear_texture(TextureType the_type);
+        void clear_texture(Texture::Usage the_usage);
         void clear_texture(uint32_t the_key);
         
-        bool has_texture(TextureType the_type);
+        bool has_texture(Texture::Usage the_usage);
         bool has_texture(uint32_t the_key);
         
-        gl::Texture get_texture(TextureType the_type);
+        gl::Texture get_texture(Texture::Usage the_usage);
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };

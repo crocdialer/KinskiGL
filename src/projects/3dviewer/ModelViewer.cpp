@@ -156,7 +156,7 @@ void ModelViewer::draw()
         });
         m_post_process_mat->add_texture(m_post_process_fbo.texture());
         m_post_process_mat->add_texture(m_post_process_fbo.depth_texture(),
-                                        gl::Material::TextureType::DEPTH);
+                                        gl::Texture::Usage::DEPTH);
         textures()[TEXTURE_OFFSCREEN] = tex;
     }
     if(*m_use_warping)
@@ -616,7 +616,7 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
             
             async_load_texture(the_path, [m](const gl::Texture &t)
             {
-                m->material()->add_texture(t, gl::Material::TextureType::COLOR);
+                m->material()->add_texture(t, gl::Texture::Usage::COLOR);
                 m->material()->set_two_sided();
                 gl::vec3 s = m->scale();
                 m->set_scale(gl::vec3(s.x * t.aspect_ratio(), s.y, 1.f));
@@ -728,7 +728,7 @@ void ModelViewer::update_shader()
         try{ shader = gl::create_shader(type); }
         catch(Exception &e){ LOG_WARNING << e.what(); }
 
-        auto t = (uint32_t)gl::Material::TextureType::NORMAL;
+        auto t = (uint32_t)gl::Texture::Usage::NORMAL;
 
         for(auto &mat : m_mesh->materials())
         {
