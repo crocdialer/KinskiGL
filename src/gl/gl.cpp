@@ -1939,7 +1939,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     // render enviroment cubemap here
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
     auto cube_fbo = gl::create_cube_framebuffer(the_size);
-    auto cube_shader = gl::Shader::create(empty_vert, unlit_panorama_frag, cube_layers_env_geom);
+    auto cube_shader = gl::Shader::create(cube_vert, unlit_panorama_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
 
@@ -1949,10 +1949,6 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
 
     auto cube_tex = gl::render_to_texture(cube_fbo, [box_mesh, cube_shader]()
     {
-        gl::clear();
-        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
-        gl::load_identity(gl::PROJECTION_MATRIX);
-        gl::load_identity(gl::MODEL_VIEW_MATRIX);
         gl::draw_mesh(box_mesh, cube_shader);
     });
     KINSKI_CHECK_GL_ERRORS();
