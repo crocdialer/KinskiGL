@@ -1978,7 +1978,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
             // copy data to PBO
             pixel_buf.bind(GL_PIXEL_PACK_BUFFER);
             cube_tex.bind();
-            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, GL_UNSIGNED_BYTE, nullptr);
 
             // bind PBO
             pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
