@@ -262,10 +262,12 @@ KINSKI_API Texture create_cube_texture_from_file(const std::string &the_path,
                                                  bool compress = false);
 
 KINSKI_API gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
+                                                       bool mipmap = false,
                                                        bool compress = false);
 
 KINSKI_API gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama,
                                                          size_t the_size,
+                                                         bool mipmap = false,
                                                          bool compress = false);
 
 //! Convenience class which pushes and pops the current viewport dimension

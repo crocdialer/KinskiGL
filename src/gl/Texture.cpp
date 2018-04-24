@@ -381,8 +381,10 @@ void Texture::set_mipmapping(bool b)
     {
         if(b && !m_impl->m_mip_map)
         {
-            set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
+            bind();
+            if(m_impl->m_target == GL_TEXTURE_CUBE_MAP){ glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); }
             glGenerateMipmap(m_impl->m_target);
+            set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
         }
         else{ set_min_filter(GL_LINEAR); }
         m_impl->m_mip_map = b;

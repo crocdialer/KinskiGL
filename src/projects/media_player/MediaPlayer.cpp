@@ -440,20 +440,13 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             });
         }
     }
-//    else if(theProperty == m_text_overlay)
-//    {
-////        auto text_obj = fonts()[0].create_text_object(*m_text_overlay, gl::Font::Align::CENTER,
-////                                                      gl::window_dimension());
-//        string str = *m_text_overlay;
-//        textures()[TEXTURE_MASK] = fonts()[2].create_texture(str);
-//    }
 }
 
 /////////////////////////////////////////////////////////////////
 
 void MediaPlayer::reload_media()
 {
-    App::Task t(this);
+    auto task = Task::create();
 
     textures()[TEXTURE_INPUT].reset();
     m_sync_off_timer.cancel();

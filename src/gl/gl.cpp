@@ -1149,7 +1149,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         gl::set_window_dimension(theFbo.size());
         theFbo.bind();
         functor();
-        gl::reset_state();
+//        gl::reset_state();
         return theFbo.texture();
     }
 
@@ -1863,7 +1863,7 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
 
 ///////////////////////////////////////////////////////////////////////////////
 
-gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes, bool compress)
+gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes, bool mipmap, bool compress)
 {
     gl::Texture ret;
 #if !defined(KINSKI_GLES)
@@ -1914,12 +1914,14 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
                         GL_UNSIGNED_BYTE, nullptr);
     }
 #endif
+    ret.set_mipmapping(mipmap);
     return ret;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 
-gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, size_t the_size, bool compress)
+gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, size_t the_size, bool mipmap,
+                                              bool compress)
 {
     if(!the_panorama || the_panorama.target() != GL_TEXTURE_2D)
     {
@@ -1931,11 +1933,12 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     mat->set_culling(gl::Material::CULL_FRONT);
     mat->add_texture(the_panorama, gl::Material::TextureType::ENVIROMENT);
     mat->set_depth_test(false);
+    mat->set_depth_write(false);
     auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
 
     // render enviroment cubemap here
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
-    auto cube_fbo = gl::create_cube_framebuffer(the_size, true);
+    auto cube_fbo = gl::create_cube_framebuffer(the_size);
     auto cube_shader = gl::Shader::create(empty_vert, unlit_panorama_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
@@ -1953,7 +1956,42 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
         gl::draw_mesh(box_mesh, cube_shader);
     });
     KINSKI_CHECK_GL_ERRORS();
-    cube_tex.set_mipmapping();
+
+    // make a copy
+    if(mipmap || compress)
+    {
+        GLenum format = 0, internal_format = 0;
+        get_texture_format(3, compress, &format, &internal_format);
+
+        gl::Texture::Format fmt;
+        fmt.set_target(GL_TEXTURE_CUBE_MAP);
+        fmt.set_internal_format(internal_format);
+        auto ret = gl::Texture(nullptr, format, the_size, the_size, fmt);
+        ret.bind();
+
+        // create PBO
+        gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
+        pixel_buf.set_data(nullptr, the_size * the_size * 4);
+
+        for(uint32_t i = 0; i < 6; i++)
+        {
+            // copy data to PBO
+            pixel_buf.bind(GL_PIXEL_PACK_BUFFER);
+            cube_tex.bind();
+            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
+            // bind PBO
+            pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
+
+            // copy data from PBO to appropriate image plane
+            ret.bind();
+            glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, the_size, the_size, format,
+                            GL_UNSIGNED_BYTE, nullptr);
+        }
+        ret.set_mipmapping(mipmap);
+        KINSKI_CHECK_GL_ERRORS();
+        return ret;
+    }
     return cube_tex;
 }
 
