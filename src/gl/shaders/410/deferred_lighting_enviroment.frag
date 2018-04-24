@@ -4,6 +4,7 @@
 #define ONE_OVER_PI 0.31830988618379067153776752674503
 
 uniform mat4 u_camera_transform;
+uniform int u_num_mip_levels = 10;
 
 #define ALBEDO 0
 #define NORMAL 1
@@ -19,18 +20,19 @@ uniform samplerCube u_sampler_cube[2];
 
 vec3 sample_diffuse(in samplerCube diff_map, in vec3 normal)
 {
-    return texture(diff_map, normal).rgb;// * ONE_OVER_PI;
+    return texture(diff_map, normal).rgb * ONE_OVER_PI;
 }
 
-vec3 sample_reflection(in samplerCube env_map, in vec3 reflect_dir, float roughness)
-{
-    // vec3 sample_dir = reflect(eyeVec, normal);
-    return 0.15 * (1 - roughness) * texture(env_map, reflect_dir).rgb;
-}
+// vec3 sample_reflection(in samplerCube env_map, in vec3 reflect_dir, float roughness)
+// {
+//     // vec3 sample_dir = reflect(eyeVec, normal);
+//     return 0.15 * (1 - roughness) * texture(env_map, reflect_dir).rgb;
+// }
 
 vec3 compute_enviroment_lighting(vec3 position, vec3 normal, vec3 albedo, float roughness,
                                  float metalness, float aoVal)
 {
+    roughness = clamp(roughness * roughness, 0.05, 0.99);
 	vec3 v = normalize(position);
 	vec3 r = normalize(reflect(v, normal));
 
@@ -38,18 +40,19 @@ vec3 compute_enviroment_lighting(vec3 position, vec3 normal, vec3 albedo, float 
     vec3 world_reflect = mat3(u_camera_transform) * r;
 	vec3 diffIr = sample_diffuse(u_sampler_cube[ENV_DIFFUSE], world_normal);
 
-	float specMipLevel = 0;//roughness * float(pcs.totalMipLevels - 1);
+	float spec_mip_lvl = roughness * float(u_num_mip_levels - 1);
 
-    vec3 specIr = sample_reflection(u_sampler_cube[ENV_SPEC], world_reflect, roughness);
-	// vec3 specIr = textureLod(u_sampler_cube[ENV_SPEC], r, specMipLevel).rgb;
-	// float NoV = clamp(dot(normal, v), 0.0, 1.0);
-	// vec2 brdfTerm = textureLod(brdfLuts[0], vec2(NoV, clamp(roughness, 0.0, 1.0)), 0).rg;
+    // vec3 specIr = sample_reflection(u_sampler_cube[ENV_SPEC], world_reflect, roughness);
+	vec3 specIr = textureLod(u_sampler_cube[ENV_SPEC], world_reflect, spec_mip_lvl).rgb;
+	float NoV = clamp(dot(normal, v), 0.0, 1.0);
+
+	vec2 brdfTerm = texture(u_sampler_2D[BRDF_LUT], vec2(NoV, roughness)).rg;
 
 	const vec3 dielectricF0 = vec3(0.04);
 	vec3 diffColor = albedo * (1.0 - metalness); // if it is metal, no diffuse color
 	vec3 specColor = mix(dielectricF0, albedo, metalness); // since metal has no albedo, we use the space to store its F0
 
-	vec3 distEnvLighting = diffColor * diffIr + specIr /* * (specColor * brdfTerm.x + brdfTerm.y)*/;
+	vec3 distEnvLighting = diffColor * diffIr + specIr * (specColor * brdfTerm.x + brdfTerm.y);
 	// distEnvLighting *= aoVal * distEnvLightStrength;
 
 	return distEnvLighting;
