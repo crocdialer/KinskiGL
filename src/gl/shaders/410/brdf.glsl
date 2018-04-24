@@ -65,7 +65,8 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     {
         // distance^2
         float dist2 = dot(lightDir, lightDir);
-        float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
+        float v = dist2 / (light.radius * light.radius);
+        v = clamp(1.f - v * v, 0.f, 1.f);
         att *= light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation);
 
         if(light.type > 1)
