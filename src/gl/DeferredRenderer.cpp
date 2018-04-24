@@ -459,18 +459,21 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
 
         if(t && m_skybox != the_renderbin->scene->skybox())
         {
+            if(!m_brdf_lut){ m_brdf_lut = create_brdf_lut(); }
             m_env_conv_diff = create_env_diff(t);
             m_env_conv_spec = create_env_spec(t);
             m_skybox = the_renderbin->scene->skybox();
-            the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
+//            the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT);
+
+            m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
+            m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
+            m_mat_lighting_enviroment->add_texture(m_brdf_lut, Texture::Usage::BRDF_LUT);
         }
 
         if(t && t.target() == GL_TEXTURE_CUBE_MAP)
         {
             if(!stencil_pass)
             {
-                m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
-                m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
                 m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
                 m_frustum_mesh->material() = m_mat_lighting_enviroment;
             }
@@ -587,6 +590,26 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     return ret;
 }
     
+///////////////////////////////////////////////////////////////////////////////
+
+gl::Texture DeferredRenderer::create_brdf_lut()
+{
+    constexpr uint32_t tex_size = 512;
+    gl::Fbo::Format fmt;
+    fmt.set_color_internal_format(GL_RG32F);
+    auto fbo = gl::Fbo(tex_size, tex_size, fmt);
+    auto gen_brdf_shader = gl::Shader::create(unlit_vert, gen_brdf_lut_frag);
+    auto mat = gl::Material::create(gen_brdf_shader);
+    mat->set_depth_test(false);
+    mat->set_depth_write(false);
+
+    auto ret = gl::render_to_texture(fbo, [mat]()
+    {
+        gl::draw_quad(gl::window_dimension(), mat);
+    });
+    return ret;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 gl::Texture DeferredRenderer::final_texture()

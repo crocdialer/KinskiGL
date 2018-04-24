@@ -19,26 +19,28 @@ uniform samplerCube u_sampler_cube[2];
 
 vec3 sample_diffuse(in samplerCube diff_map, in vec3 normal)
 {
-    return texture(diff_map, normal).rgb * ONE_OVER_PI;
+    return texture(diff_map, normal).rgb;// * ONE_OVER_PI;
 }
 
-vec3 sample_reflection(in samplerCube env_map, in vec3 normal, in vec3 eyeVec, float roughness)
+vec3 sample_reflection(in samplerCube env_map, in vec3 reflect_dir, float roughness)
 {
-    vec3 sample_dir = mat3(u_camera_transform) * reflect(eyeVec, normal);
-    return 0.15 * (1 - roughness) * texture(env_map, sample_dir).rgb;
+    // vec3 sample_dir = reflect(eyeVec, normal);
+    return 0.15 * (1 - roughness) * texture(env_map, reflect_dir).rgb;
 }
 
 vec3 compute_enviroment_lighting(vec3 position, vec3 normal, vec3 albedo, float roughness,
                                  float metalness, float aoVal)
 {
 	vec3 v = normalize(position);
-	// vec3 r = normalize(reflect(-v, normal));
+	vec3 r = normalize(reflect(v, normal));
 
-	vec3 diffIr = sample_diffuse(u_sampler_cube[ENV_DIFFUSE], normal);
+    vec3 world_normal = mat3(u_camera_transform) * normal;
+    vec3 world_reflect = mat3(u_camera_transform) * r;
+	vec3 diffIr = sample_diffuse(u_sampler_cube[ENV_DIFFUSE], world_normal);
 
 	float specMipLevel = 0;//roughness * float(pcs.totalMipLevels - 1);
 
-    vec3 specIr = sample_reflection(u_sampler_cube[ENV_SPEC], normal, position, roughness);
+    vec3 specIr = sample_reflection(u_sampler_cube[ENV_SPEC], world_reflect, roughness);
 	// vec3 specIr = textureLod(u_sampler_cube[ENV_SPEC], r, specMipLevel).rgb;
 	// float NoV = clamp(dot(normal, v), 0.0, 1.0);
 	// vec2 brdfTerm = textureLod(brdfLuts[0], vec2(NoV, clamp(roughness, 0.0, 1.0)), 0).rg;
