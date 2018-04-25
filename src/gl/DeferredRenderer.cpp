@@ -463,7 +463,6 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             m_env_conv_diff = create_env_diff(t);
             m_env_conv_spec = create_env_spec(t);
             m_skybox = the_renderbin->scene->skybox();
-//            the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT);
 
             m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
             m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
@@ -477,7 +476,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
                 m_mat_lighting_enviroment->uniform("u_env_light_strength", m_enviroment_light_strength);
                 m_frustum_mesh->material() = m_mat_lighting_enviroment;
-            }
+            }else{ m_frustum_mesh->material() = m_mat_stencil; }
             gl::load_identity(gl::MODEL_VIEW_MATRIX);
             gl::draw_mesh(m_frustum_mesh);
         }

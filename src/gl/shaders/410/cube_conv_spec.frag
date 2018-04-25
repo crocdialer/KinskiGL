@@ -11,12 +11,6 @@ uniform samplerCube u_sampler_cube[1];
 
 uniform float u_roughness;
 
-// layout (push_constant) uniform PushConst
-// {
-// 	float convRoughness;
-// } pcs;
-
-
 vec2 Hammersley(uint i, uint N)
 {
 	float vdc = float(bitfieldReverse(i)) * 2.3283064365386963e-10; // Van der Corput

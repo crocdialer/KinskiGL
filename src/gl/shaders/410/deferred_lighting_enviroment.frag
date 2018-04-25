@@ -21,7 +21,7 @@ uniform samplerCube u_sampler_cube[2];
 
 float map_roughness(float r)
 {
-    return mix(0.01, 0.95, r);
+    return mix(0.02, 0.92, r);
 }
 
 vec3 sample_diffuse(in samplerCube diff_map, in vec3 normal)
