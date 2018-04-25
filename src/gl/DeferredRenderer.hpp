@@ -33,6 +33,9 @@ public:
     bool use_fxaa() const{ return m_use_fxaa; };
     void set_use_fxaa(bool b);
 
+    void set_enviroment_light_strength(float v){ m_enviroment_light_strength = v; };
+    float enviroment_light_strength() const{ return m_enviroment_light_strength; };
+
     gl::Fbo g_buffer(){ return m_fbo_geometry; }
 
     gl::Texture final_texture();
@@ -64,6 +67,7 @@ private:
     
     bool m_use_fxaa = true;
 
+    float m_enviroment_light_strength = 1.0;
     gl::MeshPtr m_skybox;
     gl::Texture m_env_conv_diff, m_env_conv_spec, m_brdf_lut;
 };

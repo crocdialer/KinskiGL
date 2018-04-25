@@ -475,6 +475,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             if(!stencil_pass)
             {
                 m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
+                m_mat_lighting_enviroment->uniform("u_env_light_strength", m_enviroment_light_strength);
                 m_frustum_mesh->material() = m_mat_lighting_enviroment;
             }
             gl::load_identity(gl::MODEL_VIEW_MATRIX);
@@ -552,6 +553,7 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     cube_shader->uniform("u_projection_matrix", cube_cam->projection_matrix());
 
     uint32_t num_mips = std::log2(conv_size);
+    m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips);
 
     for(uint32_t lvl = 0; lvl < num_mips; ++lvl)
     {

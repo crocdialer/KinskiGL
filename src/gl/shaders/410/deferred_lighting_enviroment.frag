@@ -5,6 +5,7 @@
 
 uniform mat4 u_camera_transform;
 uniform int u_num_mip_levels = 10;
+uniform float u_env_light_strength = 1.0;
 
 #define ALBEDO 0
 #define NORMAL 1
@@ -18,21 +19,20 @@ uniform sampler2D u_sampler_2D[6];
 #define ENV_SPEC 1
 uniform samplerCube u_sampler_cube[2];
 
+float map_roughness(float r)
+{
+    return mix(0.01, 0.95, r);
+}
+
 vec3 sample_diffuse(in samplerCube diff_map, in vec3 normal)
 {
     return texture(diff_map, normal).rgb * ONE_OVER_PI;
 }
 
-// vec3 sample_reflection(in samplerCube env_map, in vec3 reflect_dir, float roughness)
-// {
-//     // vec3 sample_dir = reflect(eyeVec, normal);
-//     return 0.15 * (1 - roughness) * texture(env_map, reflect_dir).rgb;
-// }
-
 vec3 compute_enviroment_lighting(vec3 position, vec3 normal, vec3 albedo, float roughness,
                                  float metalness, float aoVal)
 {
-    roughness = clamp(roughness * roughness, 0.05, 0.99);
+    roughness = map_roughness(roughness);
 	vec3 v = normalize(position);
 	vec3 r = normalize(reflect(v, normal));
 
@@ -53,8 +53,7 @@ vec3 compute_enviroment_lighting(vec3 position, vec3 normal, vec3 albedo, float 
 	vec3 specColor = mix(dielectricF0, albedo, metalness); // since metal has no albedo, we use the space to store its F0
 
 	vec3 distEnvLighting = diffColor * diffIr + specIr * (specColor * brdfTerm.x + brdfTerm.y);
-	// distEnvLighting *= aoVal * distEnvLightStrength;
-
+	distEnvLighting *= u_env_light_strength; // * aoVal
 	return distEnvLighting;
 }
 
@@ -74,7 +73,4 @@ void main()
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
     vec4 mat_prop = texture(u_sampler_2D[MATERIAL_PROPS], tex_coord);
     fragData = vec4(compute_enviroment_lighting(position, normal, color.rgb, mat_prop.y, mat_prop.x, 1.0), 1.0);
-
-    // fragData = color * sample_diffuse(u_sampler_cube[ENV_DIFFUSE], normal) +
-    //     0.15 * sample_reflection(u_sampler_cube[ENV_SPEC], normal, position, color, mat_prop.y);
 }
