@@ -187,7 +187,7 @@ struct FboImpl
     {
         auto it = m_id_map.find(gl::context()->current_context_id());
         if(it != m_id_map.end()){ return it->second.fbo_id; }
-        LOG_WARNING << "fbo not valid in this context";
+//        LOG_WARNING << "fbo not valid in this context";
         return 0;
     }
 
@@ -198,7 +198,7 @@ struct FboImpl
         {
             return it->second.fbo_resolve_id;
         }
-        LOG_WARNING << "fbo not valid in this context";
+//        LOG_WARNING << "fbo not valid in this context";
         return 0;
     }
 
@@ -300,17 +300,23 @@ void Fbo::init()
 	textureFormat.set_mag_filter(m_impl->m_format.m_mag_filter);
 	textureFormat.set_mipmapping(format().has_mipmapping());
 
-	// allocate the color buffers
-	for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+	// color textures might already exist, e.g. after context switch/loss
+    if(m_impl->m_color_textures.size() != m_impl->m_format.m_num_color_buffers)
     {
-        auto tex = Texture(m_impl->m_width, m_impl->m_height, textureFormat);
-        
+        m_impl->m_color_textures.clear();
+
+        // allocate the color buffers
+        for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+        {
+            auto tex = Texture(m_impl->m_width, m_impl->m_height, textureFormat);
+
 #if !defined(KINSKI_GLES_2)
         if(contains(one_comp_types, col_fmt)){ tex.set_swizzle(GL_RED, GL_RED, GL_RED, GL_ONE); }
 #endif
-		m_impl->m_color_textures.push_back(tex);
-	}
-	
+            m_impl->m_color_textures.push_back(tex);
+        }
+    }
+
 #if !defined(KINSKI_GLES)
 	if(m_impl->m_format.m_num_color_buffers == 0)
     {
@@ -347,20 +353,19 @@ void Fbo::init()
 			if(m_impl->m_format.m_depth_buffer_texture)
             {
 #if !defined(KINSKI_GLES_2)
-				GLuint depthTextureId;
-				glGenTextures(1, &depthTextureId);
-				glBindTexture(target(), depthTextureId);
-				glTexImage2D(target(), 0, format().depth_internal_format(),
-                             m_impl->m_width, m_impl->m_height, 0, GL_DEPTH_STENCIL,
-                             format().m_depth_data_type, nullptr);
-                
-				m_impl->m_depth_texture = Texture(target(), depthTextureId, m_impl->m_width,
-                                                  m_impl->m_height, false);
-                m_impl->m_depth_texture.set_min_filter(m_impl->m_format.m_min_filter);
-                m_impl->m_depth_texture.set_mag_filter(m_impl->m_format.m_mag_filter);
-                m_impl->m_depth_texture.set_wrap_s(m_impl->m_format.m_wrap_s);
-                m_impl->m_depth_texture.set_wrap_t(m_impl->m_format.m_wrap_t);
-                
+                if(!m_impl->m_depth_texture)
+                {
+                    gl::Texture::Format tex_fmt;
+                    tex_fmt.set_target(target());
+                    tex_fmt.set_internal_format(format().depth_internal_format());
+                    tex_fmt.set_data_type(format().m_depth_data_type);
+                    m_impl->m_depth_texture = Texture(nullptr, GL_DEPTH_STENCIL, m_impl->m_width, m_impl->m_height, tex_fmt);
+                    m_impl->m_depth_texture.set_min_filter(m_impl->m_format.m_min_filter);
+                    m_impl->m_depth_texture.set_mag_filter(m_impl->m_format.m_mag_filter);
+                    m_impl->m_depth_texture.set_wrap_s(m_impl->m_format.m_wrap_s);
+                    m_impl->m_depth_texture.set_wrap_t(m_impl->m_format.m_wrap_t);
+                }
+
                 auto attach = m_impl->m_format.has_stencil_buffer() ?
                               GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
                 
@@ -393,7 +398,6 @@ void Fbo::init()
         // failed creation; throw
 		if(!check_status(&exc)) { LOG_ERROR << exc.what(); }
 	}
-	
 	m_impl->m_needs_resolve = false;
 	m_impl->m_needs_mipmap_update = false;
     
@@ -429,24 +433,35 @@ bool Fbo::init_multisample()
 
 	m_impl->m_format.m_num_samples = std::min(m_impl->m_format.m_num_samples, max_num_samples());
     
-	// setup the multisampled color renderbuffers
-	for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+	// create the multisampled color renderbuffers
+    if(m_impl->mMultisampleColorRenderbuffers.size() != m_impl->m_format.m_num_color_buffers)
     {
-		m_impl->mMultisampleColorRenderbuffers.push_back(Renderbuffer(m_impl->m_width, m_impl->m_height,
-                                                                      m_impl->m_format.m_color_internal_format,
-                                                                      m_impl->m_format.m_num_samples));
+        m_impl->mMultisampleColorRenderbuffers.clear();
 
-		// attach the multisampled color buffer
+        for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+        {
+            auto render_buf = Renderbuffer(m_impl->m_width, m_impl->m_height, m_impl->m_format.m_color_internal_format,
+                                           m_impl->m_format.m_num_samples);
+            m_impl->mMultisampleColorRenderbuffers.push_back(render_buf);
+        }
+    }
+
+    // attach the multisampled color renderbuffers
+	for(uint32_t c = 0; c < m_impl->mMultisampleColorRenderbuffers.size(); ++c)
+    {
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER,
-                                  m_impl->mMultisampleColorRenderbuffers.back().id());
+                                  m_impl->mMultisampleColorRenderbuffers[c].id());
 	}
 
 	if(m_impl->m_format.m_depth_buffer)
     {
 		// create the multisampled depth Renderbuffer
-		m_impl->m_multisample_depth_renderbuffer = Renderbuffer(m_impl->m_width, m_impl->m_height,
-                                                            m_impl->m_format.m_depth_internal_format,
-                                                            m_impl->m_format.m_num_samples);
+        if(!m_impl->m_multisample_depth_renderbuffer)
+        {
+		    m_impl->m_multisample_depth_renderbuffer = Renderbuffer(m_impl->m_width, m_impl->m_height,
+                                                                    m_impl->m_format.m_depth_internal_format,
+                                                                    m_impl->m_format.m_num_samples);
+        }
 
 		// attach the depth Renderbuffer
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
@@ -677,6 +692,7 @@ void Fbo::bind()
 {
 	if(m_impl)
 	{
+	    if(!m_impl->fbo_id()){ init(); }
 		glBindFramebuffer(GL_FRAMEBUFFER, m_impl->fbo_id());
 		if(m_impl->fbo_resolve_id()){ m_impl->m_needs_resolve = true; }
 		if(m_impl->m_format.has_mipmapping()){ m_impl->m_needs_mipmap_update = true; }

@@ -297,7 +297,7 @@ void ModelViewer::update_fbos()
     
     if(m_dirty_g_buffer)
     {
-        m_deferred_renderer = gl::DeferredRenderer::create();
+//        m_deferred_renderer = gl::DeferredRenderer::create();
         if(*m_use_deferred_render){ scene()->set_renderer(m_deferred_renderer); }
         m_deferred_renderer->set_g_buffer_resolution(*m_offscreen_resolution);
         m_deferred_renderer->set_use_fxaa(*m_use_fxaa);

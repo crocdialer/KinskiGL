@@ -245,9 +245,9 @@ class KINSKI_API Fbo
         void set_num_color_buffers(int the_num) { m_num_color_buffers = the_num; }
 		
 	  protected:
-		GLenum		m_target;
-		GLenum		m_color_internal_format, m_depth_internal_format, m_stencil_internal_format,
-                    m_depth_data_type;
+		GLenum	m_target;
+		GLenum	m_color_internal_format, m_depth_internal_format, m_stencil_internal_format;
+		GLenum m_depth_data_type;
         
         GLint       m_data_type;
 		int			m_num_samples;
