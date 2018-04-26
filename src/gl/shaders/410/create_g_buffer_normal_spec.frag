@@ -37,7 +37,7 @@ layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_normal;
 layout(location = 2) out vec4 out_position;
 layout(location = 3) out vec4 out_emission;
-layout(location = 4) out vec4 out_material_props;
+layout(location = 4) out vec4 out_ao_rough_metal;
 
 void main()
 {
@@ -53,5 +53,5 @@ void main()
   out_position = vec4(vertex_in.eyeVec, 1);
   out_emission = u_material.emission * texColors;
   float roughness = 1 - texture(u_sampler_2D[SPECULARMAP], vertex_in.texCoord.xy).x;
-  out_material_props = vec4(u_material.metalness, roughness, u_material.shadow_properties & 2, 1);
+  out_ao_rough_metal = vec4(1.0, roughness, u_material.metalness, 1);
 }

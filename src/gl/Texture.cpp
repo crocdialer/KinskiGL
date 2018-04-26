@@ -22,8 +22,8 @@ Texture::Format::Format()
 {
 	m_target = GL_TEXTURE_2D;
     m_datatype = GL_UNSIGNED_BYTE;
-	m_wrap_s = GL_CLAMP_TO_EDGE;//GL_REPEAT not working in ios
-	m_wrap_t = GL_CLAMP_TO_EDGE;
+	m_wrap_s = GL_REPEAT;//GL_REPEAT not working in ios
+	m_wrap_t = GL_REPEAT;
 	m_min_filter = GL_LINEAR;
 	m_mag_filter = GL_LINEAR;
 	m_mipmapping = false;

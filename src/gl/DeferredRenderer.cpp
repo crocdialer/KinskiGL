@@ -97,17 +97,17 @@ void DeferredRenderer::init()
                                                                              create_g_buffer_normalmap_frag);
     m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_vert,
                                                                              create_g_buffer_normal_spec_frag);
-    m_shader_map[PROP_ROUGH_METAL] = gl::Shader::create(phong_vert, create_g_buffer_rough_frag);
-    m_shader_map[PROP_ALBEDO | PROP_ROUGH_METAL] = gl::Shader::create(phong_vert, create_g_buffer_color_rough_frag);
-    m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_ROUGH_METAL] = gl::Shader::create(phong_tangent_vert,
-                                                                                    create_g_buffer_normal_rough_frag);
-    m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_ROUGH_METAL | PROP_EMMISION] =
+    m_shader_map[PROP_AO_METAL_ROUGH] = gl::Shader::create(phong_vert, create_g_buffer_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_AO_METAL_ROUGH] = gl::Shader::create(phong_vert, create_g_buffer_color_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_AO_METAL_ROUGH] = gl::Shader::create(phong_tangent_vert,
+                                                                                       create_g_buffer_normal_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_NORMAL | PROP_AO_METAL_ROUGH | PROP_EMMISION] =
             gl::Shader::create(phong_tangent_vert, create_g_buffer_normal_rough_emmision_frag);
     m_shader_map[PROP_ALBEDO | PROP_SKIN | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_skin_vert,
                                                                                          create_g_buffer_normal_spec_frag);
 
-    m_shader_map[PROP_ALBEDO | PROP_SKIN | PROP_NORMAL | PROP_ROUGH_METAL] = gl::Shader::create(phong_tangent_skin_vert,
-                                                                                                create_g_buffer_normal_rough_frag);
+    m_shader_map[PROP_ALBEDO | PROP_SKIN | PROP_NORMAL | PROP_AO_METAL_ROUGH] = gl::Shader::create(phong_tangent_skin_vert,
+                                                                                                   create_g_buffer_normal_rough_frag);
     m_shader_shadow = gl::Shader::create(empty_vert, empty_frag);
     m_shader_shadow_skin = gl::Shader::create(empty_skin_vert, empty_frag);
     
@@ -224,7 +224,7 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         bool has_albedo = m->material()->has_texture(Texture::Usage::COLOR);
         bool has_normal_map = m->material()->has_texture(Texture::Usage::NORMAL);
         bool has_spec_map = m->material()->has_texture(Texture::Usage::SPECULAR);
-        bool has_rough_metal_map = m->material()->has_texture(Texture::Usage::ROUGH_METAL);
+        bool has_ao_rough_metal_map = m->material()->has_texture(Texture::Usage::AO_ROUGHNESS_METAL);
         bool has_emmision_map = m->material()->has_texture(Texture::Usage::EMISSION);
 
         uint32_t key = PROP_DEFAULT;
@@ -232,7 +232,7 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         if(m->root_bone()){ key |= PROP_SKIN; }
         if(has_normal_map){ key |= PROP_NORMAL; }
         if(has_emmision_map){ key |= PROP_EMMISION; }
-        if(has_rough_metal_map){ key |= PROP_ROUGH_METAL; }
+        if(has_ao_rough_metal_map){ key |= PROP_AO_METAL_ROUGH; }
         else if(has_spec_map){ key |= PROP_SPEC; }
         return m_shader_map[key];
     };
@@ -284,9 +284,6 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
 
     // update frustum for directional and eviroment lights
     m_frustum_mesh = gl::create_frustum_mesh(the_renderbin->camera, true);
-    auto &verts = m_frustum_mesh->geometry()->vertices();
-    for(uint32_t i = 0; i < 4; ++i){ verts[i].z += -.1f; }
-    for(uint32_t i = 4; i < 8; ++i){ verts[i].z += 1.f; }
 
     gl::apply_material(m_mat_lighting);
     update_uniform_buffers(the_renderbin->lights);

@@ -5,7 +5,7 @@ uniform sampler2D u_sampler_2D[4];
 
 #define COLOR 0
 #define NORMAL 1
-#define ROUGH_METAL 2
+#define AO_ROUGH_METAL 2
 #define EMMISION 3
 
 struct Material
@@ -38,7 +38,7 @@ layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_normal;
 layout(location = 2) out vec4 out_position;
 layout(location = 3) out vec4 out_emission;
-layout(location = 4) out vec4 out_material_props;
+layout(location = 4) out vec4 out_ao_rough_metal;
 
 void main()
 {
@@ -53,6 +53,5 @@ void main()
   out_normal = vec4(normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
   out_emission = texture(u_sampler_2D[EMMISION], vertex_in.texCoord.xy);
-  vec4 rough_metal = texture(u_sampler_2D[ROUGH_METAL], vertex_in.texCoord.xy);
-  out_material_props = vec4(rough_metal.b, rough_metal.g, u_material.shadow_properties & 2, 1);
+  out_ao_rough_metal = texture(u_sampler_2D[AO_ROUGH_METAL], vertex_in.texCoord.xy);
 }

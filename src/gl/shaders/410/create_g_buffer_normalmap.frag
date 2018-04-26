@@ -36,7 +36,7 @@ layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_normal;
 layout(location = 2) out vec4 out_position;
 layout(location = 3) out vec4 out_emission;
-layout(location = 4) out vec4 out_material_props;
+layout(location = 4) out vec4 out_ao_rough_metal;
 
 void main()
 {
@@ -53,5 +53,5 @@ void main()
   out_normal = vec4(normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
   out_emission = u_material.emission * texColors;
-  out_material_props = vec4(u_material.metalness, u_material.roughness, u_material.shadow_properties & 2, 1);
+  out_ao_rough_metal = vec4(1.0, u_material.roughness, u_material.metalness, 1);
 }

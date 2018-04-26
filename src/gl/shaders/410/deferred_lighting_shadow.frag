@@ -26,7 +26,7 @@ uniform float u_poisson_radius = 3.0;
 #define NORMAL 1
 #define POSITION 2
 #define EMISSION 3
-#define MATERIAL_PROPS 4
+#define AO_ROUGH_METAL 4
 #define SHADOW_MAP 5
 
 const int NUM_TAPS = 12;
@@ -95,10 +95,9 @@ void main()
     vec4 color = texture(u_sampler_2D[ALBEDO], tex_coord);
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
-    vec4 mat_prop = texture(u_sampler_2D[MATERIAL_PROPS], tex_coord);
-    bool receive_shadow = bool(mat_prop.b);
+    vec3 ao_rough_metal = texture(u_sampler_2D[AO_ROUGH_METAL], tex_coord).rgb;
     const float min_shade = 0.1, max_shade = 1.0;
-    float shadow_factor = receive_shadow ? shadow_factor(u_sampler_2D[SHADOW_MAP], shadow_coords(position)) : 1.0;
+    float shadow_factor = shadow_factor(u_sampler_2D[SHADOW_MAP], shadow_coords(position));
     shadow_factor = mix(min_shade, max_shade, shadow_factor);
-    fragData = shade(u_lights[u_light_index], normal, position, color, mat_prop.y, mat_prop.x, shadow_factor);
+    fragData = shade(u_lights[u_light_index], normal, position, color, ao_rough_metal.g, ao_rough_metal.b, shadow_factor);
 }

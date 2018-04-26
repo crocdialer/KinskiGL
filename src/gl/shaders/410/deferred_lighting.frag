@@ -21,7 +21,7 @@ uniform sampler2D u_sampler_2D[5];
 #define NORMAL 1
 #define POSITION 2
 #define EMISSION 3
-#define MATERIAL_PROPS 4
+#define AO_ROUGH_METAL 4
 
 in VertexData
 {
@@ -38,6 +38,6 @@ void main()
     vec4 color = texture(u_sampler_2D[ALBEDO], tex_coord);
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
-    vec4 mat_prop = texture(u_sampler_2D[MATERIAL_PROPS], tex_coord);
-    fragData = shade(u_lights[u_light_index], normal, position, color, mat_prop.y, mat_prop.x, 1.0);
+    vec3 ao_rough_metal = texture(u_sampler_2D[AO_ROUGH_METAL], tex_coord).rgb;
+    fragData = shade(u_lights[u_light_index], normal, position, color, ao_rough_metal.g, ao_rough_metal.b, 1.0);
 }

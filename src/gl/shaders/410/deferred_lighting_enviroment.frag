@@ -11,7 +11,7 @@ uniform float u_env_light_strength = 1.0;
 #define NORMAL 1
 #define POSITION 2
 #define EMISSION 3
-#define MATERIAL_PROPS 4
+#define AO_ROUGH_METAL 4
 #define BRDF_LUT 5
 uniform sampler2D u_sampler_2D[6];
 
@@ -53,7 +53,7 @@ vec3 compute_enviroment_lighting(vec3 position, vec3 normal, vec3 albedo, float 
 	vec3 specColor = mix(dielectricF0, albedo, metalness); // since metal has no albedo, we use the space to store its F0
 
 	vec3 distEnvLighting = diffColor * diffIr + specIr * (specColor * brdfTerm.x + brdfTerm.y);
-	distEnvLighting *= u_env_light_strength; // * aoVal
+	distEnvLighting *= u_env_light_strength * aoVal;
 	return distEnvLighting;
 }
 
@@ -71,6 +71,7 @@ void main()
     vec4 color = texture(u_sampler_2D[ALBEDO], tex_coord);
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
-    vec4 mat_prop = texture(u_sampler_2D[MATERIAL_PROPS], tex_coord);
-    fragData = vec4(compute_enviroment_lighting(position, normal, color.rgb, mat_prop.y, mat_prop.x, 1.0), 1.0);
+    vec3 ao_rough_metal = texture(u_sampler_2D[AO_ROUGH_METAL], tex_coord).rgb;
+    fragData = vec4(compute_enviroment_lighting(position, normal, color.rgb, ao_rough_metal.g,
+                                                ao_rough_metal.b, ao_rough_metal.r), 1.0);
 }

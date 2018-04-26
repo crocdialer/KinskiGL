@@ -22,7 +22,7 @@ namespace kinski{ namespace gl{
     public:
         struct Format;
 
-        enum class Usage : uint32_t {COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, ROUGH_METAL = 1 << 3,
+        enum class Usage : uint32_t {COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, AO_ROUGHNESS_METAL = 1 << 3,
             EMISSION = 1 << 4, DISPLACEMENT = 1 << 5, SHADOW = 1 << 6, DEPTH = 1 << 7, ENVIROMENT = 1 << 8,
             ENVIROMENT_CONV_DIFF = 1 << 9, ENVIROMENT_CONV_SPEC = 1 << 10, BRDF_LUT = 1 << 11,
             NOISE = 1 << 12, MASK = 1 << 13};

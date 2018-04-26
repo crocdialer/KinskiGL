@@ -386,7 +386,13 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         LOG_TRACE << "adding emission map: '" << path_buf.data << "'";
         enqueue_tex_image(path_buf.data, gl::Texture::Usage::EMISSION);
     }
-    
+
+    // ambient occlusion or lightmap
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_LIGHTMAP), 0, &path_buf))
+    {
+        LOG_WARNING << "ignoring dedicated ambient occlusion map(use AO/METAL/ROUGH instead): '" << path_buf.data << "'";
+    }
+
     // SHINYNESS
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SPECULAR), 0, &path_buf))
     {
@@ -414,8 +420,8 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
 
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_UNKNOWN), 0, &path_buf))
     {
-        LOG_TRACE << "unknown texture usage (assuming AO/METAL/ROUGHNESS ): '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::ROUGH_METAL);
+        LOG_TRACE << "unknown texture usage (assuming AO/ROUGHNESS/METAL ): '" << path_buf.data << "'";
+        enqueue_tex_image(path_buf.data, gl::Texture::Usage::AO_ROUGHNESS_METAL);
     }
     return theMaterial;
 }
