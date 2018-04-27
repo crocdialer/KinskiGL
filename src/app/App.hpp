@@ -10,6 +10,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include "core/file_functions.hpp"
 #include "core/Component.hpp"
 #include "core/ThreadPool.hpp"
@@ -138,12 +139,25 @@ namespace kinski
         class Task
         {
         public:
-            static TaskPtr create(){ return TaskPtr(new Task()); }
+            static TaskPtr create(const std::string &the_desc = "")
+            {
+                return TaskPtr(new Task(the_desc));
+            }
             static uint32_t num_tasks(){ return s_num_tasks; };
             ~Task(){ s_num_tasks--; }
         private:
-            explicit Task(){ s_num_tasks++; }
+            explicit Task(const std::string &the_desc):
+            m_id(s_id_counter++),
+            m_start_time(std::chrono::steady_clock::now()),
+            m_description(the_desc)
+            {
+                s_num_tasks++;
+            }
             static std::atomic<uint32_t> s_num_tasks;
+            static std::atomic<uint32_t> s_id_counter;
+            uint32_t m_id;
+            std::chrono::steady_clock::time_point m_start_time;
+            std::string m_description;
         };
         
         /*!

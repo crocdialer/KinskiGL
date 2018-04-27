@@ -48,7 +48,8 @@ void create_bone_animation(const aiNode *theNode, const aiAnimation *theAnimatio
 
 bool get_mesh_transform(const aiScene *the_scene, const aiMesh *the_ai_mesh, glm::mat4& the_out_transform);
 
-void process_node(const aiScene *the_scene, const aiNode *the_in_node, const gl::Object3DPtr &the_parent_node);
+void process_node(const aiScene *the_scene, const aiNode *the_in_node,
+                  const gl::Object3DPtr &the_parent_node);
     
 /////////////////////////////////////////////////////////////////
     
@@ -372,7 +373,9 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         if(the_img_map){ (*the_img_map)[the_path] = img; }
         theMaterial->enqueue_texture(the_path, img, (uint32_t)the_type);
     };
-
+    
+    bool has_ao_map = false;
+    
     // DIFFUSE
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE), 0, &path_buf))
     {
@@ -391,6 +394,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_LIGHTMAP), 0, &path_buf))
     {
         LOG_WARNING << "ignoring dedicated ambient occlusion map(use AO/METAL/ROUGH instead): '" << path_buf.data << "'";
+        has_ao_map = true;
     }
 
     // SHINYNESS
@@ -422,6 +426,27 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     {
         LOG_TRACE << "unknown texture usage (assuming AO/ROUGHNESS/METAL ): '" << path_buf.data << "'";
         enqueue_tex_image(path_buf.data, gl::Texture::Usage::AO_ROUGHNESS_METAL);
+    }
+    
+    //TODO: remove tmp-fix for AO juggle, if more elegant solution is found
+    auto tex_type = gl::Texture::Usage::AO_ROUGHNESS_METAL;
+    if(!has_ao_map && theMaterial->has_texture(tex_type))
+    {
+        // get queued image
+        ImagePtr img;
+        for(auto &p : theMaterial->queued_textures())
+        {
+            if(p.second.key == (uint32_t)tex_type){ img = p.second.image; break; }
+        }
+        
+        // overwrite AO channel with white
+        if(img)
+        {
+            constexpr size_t ao_offset = 0;
+            uint8_t *ptr = img->data, *end = ptr + img->num_bytes();
+            
+            for(;ptr < end; ptr += img->num_components()){ ptr[ao_offset] = 255; }
+        }
     }
     return theMaterial;
 }
@@ -656,30 +681,26 @@ bool get_mesh_transform(const aiScene *the_scene, const aiMesh *the_ai_mesh, glm
 
 /////////////////////////////////////////////////////////////////
 
-void process_node(const aiScene *the_scene, const aiNode *the_in_node, const gl::Object3DPtr &the_parent_node)
+void process_node(const aiScene *the_scene, const aiNode *the_in_node,
+                  const gl::Object3DPtr &the_parent_node)
 {
     if(!the_in_node){ return; }
 
-    string node_name(the_in_node->mName.data);
-    mat4 node_transform = aimatrix_to_glm_mat4(the_in_node->mTransformation);
-
-    const aiNode* p = the_in_node->mParent;
-    string parent_string;
-
-    while(p && p != the_scene->mRootNode)
-    { parent_string = string(p->mName.data) + " -> " + parent_string; p = p->mParent; }
-
-    LOG_DEBUG << "node: " << parent_string + node_name << " -- num meshes: " << the_in_node->mNumMeshes;
+//    string node_name(the_in_node->mName.data);
+    
+    auto node = gl::Object3D::create(the_in_node->mName.data);
+    node->set_transform(aimatrix_to_glm_mat4(the_in_node->mTransformation));
+    the_parent_node->add_child(node);
 
     // meshes assigned to this node
-    for (uint32_t  n = 0; n < the_in_node->mNumMeshes; ++n)
+    for(uint32_t  n = 0; n < the_in_node->mNumMeshes; ++n)
     {
-        const aiMesh *mesh = the_scene->mMeshes[the_in_node->mMeshes[n]];
+//        const aiMesh *mesh = the_scene->mMeshes[the_in_node->mMeshes[n]];
     }
-
+    
     for(uint32_t i = 0; i < the_in_node->mNumChildren; ++i)
     {
-        process_node(the_scene, the_in_node->mChildren[i], the_parent_node);
+        process_node(the_scene, the_in_node->mChildren[i], node);
     }
 }
 
