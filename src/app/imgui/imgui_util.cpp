@@ -3,9 +3,9 @@
 //
 
 #include "imgui_util.h"
-#include "gl/Texture.hpp"
+#include "gl/Material.hpp"
 
-namespace kinski{ namespace gl{
+namespace kinski{ namespace gui{
 
 namespace
 {
@@ -226,14 +226,13 @@ void draw_component_ui(const ComponentConstPtr &the_component)
 
 void draw_textures_ui(const std::vector<gl::Texture> &the_textures)
 {
-    int index = 0;
-
     for(auto &t : the_textures)
     {
-        if(t && ImGui::TreeNode(to_string(index++).c_str()))
+        if(t)
         {
-            ImGui::Image(reinterpret_cast<ImTextureID>(t.id()), im_vec_cast(t.size()));
-            ImGui::TreePop();
+            constexpr float w = 150;
+            ImVec2 sz(w, w / t.aspect_ratio());
+            ImGui::Image(reinterpret_cast<ImTextureID>(t.id()), sz);
         }
     }
 }
@@ -243,9 +242,53 @@ void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights)
 
 }
 
-void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
+void draw_material_ui(const gl::MaterialPtr &the_mat)
 {
 
+    // base color
+    gl::Color base_color = the_mat->diffuse();
+    if(ImGui::ColorEdit4("base color", (float*)&base_color))
+    {
+        the_mat->set_diffuse(base_color);
+    }
+
+    // roughness
+    float roughness = the_mat->roughness();
+    if(ImGui::SliderFloat("roughness", &roughness, 0.f, 1.f))
+    {
+        the_mat->set_roughness(roughness);
+    }
+
+    // metalness
+    float metalness = the_mat->metalness();
+    if(ImGui::SliderFloat("metalness", &metalness, 0.f, 1.f))
+    {
+        the_mat->set_metalness(metalness);
+    }
+
+    // textures
+    if(ImGui::TreeNode("textures"))
+    {
+        std::vector<gl::Texture> textures;
+        for(const auto &p : the_mat->textures()){ textures.push_back(p.second); }
+        draw_textures_ui(textures);
+        ImGui::TreePop();
+    }
+}
+
+void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
+{
+    ImGui::Begin("materials");
+
+    for(size_t i = 0; i < the_materials.size(); ++i)
+    {
+        if(ImGui::TreeNode(("material " + to_string(i)).c_str()))
+        {
+            draw_material_ui(the_materials[i]);
+            ImGui::TreePop();
+        }
+    }
+    ImGui::End();
 }
 
 }}

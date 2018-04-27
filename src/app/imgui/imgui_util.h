@@ -9,7 +9,7 @@
 #include "gl/gl.hpp"
 #include "imgui.h"
 
-namespace kinski{ namespace gl{
+namespace kinski{ namespace gui{
 
 const ImVec2& im_vec_cast(const gl::vec2 &the_vec);
 const ImVec4& im_vec_cast(const gl::vec4 &the_vec);
@@ -22,6 +22,7 @@ void draw_textures_ui(const std::vector<gl::Texture> &the_textures);
 
 void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights);
 
+void draw_material_ui(const gl::MaterialPtr &the_mat);
 void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials);
 
 }}// namespaces

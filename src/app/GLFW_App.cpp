@@ -239,10 +239,10 @@ namespace kinski
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
         ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
         ImGuiStyle& im_style = ImGui::GetStyle();
-        im_style.Colors[ImGuiCol_TitleBgActive] = gl::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
-        im_style.Colors[ImGuiCol_FrameBg] = gl::im_vec_cast(gl::COLOR_WHITE.rgb * 0.07f);
+        im_style.Colors[ImGuiCol_TitleBgActive] = gui::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
+        im_style.Colors[ImGuiCol_FrameBg] = gui::im_vec_cast(gl::COLOR_WHITE.rgb * 0.07f);
         im_style.Colors[ImGuiCol_FrameBgHovered] = im_style.Colors[ImGuiCol_FrameBgActive] =
-                gl::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
+                gui::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
         glfwSetJoystickCallback(&GLFW_App::s_joystick_cb);

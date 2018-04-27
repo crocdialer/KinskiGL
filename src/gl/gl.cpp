@@ -848,8 +848,10 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     if(the_mesh->geometry()->has_dirty_buffers()){ the_mesh->geometry()->create_gl_buffers(); }
     
     gl::apply_material(the_mesh->material(), false, overide_shader);
-    
+    KINSKI_CHECK_GL_ERRORS();
+
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
+    KINSKI_CHECK_GL_ERRORS();
     
     if(the_mesh->geometry()->has_indices())
     {
@@ -896,6 +898,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                                    the_mesh->geometry()->index_type(),
                                    BUFFER_OFFSET(e.base_index * the_mesh->geometry()->index_size()));
 #endif
+                    KINSKI_CHECK_GL_ERRORS();
                 }
             }
         }
@@ -904,14 +907,15 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             glDrawElements(the_mesh->geometry()->primitive_type(),
                            the_mesh->geometry()->indices().size(), the_mesh->geometry()->index_type(),
                            BUFFER_OFFSET(0));
+            KINSKI_CHECK_GL_ERRORS();
         }
     }
     else
     {
         glDrawArrays(the_mesh->geometry()->primitive_type(), 0,
                      the_mesh->geometry()->vertices().size());
+        KINSKI_CHECK_GL_ERRORS();
     }
-    KINSKI_CHECK_GL_ERRORS();
 
 #ifndef KINSKI_NO_VAO
     GL_SUFFIX(glBindVertexArray)(0);

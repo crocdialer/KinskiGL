@@ -108,8 +108,8 @@ void MediaPlayer::update(float timeDelta)
     // construct ImGui window for this frame
     if(display_tweakbar())
     {
-        gl::draw_component_ui(shared_from_this());
-        if(*m_use_warping){ gl::draw_component_ui(m_warp_component); }
+        gui::draw_component_ui(shared_from_this());
+        if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
     }
 
     if(m_reload_media){ reload_media(); }
