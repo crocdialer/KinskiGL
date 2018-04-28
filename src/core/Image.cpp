@@ -119,38 +119,41 @@ namespace kinski
                                the_img->m_num_components, the_img->data, 83);
         return ret;
     }
-    
-    Image::Image(uint8_t* the_data, uint32_t the_width, uint32_t the_height,
-                 uint32_t the_bytes_per_pixel, bool not_dispose):
+
+    template<class T>
+    Image_<T>::Image_(T* the_data, uint32_t the_width, uint32_t the_height,
+                      uint32_t the_num_components, bool not_dispose):
     data(the_data),
     width(the_width),
     height(the_height),
-    m_num_components(the_bytes_per_pixel),
+    m_num_components(the_num_components),
     roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
         {
             size_t num_bytes = height * width * m_num_components;
-            data = new uint8_t[num_bytes];
+            data = new T[num_bytes];
             memcpy(data, the_data, num_bytes);
         }
     };
-    
-    Image::Image(uint32_t the_width, uint32_t the_height, uint32_t the_bytes_per_pixel):
-    data(new uint8_t[the_width * the_height * the_bytes_per_pixel]()),
+
+    template<class T>
+    Image_<T>::Image_(uint32_t the_width, uint32_t the_height, uint32_t the_num_components):
+    data(new T[the_width * the_height * the_num_components]()),
     width(the_width),
     height(the_height),
-    m_num_components(the_bytes_per_pixel),
+    m_num_components(the_num_components),
     roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(false),
     m_type(Type::UNKNOWN)
     {
     
     }
-    
-    Image::Image(const Image &the_other):
-    data(new uint8_t[the_other.width * the_other.height * the_other.m_num_components]),
+
+    template<class T>
+    Image_<T>::Image_(const Image_<T> &the_other):
+    data(new T[the_other.width * the_other.height * the_other.m_num_components]),
     width(the_other.width),
     height(the_other.height),
     m_num_components(the_other.m_num_components),
@@ -160,8 +163,9 @@ namespace kinski
     {
         memcpy(data, the_other.data, width * height * m_num_components);
     }
-    
-    Image::Image(Image &&the_other):
+
+    template<class T>
+    Image_<T>::Image_(Image_<T> &&the_other):
     data(the_other.data),
     width(the_other.width),
     height(the_other.height),
@@ -172,8 +176,9 @@ namespace kinski
     {
         the_other.data = nullptr;
     }
-    
-    Image& Image::operator=(Image the_other)
+
+    template<class T>
+    Image_<T>& Image_<T>::operator=(Image_<T> the_other)
     {
         std::swap(data, the_other.data);
         std::swap(height, the_other.height);
@@ -184,16 +189,18 @@ namespace kinski
         std::swap(m_type, the_other.m_type);
         return *this;
     }
-    
-    Image::~Image()
+
+    template<class T>
+    Image_<T>::~Image_()
     {
         if(!do_not_dispose){ delete[](data); }
     }
-    
-    void Image::flip(bool horizontal)
+
+    template<class T>
+    void Image_<T>::flip(bool horizontal)
     {
-        size_t line_offset = width * m_num_components;
-        size_t total_bytes = width * height * m_num_components;
+        size_t line_offset = width * m_num_components * sizeof(T);
+        size_t total_bytes = num_bytes();
         
         if(horizontal)
         {
@@ -202,8 +209,8 @@ namespace kinski
             {
                 for(uint32_t c = 0; c < width / 2; c++)
                 {
-                    uint8_t* lhs = data + line_offset * r + m_num_components * c;
-                    uint8_t* rhs = data + line_offset * (r + 1) - m_num_components * (c + 1);
+                    T* lhs = data + line_offset * r + m_num_components * c;
+                    T* rhs = data + line_offset * (r + 1) - m_num_components * (c + 1);
                     std::swap_ranges(lhs, lhs + m_num_components, rhs);
                 }
             }
@@ -218,8 +225,9 @@ namespace kinski
             }
         }
     }
-    
-    ImagePtr Image::blur()
+
+    template<class T>
+    typename Image_<T>::Ptr Image_<T>::blur()
     {
         // gaussian blur
         const std::vector<float> gaussian =
@@ -232,12 +240,13 @@ namespace kinski
         };
         return convolve(gaussian);
     }
-    
-    ImagePtr Image::resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels)
+
+    template<class T>
+    typename Image_<T>::Ptr Image_<T>::resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels)
     {
         if(!the_num_channels){ the_num_channels = m_num_components; };
-        
-        ImagePtr ret = Image::create(the_width, the_height, the_num_channels);
+
+        Image_<T>::Ptr ret = Image_<T>::create(the_width, the_height, the_num_channels);
         float scale_x = the_width / (float)width, scale_y = the_height / (float)height;
         
         // blur
@@ -249,10 +258,10 @@ namespace kinski
             for(uint32_t x = 0; x < the_width; ++x)
             {
                 float src_x = x / scale_x, src_y = y / scale_y;
-                uint8_t* dst_ptr = ret->at(x, y);
+                T* dst_ptr = ret->at(x, y);
                 
                 // nearest neighbour
-                uint8_t* src_ptr = at(roundf(src_x), roundf(src_y));
+                T* src_ptr = at(roundf(src_x), roundf(src_y));
                 
                 if(the_num_channels <= m_num_components)
                 {
@@ -269,10 +278,11 @@ namespace kinski
         }
         return ret;
     }
-    
-    ImagePtr Image::convolve(const std::vector<float> &the_kernel)
+
+    template<class T>
+    typename Image_<T>::Ptr Image_<T>::convolve(const std::vector<float> &the_kernel)
     {
-        ImagePtr ret;
+        Image_<T>::Ptr ret;
         auto norm_kernel = the_kernel;
         float kernel_sum = sum(the_kernel);
         for(auto &e : norm_kernel){ e /= kernel_sum; }
@@ -285,13 +295,13 @@ namespace kinski
             LOG_WARNING << "only quadratic kernels accepted";
             return ret;
         }
-        ret = Image::create(width, height, m_num_components);
+        ret = Image_<T>::create(width, height, m_num_components);
         
         for(uint32_t y = 0; y < height; ++y)
         {
             for(uint32_t x = 0; x < width; ++x)
             {
-                uint8_t* dst_ptr = ret->at(x, y);
+                T* dst_ptr = ret->at(x, y);
                 
                 for(uint32_t c = 0; c < m_num_components; ++c)
                 {
@@ -314,24 +324,25 @@ namespace kinski
         return ret;
     }
 
-    void Image::offsets(uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a) const
+    template<class T>
+    void Image_<T>::offsets(uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a) const
     {
         switch(m_type)
         {
             case Type::BGR:
-                *r = 2; *g = 1; *b = 0; if(a){ *a = 0; }
+                *r = 2 * sizeof(T); *g = 1 * sizeof(T); *b = 0; if(a){ *a = 0; }
                 break;
 
             case Type::RGB:
-                *r = 0; *g = 1; *b = 2; if(a){ *a = 0; }
+                *r = 0; *g = 1 * sizeof(T); *b = 2 * sizeof(T); if(a){ *a = 0; }
                 break;
 
             case Type::RGBA:
-                *r = 0; *g = 1; *b = 2; if(a){ *a = 3; }
+                *r = 0; *g = 1 * sizeof(T); *b = 2 * sizeof(T); if(a){ *a = 3 * sizeof(T); }
                 break;
 
             case Type::BGRA:
-                *r = 2; *g = 1; *b = 0; if(a){ *a = 3; }
+                *r = 2 * sizeof(T); *g = 1 * sizeof(T); *b = 0; if(a){ *a = 3 * sizeof(T); }
                 break;
 
             case Type::GRAY:
@@ -341,6 +352,10 @@ namespace kinski
                 break;
         }
     }
+
+    // create class-template instantiations
+    template class Image_<uint8_t>;
+    template class Image_<float>;
 
     template<typename T> struct Point_
     {

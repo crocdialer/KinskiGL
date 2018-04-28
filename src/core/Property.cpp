@@ -11,7 +11,7 @@
 
 namespace kinski
 {
-    typedef boost::signals2::signal<void(const Property::ConstPtr&)> signal_t;
+    using signal_t = boost::signals2::signal<void(const Property::ConstPtr&)>;
     
     struct PropertyImpl
     {
