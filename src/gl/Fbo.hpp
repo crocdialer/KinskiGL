@@ -296,7 +296,8 @@ class FboExceptionInvalidSpecification : public FboException {
 
 
 //! create a framebuffer object with attached cubemaps
-KINSKI_API gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer = true);
+KINSKI_API gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer = true,
+                                           gl::Texture::Format the_color_format = gl::Texture::Format());
 
 /* create an image from the content of the provided framebuffer object.
  * if no framebuffer-object is provided, the display framebuffer will be used instead

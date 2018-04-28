@@ -570,7 +570,7 @@ namespace kinski {
                                        bool compress,
                                        GLfloat anisotropic_filter_lvl)
     {
-        auto task = Task::create();
+        auto task = Task::create("load texture: " + the_path);
         background_queue().submit([this, task, the_path, the_callback, mip_map, compress,
                                    anisotropic_filter_lvl]()
         {

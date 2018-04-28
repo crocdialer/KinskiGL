@@ -663,7 +663,7 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
 void ModelViewer::async_load_asset(const std::string &the_path,
                                    std::function<void(gl::MeshPtr)> the_completion_handler)
 {
-    auto task = Task::create();
+    auto task = Task::create("load asset: " + the_path);
 
     background_queue().submit([this, task, the_completion_handler]()
     {

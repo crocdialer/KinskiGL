@@ -30,6 +30,24 @@ Texture::Format::Format()
 	m_internal_format = -1;
 }
 
+bool Texture::Format::operator==(const gl::Texture::Format &other) const
+{
+    return m_target == other.m_target &&
+           m_datatype == other.m_datatype &&
+           m_wrap_s == other.m_wrap_s &&
+           m_wrap_t == other.m_wrap_t &&
+           m_min_filter == other.m_min_filter &&
+           m_mag_filter == other.m_mag_filter &&
+           m_internal_format == other.m_internal_format &&
+           m_mipmapping == other.m_mipmapping &&
+           m_anisotropic_filter_level == other.m_anisotropic_filter_level;
+}
+
+bool Texture::Format::operator!=(const gl::Texture::Format &other) const
+{
+    return !(*this == other);
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 // Texture::Obj
     

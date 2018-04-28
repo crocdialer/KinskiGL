@@ -57,7 +57,7 @@ vec3 ImportanceSample(vec3 N)
 			result += vec4(hdrRadiance / pdf, 1.0);
 		}
 	}
-	return result.rgb / result.w;
+	return ONE_OVER_PI * result.rgb / result.w;
 }
 
 in VertexData

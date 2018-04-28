@@ -25,9 +25,6 @@ template class Property_<gl::vec2>;
 template class Property_<gl::vec3>;
 template class Property_<gl::vec4>;
 
-std::atomic<uint32_t> App::Task::s_num_tasks(0);
-std::atomic<uint32_t> App::Task::s_id_counter(0);
-
 App::App(int argc, char *argv[]):
 Component(argc ? fs::get_filename_part(argv[0]) : "KinskiApp"),
 m_framesDrawn(0),

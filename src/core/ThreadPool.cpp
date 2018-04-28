@@ -19,7 +19,10 @@
 
 namespace kinski
 {
-typedef std::unique_ptr<boost::asio::io_service::work> io_work_ptr;
+std::atomic<uint32_t> Task::s_num_tasks(0);
+std::atomic<uint32_t> Task::s_id_counter(0);
+
+using io_work_ptr = std::unique_ptr<boost::asio::io_service::work>;
 
 struct ThreadPoolImpl
 {

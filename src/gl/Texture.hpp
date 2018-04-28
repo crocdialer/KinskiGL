@@ -218,7 +218,10 @@ namespace kinski{ namespace gl{
             
             //! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
             GLenum mag_filter() const { return m_mag_filter; }
-            
+
+            bool operator==(const gl::Texture::Format &other) const;
+            bool operator!=(const gl::Texture::Format &other) const;
+
             GLenum m_target;
             GLenum m_wrap_s, m_wrap_t;
             GLenum m_min_filter, m_mag_filter;

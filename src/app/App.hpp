@@ -132,34 +132,6 @@ namespace kinski
          */
         const std::vector<std::string>& args() const{ return m_args; };
         
-        //! RAII helper class
-        class Task;
-        using TaskPtr = std::shared_ptr<Task>;
-
-        class Task
-        {
-        public:
-            static TaskPtr create(const std::string &the_desc = "")
-            {
-                return TaskPtr(new Task(the_desc));
-            }
-            static uint32_t num_tasks(){ return s_num_tasks; };
-            ~Task(){ s_num_tasks--; }
-        private:
-            explicit Task(const std::string &the_desc):
-            m_id(s_id_counter++),
-            m_start_time(std::chrono::steady_clock::now()),
-            m_description(the_desc)
-            {
-                s_num_tasks++;
-            }
-            static std::atomic<uint32_t> s_num_tasks;
-            static std::atomic<uint32_t> s_id_counter;
-            uint32_t m_id;
-            std::chrono::steady_clock::time_point m_start_time;
-            std::string m_description;
-        };
-        
         /*!
          * returns true if some loading operation is in progress,
          * meaning the number of active tasks is greater than 0.
