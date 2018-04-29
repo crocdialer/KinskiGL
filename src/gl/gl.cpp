@@ -1396,6 +1396,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     {
         static auto mat = gl::Material::create();
         gl::apply_material(mat, true);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
