@@ -163,7 +163,7 @@ void draw_property_ui(const Property::Ptr &the_property)
 
     if(ImGui::TreeNode(prop_name.c_str()))
     {
-        ImGui::Text(prop_name.c_str());
+        ImGui::Text("%s", prop_name.c_str());
         ImGui::TreePop();
     }
 
