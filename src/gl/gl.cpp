@@ -1944,6 +1944,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     // render enviroment cubemap here
     auto data_type = the_panorama.datatype();
     bool use_float = data_type == GL_FLOAT;
+    compress = compress && !use_float;
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
     gl::Texture::Format color_fmt;
     color_fmt.set_data_type(data_type);

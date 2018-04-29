@@ -468,6 +468,10 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
                 m_mat_lighting_enviroment->add_texture(m_brdf_lut, Texture::Usage::BRDF_LUT);
 
+                // gamma correction for HDR backgrounds (HDR -> LDR)
+                if(t.datatype() == GL_FLOAT)
+                { the_renderbin->scene->skybox()->material()->uniform("u_gamma", 2.2f); }
+
                 // use this to use spec convolution as background for debugging
 //                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
             }
@@ -525,6 +529,7 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 {
     auto task = Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 512;
+    constexpr uint32_t num_color_components = 3;
 
     uint32_t num_mips = std::log2(conv_size);
     m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips - 1);
@@ -539,17 +544,13 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     GLenum format = 0, internal_format = 0;
     bool use_float = false;
     auto data_type = use_float ? GL_FLOAT : GL_UNSIGNED_BYTE;
-    get_texture_format(3, false, use_float, &format, &internal_format);
+    get_texture_format(num_color_components, false, use_float, &format, &internal_format);
 
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);
     fmt.set_internal_format(internal_format);
     fmt.set_data_type(data_type);
-    fmt.set_min_filter(GL_NEAREST);
-    fmt.set_mag_filter(GL_NEAREST);
     auto ret = gl::Texture(nullptr, format, conv_size, conv_size, fmt);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, num_mips - 1);
     ret.set_mipmapping(true);
 
     // render enviroment cubemap here
@@ -586,13 +587,13 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
         {
             // copy data to PBO
             cube_tex.bind();
-            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, data_type, nullptr);
+            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, cube_tex.datatype(), nullptr);
             KINSKI_CHECK_GL_ERRORS();
 
             // copy data from PBO to appropriate image plane and mimap lvl
             ret.bind();
-            glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, lvl, 0, 0, mip_size, mip_size, format,
-                            data_type, nullptr);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, lvl, internal_format, mip_size, mip_size, 0, format,
+                         ret.datatype(), nullptr);
             KINSKI_CHECK_GL_ERRORS();
         }
     }
