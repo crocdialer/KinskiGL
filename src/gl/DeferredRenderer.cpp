@@ -455,20 +455,20 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
     {
         auto t = the_renderbin->scene->skybox()->material()->get_texture(Texture::Usage::ENVIROMENT);
 
-        if(t && m_skybox != the_renderbin->scene->skybox())
-        {
-            if(!m_brdf_lut){ m_brdf_lut = create_brdf_lut(); }
-            m_env_conv_diff = create_env_diff(t);
-            m_env_conv_spec = create_env_spec(t);
-            m_skybox = the_renderbin->scene->skybox();
-
-            m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
-            m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
-            m_mat_lighting_enviroment->add_texture(m_brdf_lut, Texture::Usage::BRDF_LUT);
-        }
-
         if(t && t.target() == GL_TEXTURE_CUBE_MAP)
         {
+            if(m_skybox != the_renderbin->scene->skybox())
+            {
+                if(!m_brdf_lut){ m_brdf_lut = create_brdf_lut(); }
+                m_env_conv_diff = create_env_diff(t);
+                m_env_conv_spec = create_env_spec(t);
+                m_skybox = the_renderbin->scene->skybox();
+
+                m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
+                m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
+                m_mat_lighting_enviroment->add_texture(m_brdf_lut, Texture::Usage::BRDF_LUT);
+            }
+
             if(!stencil_pass)
             {
                 m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
@@ -532,7 +532,8 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 
     bool compress = true;
     GLenum format = 0, internal_format = 0;
-    get_texture_format(3, compress, &format, &internal_format);
+    bool use_hdr = false;
+    get_texture_format(3, compress, use_hdr, &format, &internal_format);
 
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);

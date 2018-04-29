@@ -94,10 +94,10 @@ m_impl(new TextureImpl(aWidth, aHeight, aDepth))
     init(nullptr, GL_RGBA, format);
 }
 
-Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format)
+Texture::Texture(const void *data, int dataFormat, int aWidth, int aHeight, Format format)
     : Texture(data, dataFormat, aWidth, aHeight, 1, format){}
     
-Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, int aDepth,
+Texture::Texture(const void *data, int dataFormat, int aWidth, int aHeight, int aDepth,
                  Format format)
 : m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
@@ -323,6 +323,11 @@ const GLint Texture::bound_texture_unit() const
 GLuint Texture::id() const
 { 
     return m_impl ? m_impl->m_texture_id : 0;
+}
+
+GLenum Texture::datatype() const
+{
+    return m_impl->m_datatype;
 }
 
 GLenum Texture::target() const

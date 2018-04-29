@@ -64,7 +64,7 @@ namespace kinski { namespace gl {
         uint32_t font_height;
         uint32_t line_height;
         
-        ImagePtr bitmap;
+        Image_<uint8_t >::Ptr bitmap;
         Texture texture, sdf_texture;
         bool use_sdf;
         
@@ -80,16 +80,16 @@ namespace kinski { namespace gl {
             use_sdf = false;
         }
         
-        std::tuple<ImagePtr, std::unique_ptr<stbtt_packedchar[]>>
+        std::tuple<Image_<uint8_t>::Ptr, std::unique_ptr<stbtt_packedchar[]>>
         create_bitmap(const std::vector<uint8_t> &the_font, float the_font_size,
                       uint32_t the_bitmap_width, uint32_t the_padding)
         {
             std::unique_ptr<stbtt_packedchar[]> c_data(new stbtt_packedchar[1024]);
-            ImagePtr img = Image::create(the_bitmap_width, the_bitmap_width, 1);
+            auto img = Image_<uint8_t>::create(the_bitmap_width, the_bitmap_width, 1);
             
             // rect packing
             stbtt_pack_context spc;
-            stbtt_PackBegin(&spc, img->data, img->width, img->height, 0, the_padding, nullptr);
+            stbtt_PackBegin(&spc, img->m_data, img->m_width, img->m_height, 0, the_padding, nullptr);
             
             int num_chars = 768;
             stbtt_PackFontRange(&spc, const_cast<uint8_t*>(the_font.data()), 0, the_font_size, 32,
@@ -122,7 +122,7 @@ namespace kinski { namespace gl {
                     y += line_height;
                     continue;
                 }
-                stbtt_GetPackedQuad(char_data.get(), bitmap->width, bitmap->height,
+                stbtt_GetPackedQuad(char_data.get(), bitmap->m_width, bitmap->m_height,
                                     codepoint - 32, &x, &y, &q, 0);
                 
                 if(the_max_y && *the_max_y < q.y1 + font_height){ *the_max_y = q.y1 + font_height;}
@@ -258,10 +258,10 @@ namespace kinski { namespace gl {
         
         for(auto &q : quads)
         {
-            Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_impl->bitmap->width),
-                                static_cast<uint32_t>(q.t0 * m_impl->bitmap->height),
-                                static_cast<uint32_t>(q.s1 * m_impl->bitmap->width),
-                                static_cast<uint32_t>(q.t1 * m_impl->bitmap->height));
+            Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_impl->bitmap->m_width),
+                                static_cast<uint32_t>(q.t0 * m_impl->bitmap->m_height),
+                                static_cast<uint32_t>(q.s1 * m_impl->bitmap->m_width),
+                                static_cast<uint32_t>(q.t1 * m_impl->bitmap->m_height));
             Area_<uint32_t> dst(static_cast<uint32_t>(q.x0),
                                 static_cast<uint32_t>(m_impl->font_height + q.y0),
                                 static_cast<uint32_t>(q.x1),
@@ -269,13 +269,13 @@ namespace kinski { namespace gl {
 
             area_pairs.push_back(std::make_pair(src, dst));
         }
-        auto dst_img = Image::create(max_x, max_y, 1);
+        auto dst_img = Image_<uint8_t >::create(max_x, max_y, 1);
 
         for(const auto &a : area_pairs)
         {
-            m_impl->bitmap->roi = a.first;
-            dst_img->roi = a.second;
-            copy_image(m_impl->bitmap, dst_img);
+            m_impl->bitmap->m_roi = a.first;
+            dst_img->m_roi = a.second;
+            copy_image<uint8_t>(m_impl->bitmap, dst_img);
         }
         return dst_img;
     }

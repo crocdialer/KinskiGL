@@ -35,9 +35,9 @@ namespace kinski{ namespace gl{
         Texture(int aWidth, int aHeight, int aDepth, Format format = Format());
         
         /** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. Pixel data is provided by \a data and is expected to be interleaved and in format \a dataFormat, for which \c GL_RGB or \c GL_RGBA would be typical values. **/
-        Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format = Format());
+        Texture(const void *data, int dataFormat, int aWidth, int aHeight, Format format = Format());
         
-        Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, int aDepth,
+        Texture(const void *data, int dataFormat, int aWidth, int aHeight, int aDepth,
                 Format format = Format());
         
         //! Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
@@ -111,7 +111,9 @@ namespace kinski{ namespace gl{
         
         //! the ID number for the texture, appropriate to pass to calls like \c glBindTexture()
         GLuint id() const;
-        
+
+        GLenum datatype() const;
+
         //! the target associated with texture. Typical values are \c GL_TEXTURE_2D and \c GL_TEXTURE_RECTANGLE_ARB
         GLenum target() const;
         

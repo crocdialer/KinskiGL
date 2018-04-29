@@ -443,7 +443,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         if(img)
         {
             constexpr size_t ao_offset = 0;
-            uint8_t *ptr = img->data, *end = ptr + img->num_bytes();
+            uint8_t *ptr = (uint8_t*)img->data(), *end = ptr + img->num_bytes();
             
             for(;ptr < end; ptr += img->num_components()){ ptr[ao_offset] = 255; }
         }

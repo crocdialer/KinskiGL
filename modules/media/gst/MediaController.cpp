@@ -328,18 +328,18 @@ bool MediaController::copy_frame_to_image(ImagePtr& the_image)
         uint32_t w = m_impl->m_gst_util.video_info().width;
         uint32_t h = m_impl->m_gst_util.video_info().height;
 
-        if(!the_image || the_image->width != w || the_image->height != h ||
+        if(!the_image || the_image->width() != w || the_image->height() != h ||
            the_image->num_components() != num_channels)
         {
-            the_image = Image::create(w, h, num_channels);
+            auto img = Image_<uint8_t >::create(w, h, num_channels);
+            img->m_type = Image::Type::RGBA;
         }
-        the_image->m_type = Image::Type::RGBA;
 
         // map the buffer for reading
         gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
         uint8_t *buf_data = m_impl->m_memory_map_info.data;
         size_t num_bytes = m_impl->m_memory_map_info.size;
-        memcpy(the_image->data, buf_data, num_bytes);
+        memcpy(the_image->data(), buf_data, num_bytes);
         gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
         return true;
     }

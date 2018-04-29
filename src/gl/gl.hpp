@@ -236,7 +236,7 @@ KINSKI_API bool is_extension_supported(const std::string &theName);
 
 /************************************* Texture loading ****************************************/
 
-KINSKI_API void get_texture_format(int the_num_comps, bool compress, GLenum *out_format,
+KINSKI_API void get_texture_format(int the_num_comps, bool compress, bool use_float, GLenum *out_format,
                                    GLenum *out_internal_format);
     
 KINSKI_API Texture create_texture_from_file(const std::string &the_path,

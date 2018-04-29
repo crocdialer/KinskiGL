@@ -171,6 +171,8 @@ namespace kinski { namespace gl {
                 break;
             case GL_TEXTURE_2D:
                 LOG_DEBUG << "adding panorama skybox";
+//                mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_PANORAMA));
+//                mat->add_texture(t, Texture::Usage::ENVIROMENT);
                 mat->add_texture(gl::create_cube_texture_from_panorama(t, 1024, true, true), Texture::Usage::ENVIROMENT);
                 break;
             default:

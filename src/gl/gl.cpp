@@ -1699,7 +1699,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void get_texture_format(int the_num_comps, bool compress, GLenum *out_format,
+void get_texture_format(int the_num_comps, bool compress, bool use_float, GLenum *out_format,
                         GLenum *out_internal_format)
 {
     switch(the_num_comps)
@@ -1723,19 +1723,19 @@ void get_texture_format(int the_num_comps, bool compress, GLenum *out_format,
 #else
         case 1:
             *out_format = GL_RED;
-            *out_internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RGBA;
+            *out_internal_format = compress? GL_COMPRESSED_RED_RGTC1 : use_float ? GL_R32F : GL_R8;
             break;
         case 2:
             *out_format = GL_RG;
-            *out_internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RGBA;
+            *out_internal_format = compress? GL_COMPRESSED_RG_RGTC2 : use_float ? GL_RG32F : GL_RG8;
             break;
         case 3:
             *out_format = GL_RGB;
-            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGBA;
+            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : use_float ? GL_RGBA32F : GL_RGBA8;
             break;
         case 4:
             *out_format = GL_RGBA;
-            *out_internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
+            *out_internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : use_float ? GL_RGBA32F : GL_RGBA8;
         default:
             break;
 #endif
@@ -1748,34 +1748,36 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
                                   bool compress, GLfloat anisotropic_filter_lvl)
 {
     Texture ret;
+    bool use_float = (the_img->num_bytes() / (the_img->width() * the_img->height() * the_img->num_components())) > 1;
 
     if(!the_img){ return ret; }
     GLenum format = 0, internal_format = 0;
-    get_texture_format(the_img->m_num_components, compress, &format, &internal_format);
+    get_texture_format(the_img->num_components(), compress, use_float, &format, &internal_format);
 
     Texture::Format fmt;
     fmt.set_internal_format(internal_format);
+    fmt.set_data_type(use_float ? GL_FLOAT : GL_UNSIGNED_BYTE);
 
     if(mipmap)
     {
         fmt.set_mipmapping();
         fmt.set_min_filter(GL_LINEAR_MIPMAP_NEAREST);
     }
-    uint8_t *data = the_img->data;
+    void *data = the_img->data();
 
 #if !defined(KINSKI_GLES)
     gl::Buffer pixel_buf;
-    pixel_buf.set_data(the_img->data, the_img->num_bytes());
+    pixel_buf.set_data(the_img->data(), the_img->num_bytes());
     pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
     data = nullptr;
 #endif
-    ret = Texture(data, format, the_img->width, the_img->height, fmt);
+    ret = Texture(data, format, the_img->width(), the_img->height(), fmt);
     ret.set_flipped();
     KINSKI_CHECK_GL_ERRORS();
 
 #if !defined(KINSKI_GLES)
     Image::Type bgr_types[] = {Image::Type::BGR, Image::Type::BGRA};
-    if(contains(bgr_types, the_img->m_type)){ ret.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
+    if(contains(bgr_types, the_img->type())){ ret.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
 #endif
 
     ret.set_anisotropic_filter(anisotropic_filter_lvl);
@@ -1813,12 +1815,11 @@ Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bo
 
 ImagePtr create_image_from_texture(const gl::Texture &the_texture)
 {
-    ImagePtr ret;
-    if(!the_texture){ return ret; }
+    if(!the_texture){ return ImagePtr(); }
 #if !defined(KINSKI_GLES)
-    ret = Image::create(the_texture.width(), the_texture.height(), 4);
+    auto ret = Image_<uint8_t >::create(the_texture.width(), the_texture.height(), 4);
     the_texture.bind();
-    glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
+    glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data());
     ret->flip();
     ret->m_type = Image::Type::RGBA;
 #endif
@@ -1830,38 +1831,38 @@ ImagePtr create_image_from_texture(const gl::Texture &the_texture)
 Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLayout the_layout,
                                       bool compress)
 {
-    // load image
-    auto img = create_image_from_file(the_path);
-
-    if(img && the_layout == CubeTextureLayout::H_CROSS)
-    {
-        uint32_t sub_w = img->width / 4, sub_h = img->height / 3;
-
-        // TODO: take layout into account
-        // create 6 images
-        std::vector<ImagePtr> out_images(6);
-        gl::ivec2 offsets[6] =
-                {
-                        gl::ivec2(2, 1),
-                        gl::ivec2(0, 1),
-                        gl::ivec2(1, 0),
-                        gl::ivec2(1, 2),
-                        gl::ivec2(3, 1),
-                        gl::ivec2(1, 1),
-                };
-
-        for(int i = 0; i < 6; i++)
-        {
-            img->roi.x0 = offsets[i].x * sub_w;
-            img->roi.y0 = offsets[i].y * sub_h;
-            img->roi.x1 = img->roi.x0 + sub_w;
-            img->roi.y1 = img->roi.y0 + sub_h;
-            out_images[i] = Image::create(sub_w, sub_h, img->num_components());
-            copy_image(img, out_images[i]);
-//            out_images[i]->flip(true);
-        }
-        return create_cube_texture_from_images(out_images, compress);
-    }
+//    // load image
+//    auto img = create_image_from_file(the_path);
+//
+//    if(img && the_layout == CubeTextureLayout::H_CROSS)
+//    {
+//        uint32_t sub_w = img->width / 4, sub_h = img->height / 3;
+//
+//        // TODO: take layout into account
+//        // create 6 images
+//        std::vector<ImagePtr> out_images(6);
+//        gl::ivec2 offsets[6] =
+//                {
+//                        gl::ivec2(2, 1),
+//                        gl::ivec2(0, 1),
+//                        gl::ivec2(1, 0),
+//                        gl::ivec2(1, 2),
+//                        gl::ivec2(3, 1),
+//                        gl::ivec2(1, 1),
+//                };
+//
+//        for(int i = 0; i < 6; i++)
+//        {
+//            img->roi.x0 = offsets[i].x * sub_w;
+//            img->roi.y0 = offsets[i].y * sub_h;
+//            img->roi.x1 = img->roi.x0 + sub_w;
+//            img->roi.y1 = img->roi.y0 + sub_h;
+//            out_images[i] = Image::create(sub_w, sub_h, img->num_components());
+//            copy_image(img, out_images[i]);
+////            out_images[i]->flip(true);
+//        }
+//        return create_cube_texture_from_images(out_images, compress);
+//    }
     return Texture();
 }
 
@@ -1879,12 +1880,12 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
         return ret;
     }
 
-    uint32_t width = the_planes[0]->width, height = the_planes[0]->height;
+    uint32_t width = the_planes[0]->width(), height = the_planes[0]->height();
     uint32_t num_components = the_planes[0]->num_components();
 
     for(auto img : the_planes)
     {
-        if(!img || img->width != width || img->height != height ||
+        if(!img || img->width() != width || img->height() != height ||
            img->num_components() != num_components)
         {
             LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
@@ -1894,7 +1895,7 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
 
     // create and bind cube map
     GLenum format = 0, internal_format = 0;
-    get_texture_format(num_components, compress, &format, &internal_format);
+    get_texture_format(num_components, compress, false, &format, &internal_format);
 
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);
@@ -1908,7 +1909,7 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
     for(uint32_t i = 0; i < 6; i++)
     {
         // copy data to PBO
-        pixel_buf.set_data(the_planes[i]->data, the_planes[i]->num_bytes());
+        pixel_buf.set_data(the_planes[i]->data(), the_planes[i]->num_bytes());
 
         // bind PBO
         pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
@@ -1941,8 +1942,13 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
 
     // render enviroment cubemap here
+    auto data_type = the_panorama.datatype();
+    bool use_float = data_type == GL_FLOAT;
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
-    auto cube_fbo = gl::create_cube_framebuffer(the_size);
+    gl::Texture::Format color_fmt;
+    color_fmt.set_data_type(data_type);
+    color_fmt.set_internal_format(the_panorama.internal_format());
+    auto cube_fbo = gl::create_cube_framebuffer(the_size, true, color_fmt);
     auto cube_shader = gl::Shader::create(cube_vert, unlit_panorama_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
@@ -1961,11 +1967,12 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     if(mipmap || compress)
     {
         GLenum format = 0, internal_format = 0;
-        get_texture_format(3, compress, &format, &internal_format);
+        get_texture_format(3, compress, use_float, &format, &internal_format);
 
         gl::Texture::Format fmt;
         fmt.set_target(GL_TEXTURE_CUBE_MAP);
         fmt.set_internal_format(internal_format);
+        fmt.set_data_type(data_type);
         auto ret = gl::Texture(nullptr, format, the_size, the_size, fmt);
 
         // create PBO
@@ -1980,12 +1987,12 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
         {
             // copy data to PBO
             cube_tex.bind();
-            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, GL_UNSIGNED_BYTE, nullptr);
+            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, data_type, nullptr);
 
             // copy data from PBO to appropriate image plane
             ret.bind();
             glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, the_size, the_size, format,
-                            GL_UNSIGNED_BYTE, nullptr);
+                            data_type, nullptr);
         }
         ret.set_mipmapping(mipmap);
         KINSKI_CHECK_GL_ERRORS();

@@ -34,12 +34,9 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, gl::
     if(with_color_buffer)
     {
         GLenum format, internal_format;
-        gl::get_texture_format(3, false, &format, &internal_format);
+        gl::get_texture_format(3, false, the_color_format.m_datatype == GL_FLOAT, &format, &internal_format);
 
-        if(the_color_format == gl::Texture::Format())
-        {
-            the_color_format.set_internal_format(internal_format);
-        }
+        the_color_format.set_internal_format(internal_format);
         the_color_format.set_target(GL_TEXTURE_CUBE_MAP);
         the_color_format.set_min_filter(GL_NEAREST);
         the_color_format.set_mag_filter(GL_NEAREST);
@@ -54,7 +51,6 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, gl::
 ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo)
 {
     gl::SaveFramebufferBinding sfb;
-    ImagePtr ret;
     int w = gl::window_dimension().x, h = gl::window_dimension().y, num_comp = 3;
     GLenum format = GL_RGB;
     
@@ -66,9 +62,9 @@ ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo)
         num_comp = 4;
         format = GL_RGBA;
     }
-    ret = Image::create(w, h, num_comp);
+    auto ret = Image_<uint8_t >::create(w, h, num_comp);
     ret->m_type = Image::Type::RGBA;
-    glReadPixels(0, 0, w, h, format, GL_UNSIGNED_BYTE, ret->data);
+    glReadPixels(0, 0, w, h, format, GL_UNSIGNED_BYTE, ret->data());
     ret->flip();
     return ret;
 }

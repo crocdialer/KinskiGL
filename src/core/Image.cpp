@@ -52,46 +52,60 @@ namespace kinski
 
     ImagePtr create_image_from_data(const uint8_t *the_data, size_t the_num_bytes, int num_channels)
     {
+        ImagePtr ret;
         int width, height, num_components;
-        unsigned char *data = stbi_load_from_memory(the_data, the_num_bytes, &width, &height, &num_components,
-                                                    num_channels);
+        bool is_hdr = false;//stbi_is_hdr_from_memory(the_data, the_num_bytes);
 
-        if(!data) throw ImageLoadException();
+//        void *data = nullptr;
+
+        if(is_hdr)
+        {
+            float *data = stbi_loadf_from_memory(the_data, the_num_bytes, &width, &height, &num_components, num_channels);
+            ret = Image_<float>::create(data, width, height, num_components);
+            if(!data) throw ImageLoadException();
+            STBI_FREE(data);
+        }
+        else
+        {
+            uint8_t *data = stbi_load_from_memory(the_data, the_num_bytes, &width, &height, &num_components, num_channels);
+            ret = Image_<uint8_t>::create(data, width, height, num_components);
+            if(!data) throw ImageLoadException();
+            STBI_FREE(data);
+        }
 
         LOG_TRACE << "decoded image: " << width << " x " << height << " (" <<num_components<<" ch)";
 
-        // ... process data if not NULL ...
+        // ... process m_data if not NULL ...
         // ... x = width, y = height, n = # 8-bit components per pixel ...
         // ... replace '0' with '1'..'4' to force that many components per pixel
         // ... but 'n' will always be the number that it would have been if you said 0
 
-        auto ret = Image::create(data, width, height, num_components);
-        STBI_FREE(data);
         return ret;
     }
 
-    void copy_image(const ImagePtr &src_mat, ImagePtr &dst_mat)
+    template<class T>
+    void copy_image(const typename Image_<T>::Ptr &src_mat, typename Image_<T>::Ptr &dst_mat)
     {
         if(!src_mat){ return; }
-        if(!dst_mat){ dst_mat = Image::create(src_mat->width, src_mat->height, src_mat->num_components()); }
+        if(!dst_mat){ dst_mat = Image_<uint8_t >::create(src_mat->width(), src_mat->height(), src_mat->num_components()); }
         uint32_t bytes_per_pixel = src_mat->num_components();
         
-        assert(src_mat->roi.width() <= src_mat->width && src_mat->roi.height() <= src_mat->height);
-        assert(dst_mat->roi.width() <= dst_mat->width && dst_mat->roi.height() <= dst_mat->height);
-        assert(src_mat->roi.width() == src_mat->roi.width() && src_mat->roi.height() == src_mat->roi.height());
+        assert(src_mat->roi().width() <= src_mat->width() && src_mat->roi().height() <= src_mat->height());
+        assert(dst_mat->roi().width() <= dst_mat->width() && dst_mat->roi().height() <= dst_mat->height());
+        assert(src_mat->roi().width() == src_mat->roi().width() && src_mat->roi().height() == src_mat->roi().height());
         
-        uint32_t src_row_offset = src_mat->width - src_mat->roi.width();
-        uint32_t dst_row_offset = dst_mat->width - dst_mat->roi.width();
+        uint32_t src_row_offset = src_mat->width() - src_mat->roi().width();
+        uint32_t dst_row_offset = dst_mat->width() - dst_mat->roi().width();
         
-        const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y0 * src_mat->width + src_mat->roi.x0) * bytes_per_pixel;
-        uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y0 * dst_mat->width + dst_mat->roi.x0) * bytes_per_pixel;
+        const uint8_t* src_area_start = (uint8_t*)src_mat->data() + (src_mat->roi().y0 * src_mat->width() + src_mat->roi().x0) * bytes_per_pixel;
+        uint8_t* dst_area_start = (uint8_t*)dst_mat->data() + (dst_mat->roi().y0 * dst_mat->width() + dst_mat->roi().x0) * bytes_per_pixel;
         
-        for(uint32_t r = 0; r < src_mat->roi.height(); r++)
+        for(uint32_t r = 0; r < src_mat->roi().height(); r++)
         {
-            const uint8_t* src_row_start = src_area_start + r * (src_mat->roi.width() + src_row_offset) * bytes_per_pixel;
-            uint8_t* dst_row_start = dst_area_start + r * (dst_mat->roi.width() + dst_row_offset) * bytes_per_pixel;
+            const uint8_t* src_row_start = src_area_start + r * (src_mat->roi().width() + src_row_offset) * bytes_per_pixel;
+            uint8_t* dst_row_start = dst_area_start + r * (dst_mat->roi().width() + dst_row_offset) * bytes_per_pixel;
             
-            for(uint32_t c = 0; c < src_mat->roi.width(); c++)
+            for(uint32_t c = 0; c < src_mat->roi().width(); c++)
             {
                 for(uint32_t ch = 0; ch < bytes_per_pixel; ch++)
                     dst_row_start[c * bytes_per_pixel + ch] = src_row_start[c * bytes_per_pixel + ch];
@@ -107,44 +121,44 @@ namespace kinski
     std::vector<uint8_t> encode_png(const ImagePtr &the_img)
     {
         auto ret = std::vector<uint8_t>();
-        stbi_write_png_to_func(&stbi_write_func, &ret, the_img->width, the_img->height,
-                               the_img->m_num_components, the_img->data, 0);
+        stbi_write_png_to_func(&stbi_write_func, &ret, the_img->width(), the_img->height(),
+                               the_img->num_components(), the_img->data(), 0);
         return ret;
     }
     
     std::vector<uint8_t> encode_jpg(const ImagePtr &the_img)
     {
         auto ret = std::vector<uint8_t>();
-        stbi_write_jpg_to_func(&stbi_write_func, &ret, the_img->width, the_img->height,
-                               the_img->m_num_components, the_img->data, 83);
+        stbi_write_jpg_to_func(&stbi_write_func, &ret, the_img->width(), the_img->height(),
+                               the_img->num_components(), the_img->data(), 83);
         return ret;
     }
 
     template<class T>
     Image_<T>::Image_(T* the_data, uint32_t the_width, uint32_t the_height,
                       uint32_t the_num_components, bool not_dispose):
-    data(the_data),
-    width(the_width),
-    height(the_height),
+    m_data(the_data),
+    m_width(the_width),
+    m_height(the_height),
     m_num_components(the_num_components),
-    roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
+    m_roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
         {
-            size_t num_bytes = height * width * m_num_components;
-            data = new T[num_bytes];
-            memcpy(data, the_data, num_bytes);
+            size_t num_bytes = m_height * m_width * m_num_components;
+            m_data = new T[num_bytes];
+            memcpy(m_data, the_data, num_bytes);
         }
     };
 
     template<class T>
     Image_<T>::Image_(uint32_t the_width, uint32_t the_height, uint32_t the_num_components):
-    data(new T[the_width * the_height * the_num_components]()),
-    width(the_width),
-    height(the_height),
+    m_data(new T[the_width * the_height * the_num_components]()),
+    m_width(the_width),
+    m_height(the_height),
     m_num_components(the_num_components),
-    roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
+    m_roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(false),
     m_type(Type::UNKNOWN)
     {
@@ -153,38 +167,38 @@ namespace kinski
 
     template<class T>
     Image_<T>::Image_(const Image_<T> &the_other):
-    data(new T[the_other.width * the_other.height * the_other.m_num_components]),
-    width(the_other.width),
-    height(the_other.height),
+    m_data(new T[the_other.m_width * the_other.m_height * the_other.m_num_components]),
+    m_width(the_other.m_width),
+    m_height(the_other.m_height),
     m_num_components(the_other.m_num_components),
-    roi(the_other.roi),
+    m_roi(the_other.m_roi),
     do_not_dispose(the_other.do_not_dispose),
     m_type(the_other.m_type)
     {
-        memcpy(data, the_other.data, width * height * m_num_components);
+        memcpy(m_data, the_other.m_data, m_width * m_height * m_num_components);
     }
 
     template<class T>
     Image_<T>::Image_(Image_<T> &&the_other):
-    data(the_other.data),
-    width(the_other.width),
-    height(the_other.height),
+    m_data(the_other.m_data),
+    m_width(the_other.m_width),
+    m_height(the_other.m_height),
     m_num_components(the_other.m_num_components),
-    roi(the_other.roi),
+    m_roi(the_other.m_roi),
     do_not_dispose(the_other.do_not_dispose),
     m_type(the_other.m_type)
     {
-        the_other.data = nullptr;
+        the_other.m_data = nullptr;
     }
 
     template<class T>
     Image_<T>& Image_<T>::operator=(Image_<T> the_other)
     {
-        std::swap(data, the_other.data);
-        std::swap(height, the_other.height);
-        std::swap(width, the_other.width);
+        std::swap(m_data, the_other.m_data);
+        std::swap(m_height, the_other.m_height);
+        std::swap(m_width, the_other.m_width);
         std::swap(m_num_components, the_other.m_num_components);
-        std::swap(roi, the_other.roi);
+        std::swap(m_roi, the_other.m_roi);
         std::swap(do_not_dispose, the_other.do_not_dispose);
         std::swap(m_type, the_other.m_type);
         return *this;
@@ -193,24 +207,24 @@ namespace kinski
     template<class T>
     Image_<T>::~Image_()
     {
-        if(!do_not_dispose){ delete[](data); }
+        if(!do_not_dispose){ delete[](m_data); }
     }
 
     template<class T>
     void Image_<T>::flip(bool horizontal)
     {
-        size_t line_offset = width * m_num_components * sizeof(T);
+        size_t line_offset = m_width * m_num_components * sizeof(T);
         size_t total_bytes = num_bytes();
         
         if(horizontal)
         {
             // swap lines
-            for(uint32_t r = 0; r < height; r++)
+            for(uint32_t r = 0; r < m_height; r++)
             {
-                for(uint32_t c = 0; c < width / 2; c++)
+                for(uint32_t c = 0; c < m_width / 2; c++)
                 {
-                    T* lhs = data + line_offset * r + m_num_components * c;
-                    T* rhs = data + line_offset * (r + 1) - m_num_components * (c + 1);
+                    T* lhs = m_data + line_offset * r + m_num_components * c;
+                    T* rhs = m_data + line_offset * (r + 1) - m_num_components * (c + 1);
                     std::swap_ranges(lhs, lhs + m_num_components, rhs);
                 }
             }
@@ -218,16 +232,16 @@ namespace kinski
         else
         {
             // swap lines
-            for(uint32_t i = 0; i < height / 2; i++)
+            for(uint32_t i = 0; i < m_height / 2; i++)
             {
-                std::swap_ranges(data + line_offset * i, data +  line_offset * (i + 1),
-                                 data + total_bytes - line_offset * (i + 1));
+                std::swap_ranges(m_data + line_offset * i, m_data +  line_offset * (i + 1),
+                                 m_data + total_bytes - line_offset * (i + 1));
             }
         }
     }
 
     template<class T>
-    typename Image_<T>::Ptr Image_<T>::blur()
+    ImagePtr Image_<T>::blur()
     {
         // gaussian blur
         const std::vector<float> gaussian =
@@ -242,12 +256,12 @@ namespace kinski
     }
 
     template<class T>
-    typename Image_<T>::Ptr Image_<T>::resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels)
+    ImagePtr Image_<T>::resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels)
     {
         if(!the_num_channels){ the_num_channels = m_num_components; };
 
-        Image_<T>::Ptr ret = Image_<T>::create(the_width, the_height, the_num_channels);
-        float scale_x = the_width / (float)width, scale_y = the_height / (float)height;
+        auto ret = Image_<T>::create(the_width, the_height, the_num_channels);
+        float scale_x = the_width / (float)m_width, scale_y = the_height / (float)m_height;
         
         // blur
 //        ImagePtr blur_img = blur();
@@ -280,7 +294,7 @@ namespace kinski
     }
 
     template<class T>
-    typename Image_<T>::Ptr Image_<T>::convolve(const std::vector<float> &the_kernel)
+    ImagePtr Image_<T>::convolve(const std::vector<float> &the_kernel)
     {
         Image_<T>::Ptr ret;
         auto norm_kernel = the_kernel;
@@ -295,11 +309,11 @@ namespace kinski
             LOG_WARNING << "only quadratic kernels accepted";
             return ret;
         }
-        ret = Image_<T>::create(width, height, m_num_components);
+        ret = Image_<T>::create(m_width, m_height, m_num_components);
         
-        for(uint32_t y = 0; y < height; ++y)
+        for(uint32_t y = 0; y < m_height; ++y)
         {
-            for(uint32_t x = 0; x < width; ++x)
+            for(uint32_t x = 0; x < m_width; ++x)
             {
                 T* dst_ptr = ret->at(x, y);
                 
@@ -312,7 +326,7 @@ namespace kinski
                         for(int l = -kernel_dim_2; l <= kernel_dim_2; ++l, ++k_idx)
                         {
                             int pos_x = x + k, pos_y = y + l;
-                            if(pos_x < 0 || pos_x >= (int)width || pos_y < 0 || pos_y >= (int)height)
+                            if(pos_x < 0 || pos_x >= (int)m_width || pos_y < 0 || pos_y >= (int)m_height)
                             { sum += at(x, y)[c] / (float)norm_kernel.size(); }
                             else{ sum += at(pos_x, pos_y)[c] * norm_kernel[k_idx]; }
                         }
@@ -356,6 +370,9 @@ namespace kinski
     // create class-template instantiations
     template class Image_<uint8_t>;
     template class Image_<float>;
+
+    template void copy_image<uint8_t>(const typename Image_<uint8_t>::Ptr &src_img,
+                                      typename Image_<uint8_t>::Ptr &dst_img);
 
     template<typename T> struct Point_
     {
@@ -492,16 +509,18 @@ namespace kinski
     
     ImagePtr compute_distance_field(ImagePtr the_img, float spread)
     {
-        if(!the_img || the_img->m_num_components > 1){ return nullptr; }
+        auto img = std::dynamic_pointer_cast<Image_<uint8_t >>(the_img);
+
+        if(!img || img->num_components() > 1){ return nullptr; }
         
         // create two grids
-        Grid grid1(the_img->width, the_img->height), grid2(the_img->width, the_img->height);
+        Grid grid1(img->width(), img->height()), grid2(img->width(), img->height());
         
         // init grids
-        for (uint32_t x = 0; x < the_img->width; ++x)
-            for (uint32_t y = 0; y < the_img->height; ++y)
+        for (uint32_t x = 0; x < img->width(); ++x)
+            for (uint32_t y = 0; y < img->height(); ++y)
             {
-                bool is_inside = *the_img->at(x, y) > 32;
+                bool is_inside = *img->at(x, y) > 32;
                 grid1.set(x, y, is_inside ? Grid::inf() : Grid::zero());
                 grid2.set(x, y, is_inside ? Grid::zero() : Grid::inf());
             }
@@ -511,10 +530,10 @@ namespace kinski
         grid2.compute_distances();
         
         // gather result
-        ImagePtr ret = Image::create(the_img->width, the_img->height);
+        auto ret = Image_<uint8_t >::create(img->width(), img->height());
         
-        for(uint32_t y = 0; y < ret->height; ++y)
-            for(uint32_t x = 0; x < ret->width; ++x)
+        for(uint32_t y = 0; y < ret->height(); ++y)
+            for(uint32_t x = 0; x < ret->width(); ++x)
             {
                 // Calculate the actual distance from the dx/dy
                 float dist1 = length(grid1.at(x, y));
