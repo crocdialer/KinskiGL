@@ -15,7 +15,7 @@ namespace kinski { namespace gl {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, gl::Texture::Format the_color_format)
+gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, GLenum the_datatype)
 {
     uint32_t cube_sz = the_width;
     gl::Fbo::Format fbo_fmt;
@@ -34,13 +34,15 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, gl::
     if(with_color_buffer)
     {
         GLenum format, internal_format;
-        gl::get_texture_format(3, false, the_color_format.m_datatype == GL_FLOAT, &format, &internal_format);
+        gl::get_texture_format(3, false, the_datatype == GL_FLOAT, &format, &internal_format);
 
-        the_color_format.set_internal_format(internal_format);
-        the_color_format.set_target(GL_TEXTURE_CUBE_MAP);
-        the_color_format.set_min_filter(GL_NEAREST);
-        the_color_format.set_mag_filter(GL_NEAREST);
-        auto cube_tex = gl::Texture(nullptr, GL_RGB, cube_sz, cube_sz, the_color_format);
+        gl::Texture::Format col_fmt;
+        col_fmt.set_data_type(the_datatype);
+        col_fmt.set_internal_format(internal_format);
+        col_fmt.set_target(GL_TEXTURE_CUBE_MAP);
+        col_fmt.set_min_filter(GL_NEAREST);
+        col_fmt.set_mag_filter(GL_NEAREST);
+        auto cube_tex = gl::Texture(nullptr, format, cube_sz, cube_sz, col_fmt);
         fbo.add_attachment(cube_tex, 0);
     }
     return fbo;

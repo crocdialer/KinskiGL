@@ -1731,7 +1731,7 @@ void get_texture_format(int the_num_comps, bool compress, bool use_float, GLenum
             break;
         case 3:
             *out_format = GL_RGB;
-            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : use_float ? GL_RGBA16F : GL_RGBA8;
+            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : use_float ? GL_RGB16F : GL_RGB8;
             break;
         case 4:
             *out_format = GL_RGBA;
@@ -1948,7 +1948,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     gl::Texture::Format color_fmt;
     color_fmt.set_data_type(data_type);
     color_fmt.set_internal_format(the_panorama.internal_format());
-    auto cube_fbo = gl::create_cube_framebuffer(the_size, true, color_fmt);
+    auto cube_fbo = gl::create_cube_framebuffer(the_size, true, data_type);
     auto cube_shader = gl::Shader::create(cube_vert, unlit_panorama_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
@@ -1977,7 +1977,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
 
         // create PBO
         gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
-        pixel_buf.set_data(nullptr, the_size * the_size * 4);
+        pixel_buf.set_data(nullptr, the_size * the_size * 4 * (use_float ? 4 : 1));
 
         // bind PBO for reading and writing
         pixel_buf.bind(GL_PIXEL_PACK_BUFFER);

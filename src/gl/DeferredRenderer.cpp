@@ -467,6 +467,8 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 m_mat_lighting_enviroment->add_texture(m_env_conv_diff, Texture::Usage::ENVIROMENT_CONV_DIFF);
                 m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
                 m_mat_lighting_enviroment->add_texture(m_brdf_lut, Texture::Usage::BRDF_LUT);
+
+                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
             }
 
             if(!stencil_pass)
@@ -497,9 +499,7 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 
     // render enviroment cubemap here
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
-    auto tex_fmt = gl::Texture::Format();
-    tex_fmt.set_data_type(GL_FLOAT);
-    auto cube_fbo = gl::create_cube_framebuffer(conv_size, true, tex_fmt);
+    auto cube_fbo = gl::create_cube_framebuffer(conv_size, true, GL_FLOAT);
     auto cube_shader = gl::Shader::create(cube_vert, cube_conv_diffuse_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
@@ -525,6 +525,9 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto task = Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 512;
 
+    uint32_t num_mips = std::log2(conv_size);
+    m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips - 1);
+
     auto mat = gl::Material::create();
     mat->set_culling(gl::Material::CULL_FRONT);
     mat->add_texture(the_env_tex, Texture::Usage::ENVIROMENT);
@@ -532,16 +535,20 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     mat->set_depth_write(false);
     auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
 
-    bool compress = false;
     GLenum format = 0, internal_format = 0;
-    bool use_float = true;
-    get_texture_format(3, compress, use_float, &format, &internal_format);
+    bool use_float = false;
+    auto data_type = use_float ? GL_FLOAT : GL_UNSIGNED_BYTE;
+    get_texture_format(3, false, use_float, &format, &internal_format);
 
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);
     fmt.set_internal_format(internal_format);
-//    fmt.set_data_type(GL_FLOAT);
+    fmt.set_data_type(data_type);
+    fmt.set_min_filter(GL_NEAREST);
+    fmt.set_mag_filter(GL_NEAREST);
     auto ret = gl::Texture(nullptr, format, conv_size, conv_size, fmt);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, num_mips - 1);
     ret.set_mipmapping(true);
 
     // render enviroment cubemap here
@@ -553,13 +560,10 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     cube_shader->uniform("u_view_matrix", cam_matrices);
     cube_shader->uniform("u_projection_matrix", cube_cam->projection_matrix());
 
-    uint32_t num_mips = std::log2(conv_size);
-    m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips - 1);
-
     for(uint32_t lvl = 0; lvl < num_mips; ++lvl)
     {
         size_t mip_size = conv_size >> lvl;
-        auto cube_fbo = gl::create_cube_framebuffer(mip_size, true, fmt);
+        auto cube_fbo = gl::create_cube_framebuffer(mip_size, true, data_type);
         cube_shader->uniform("u_roughness", (float)lvl / num_mips);
 
         auto cube_tex = gl::render_to_texture(cube_fbo, [box_mesh, cube_shader]()
@@ -570,7 +574,7 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 
         // create PBO
         gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
-        pixel_buf.set_data(nullptr, mip_size * mip_size * 4);
+        pixel_buf.set_data(nullptr, mip_size * mip_size * 4 * (use_float ? 4 : 1));
 
         // bind PBO for reading and writing
         pixel_buf.bind(GL_PIXEL_PACK_BUFFER);
@@ -581,12 +585,14 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
         {
             // copy data to PBO
             cube_tex.bind();
-            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, cube_tex.datatype(), nullptr);
+            glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, data_type, nullptr);
+            KINSKI_CHECK_GL_ERRORS();
 
             // copy data from PBO to appropriate image plane and mimap lvl
             ret.bind();
             glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, lvl, 0, 0, mip_size, mip_size, format,
-                            ret.datatype(), nullptr);
+                            data_type, nullptr);
+            KINSKI_CHECK_GL_ERRORS();
         }
     }
     ret.set_mag_filter(GL_LINEAR);
