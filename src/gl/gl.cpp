@@ -1723,19 +1723,19 @@ void get_texture_format(int the_num_comps, bool compress, bool use_float, GLenum
 #else
         case 1:
             *out_format = GL_RED;
-            *out_internal_format = compress? GL_COMPRESSED_RED_RGTC1 : use_float ? GL_R32F : GL_R8;
+            *out_internal_format = compress? GL_COMPRESSED_RED_RGTC1 : use_float ? GL_R16F : GL_R8;
             break;
         case 2:
             *out_format = GL_RG;
-            *out_internal_format = compress? GL_COMPRESSED_RG_RGTC2 : use_float ? GL_RG32F : GL_RG8;
+            *out_internal_format = compress? GL_COMPRESSED_RG_RGTC2 : use_float ? GL_RG16F : GL_RG8;
             break;
         case 3:
             *out_format = GL_RGB;
-            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : use_float ? GL_RGBA32F : GL_RGBA8;
+            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : use_float ? GL_RGBA16F : GL_RGBA8;
             break;
         case 4:
             *out_format = GL_RGBA;
-            *out_internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : use_float ? GL_RGBA32F : GL_RGBA8;
+            *out_internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : use_float ? GL_RGBA16F : GL_RGBA8;
         default:
             break;
 #endif
