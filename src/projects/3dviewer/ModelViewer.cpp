@@ -517,7 +517,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         async_load_texture(*m_skybox_path, [this](const gl::Texture &t)
         {
             scene()->set_skybox(t);
-        }, false, true);
+        }, false, false);
     }
     else if(theProperty == m_use_ground_plane)
     {

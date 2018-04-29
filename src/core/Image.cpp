@@ -54,22 +54,21 @@ namespace kinski
     {
         ImagePtr ret;
         int width, height, num_components;
-        bool is_hdr = false;//stbi_is_hdr_from_memory(the_data, the_num_bytes);
-
-//        void *data = nullptr;
+        bool is_hdr = stbi_is_hdr_from_memory(the_data, the_num_bytes);
+//        bool is_hdr = false;
 
         if(is_hdr)
         {
             float *data = stbi_loadf_from_memory(the_data, the_num_bytes, &width, &height, &num_components, num_channels);
-            ret = Image_<float>::create(data, width, height, num_components);
             if(!data) throw ImageLoadException();
+            ret = Image_<float>::create(data, width, height, num_components);
             STBI_FREE(data);
         }
         else
         {
             uint8_t *data = stbi_load_from_memory(the_data, the_num_bytes, &width, &height, &num_components, num_channels);
-            ret = Image_<uint8_t>::create(data, width, height, num_components);
             if(!data) throw ImageLoadException();
+            ret = Image_<uint8_t>::create(data, width, height, num_components);
             STBI_FREE(data);
         }
 
@@ -146,7 +145,7 @@ namespace kinski
     {
         if(!do_not_dispose)
         {
-            size_t num_bytes = m_height * m_width * m_num_components;
+            size_t num_bytes = m_height * m_width * m_num_components * sizeof(T);
             m_data = new T[num_bytes];
             memcpy(m_data, the_data, num_bytes);
         }
@@ -154,7 +153,7 @@ namespace kinski
 
     template<class T>
     Image_<T>::Image_(uint32_t the_width, uint32_t the_height, uint32_t the_num_components):
-    m_data(new T[the_width * the_height * the_num_components]()),
+    m_data(new T[the_width * the_height * the_num_components * sizeof(T)]()),
     m_width(the_width),
     m_height(the_height),
     m_num_components(the_num_components),
@@ -167,7 +166,7 @@ namespace kinski
 
     template<class T>
     Image_<T>::Image_(const Image_<T> &the_other):
-    m_data(new T[the_other.m_width * the_other.m_height * the_other.m_num_components]),
+    m_data(new T[the_other.m_width * the_other.m_height * the_other.m_num_components * sizeof(T)]),
     m_width(the_other.m_width),
     m_height(the_other.m_height),
     m_num_components(the_other.m_num_components),

@@ -77,7 +77,8 @@ public:
     inline T* at(uint32_t x, uint32_t y) const
     { return m_data + (x + y * m_width) * m_num_components * sizeof(T); };
 
-    inline T* data_start_for_roi() const {return m_data + (m_roi.y0 * m_width + m_roi.x0) * m_num_components;}
+    inline T* data_start_for_roi() const
+    { return m_data + (m_roi.y0 * m_width + m_roi.x0) * m_num_components * sizeof(T);}
 
     inline size_t num_bytes() const override { return m_height * m_width * m_num_components * sizeof(T); }
 
