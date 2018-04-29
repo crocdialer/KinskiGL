@@ -191,7 +191,7 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     if(!m_fbo_geometry || m_fbo_geometry.size() != the_size)
     {
         gl::Fbo::Format fmt;
-        fmt.set_color_internal_format(GL_RGB32F);
+        fmt.set_color_internal_format(GL_RGB16F);
         fmt.enable_stencil_buffer(true);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
         m_fbo_geometry = gl::Fbo(the_size, fmt);
@@ -469,11 +469,11 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 m_mat_lighting_enviroment->add_texture(m_brdf_lut, Texture::Usage::BRDF_LUT);
 
                 // gamma correction for HDR backgrounds (HDR -> LDR)
-                if(t.datatype() == GL_FLOAT)
-                { the_renderbin->scene->skybox()->material()->uniform("u_gamma", 2.2f); }
+                float gamma = t.datatype() == GL_FLOAT ? 2.2f : 1.f;
+                the_renderbin->scene->skybox()->material()->uniform("u_gamma", gamma);
 
                 // use this to use spec convolution as background for debugging
-                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
+//                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
             }
 
             if(!stencil_pass)
@@ -530,7 +530,7 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto task = Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 512;
     constexpr uint32_t num_color_components = 3;
-    constexpr bool use_float = false;
+    constexpr bool use_float = true;
 
     uint32_t num_mips = std::log2(conv_size) - 1;
     m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips);

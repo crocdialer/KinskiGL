@@ -1748,9 +1748,9 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
                                   bool compress, GLfloat anisotropic_filter_lvl)
 {
     Texture ret;
+    if(!the_img){ return ret; }
     bool use_float = (the_img->num_bytes() / (the_img->width() * the_img->height() * the_img->num_components())) > 1;
     LOG_DEBUG_IF(use_float) << "creating FLOAT texture ...";
-    if(!the_img){ return ret; }
     GLenum format = 0, internal_format = 0;
     get_texture_format(the_img->num_components(), compress, use_float, &format, &internal_format);
 

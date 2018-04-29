@@ -100,7 +100,7 @@ public:
 
     inline uint32_t height() const override{ return m_height; };
 
-    inline void* data(){ return (void*)m_data; };
+    inline void* data() override{ return (void*)m_data; };
 
     inline uint32_t num_components() const override { return m_num_components; } ;
 

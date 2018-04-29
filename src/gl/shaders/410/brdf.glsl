@@ -17,7 +17,7 @@ struct Lightsource
 
 float map_roughness(float r)
 {
-    return mix(0.25, 0.975, r);
+    return mix(0.025, 0.975, r);
 }
 
 vec3 BRDF_Lambertian(vec3 color, float metalness)
