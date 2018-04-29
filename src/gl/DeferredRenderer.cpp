@@ -473,7 +473,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 { the_renderbin->scene->skybox()->material()->uniform("u_gamma", 2.2f); }
 
                 // use this to use spec convolution as background for debugging
-//                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
+                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
             }
 
             if(!stencil_pass)
@@ -530,9 +530,10 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto task = Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 512;
     constexpr uint32_t num_color_components = 3;
+    constexpr bool use_float = false;
 
-    uint32_t num_mips = std::log2(conv_size);
-    m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips - 1);
+    uint32_t num_mips = std::log2(conv_size) - 1;
+    m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips);
 
     auto mat = gl::Material::create();
     mat->set_culling(gl::Material::CULL_FRONT);
@@ -542,7 +543,6 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
 
     GLenum format = 0, internal_format = 0;
-    bool use_float = false;
     auto data_type = use_float ? GL_FLOAT : GL_UNSIGNED_BYTE;
     get_texture_format(num_color_components, false, use_float, &format, &internal_format);
 

@@ -14,7 +14,6 @@
 #include "SceneRenderer.hpp"
 #include "Fbo.hpp"
 #include "geometry_types.hpp"
-#include "gl/ShaderLibrary.h"
 
 using namespace std;
 
