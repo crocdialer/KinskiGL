@@ -468,7 +468,8 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 m_mat_lighting_enviroment->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT_CONV_SPEC);
                 m_mat_lighting_enviroment->add_texture(m_brdf_lut, Texture::Usage::BRDF_LUT);
 
-                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
+                // use this to use spec convolution as background for debugging
+//                the_renderbin->scene->skybox()->material()->add_texture(m_env_conv_spec, Texture::Usage::ENVIROMENT);
             }
 
             if(!stencil_pass)
