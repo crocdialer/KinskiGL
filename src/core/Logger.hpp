@@ -10,6 +10,7 @@
 #pragma once
 
 #include <sstream>
+#include <set>
 #include "core/core.hpp"
 
 namespace kinski

@@ -1699,9 +1699,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void get_texture_format(int the_num_comps, bool compress, bool use_float, GLenum *out_format,
+void get_texture_format(int the_num_comps, bool compress, GLenum the_datatype, GLenum *out_format,
                         GLenum *out_internal_format)
 {
+    compress = compress && (the_datatype == GL_UNSIGNED_BYTE);
+
     switch(the_num_comps)
     {
 #ifdef KINSKI_GLES
@@ -1723,19 +1725,31 @@ void get_texture_format(int the_num_comps, bool compress, bool use_float, GLenum
 #else
         case 1:
             *out_format = GL_RED;
-            *out_internal_format = compress? GL_COMPRESSED_RED_RGTC1 : use_float ? GL_R16F : GL_R8;
+            if(compress){ *out_internal_format = GL_COMPRESSED_RED_RGTC1; }
+            else if(the_datatype == GL_FLOAT){ *out_internal_format = GL_R32F; }
+            else if(the_datatype == GL_UNSIGNED_BYTE){ *out_internal_format = GL_R8; }
+            else if(the_datatype == GL_UNSIGNED_SHORT){ *out_internal_format = GL_R16; }
             break;
         case 2:
             *out_format = GL_RG;
-            *out_internal_format = compress? GL_COMPRESSED_RG_RGTC2 : use_float ? GL_RG16F : GL_RG8;
+            if(compress){ *out_internal_format = GL_COMPRESSED_RG_RGTC2; }
+            else if(the_datatype == GL_FLOAT){ *out_internal_format = GL_RG32F; }
+            else if(the_datatype == GL_UNSIGNED_BYTE){ *out_internal_format = GL_RG8; }
+            else if(the_datatype == GL_UNSIGNED_SHORT){ *out_internal_format = GL_RG16; }
             break;
         case 3:
             *out_format = GL_RGB;
-            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : use_float ? GL_RGB16F : GL_RGB8;
+            if(compress){ *out_internal_format = GL_COMPRESSED_RGB_S3TC_DXT1_EXT; }
+            else if(the_datatype == GL_FLOAT){ *out_internal_format = GL_RGB32F; }
+            else if(the_datatype == GL_UNSIGNED_BYTE){ *out_internal_format = GL_RGB8; }
+            else if(the_datatype == GL_UNSIGNED_SHORT){ *out_internal_format = GL_RGB16; }
             break;
         case 4:
             *out_format = GL_RGBA;
-            *out_internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : use_float ? GL_RGBA16F : GL_RGBA8;
+            if(compress){ *out_internal_format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT; }
+            else if(the_datatype == GL_FLOAT){ *out_internal_format = GL_RGBA32F; }
+            else if(the_datatype == GL_UNSIGNED_BYTE){ *out_internal_format = GL_RGBA8; }
+            else if(the_datatype == GL_UNSIGNED_SHORT){ *out_internal_format = GL_RGBA16; }
         default:
             break;
 #endif
@@ -1751,12 +1765,14 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     if(!the_img){ return ret; }
     bool use_float = (the_img->num_bytes() / (the_img->width() * the_img->height() * the_img->num_components())) > 1;
     LOG_DEBUG_IF(use_float) << "creating FLOAT texture ...";
+    auto data_type = use_float ? GL_FLOAT : GL_UNSIGNED_BYTE;
+
     GLenum format = 0, internal_format = 0;
-    get_texture_format(the_img->num_components(), compress, use_float, &format, &internal_format);
+    get_texture_format(the_img->num_components(), compress, data_type, &format, &internal_format);
 
     Texture::Format fmt;
     fmt.set_internal_format(internal_format);
-    fmt.set_data_type(use_float ? GL_FLOAT : GL_UNSIGNED_BYTE);
+    fmt.set_data_type(data_type);
 
     if(mipmap)
     {
@@ -1895,7 +1911,7 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
 
     // create and bind cube map
     GLenum format = 0, internal_format = 0;
-    get_texture_format(num_components, compress, false, &format, &internal_format);
+    get_texture_format(num_components, compress, GL_UNSIGNED_BYTE, &format, &internal_format);
 
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);
@@ -1943,8 +1959,6 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
 
     // render enviroment cubemap here
     auto data_type = the_panorama.datatype();
-    bool use_float = data_type == GL_FLOAT;
-    compress = compress && !use_float;
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
     gl::Texture::Format color_fmt;
     color_fmt.set_data_type(data_type);
@@ -1968,7 +1982,7 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     if(mipmap || compress)
     {
         GLenum format = 0, internal_format = 0;
-        get_texture_format(3, compress, use_float, &format, &internal_format);
+        get_texture_format(3, compress, data_type, &format, &internal_format);
 
         gl::Texture::Format fmt;
         fmt.set_target(GL_TEXTURE_CUBE_MAP);
@@ -1976,9 +1990,10 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
         fmt.set_data_type(data_type);
         auto ret = gl::Texture(nullptr, format, the_size, the_size, fmt);
 
+
         // create PBO
         gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
-        pixel_buf.set_data(nullptr, the_size * the_size * 4 * (use_float ? 4 : 1));
+        pixel_buf.set_data(nullptr, the_size * the_size * 4 * (data_type == GL_FLOAT ? 4 : 1));
 
         // bind PBO for reading and writing
         pixel_buf.bind(GL_PIXEL_PACK_BUFFER);

@@ -10,6 +10,8 @@
 #pragma once
 
 #include "Property.hpp"
+#include <list>
+#include <map>
 
 namespace kinski 
 {

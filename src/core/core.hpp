@@ -18,10 +18,6 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include <list>
-#include <set>
-#include <map>
-#include <unordered_map>
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
     #define KINSKI_MSW
@@ -73,6 +69,4 @@ namespace kinski
 {
     using std::string;
     using std::vector;
-    using std::list;
-    using std::set;
 }

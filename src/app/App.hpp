@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include <atomic>
-#include <chrono>
 #include "core/file_functions.hpp"
 #include "core/Component.hpp"
 #include "core/ThreadPool.hpp"

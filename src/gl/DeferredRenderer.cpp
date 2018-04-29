@@ -530,10 +530,9 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto task = Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 512;
     constexpr uint32_t num_color_components = 3;
-    constexpr bool use_float = true;
 
     uint32_t num_mips = std::log2(conv_size) - 1;
-    m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips);
+    m_mat_lighting_enviroment->shader()->uniform("u_num_mip_levels", num_mips);
 
     auto mat = gl::Material::create();
     mat->set_culling(gl::Material::CULL_FRONT);
@@ -543,8 +542,8 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
 
     GLenum format = 0, internal_format = 0;
-    auto data_type = use_float ? GL_FLOAT : GL_UNSIGNED_BYTE;
-    get_texture_format(num_color_components, false, use_float, &format, &internal_format);
+    auto data_type = GL_UNSIGNED_SHORT;
+    get_texture_format(num_color_components, false, data_type, &format, &internal_format);
 
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);
@@ -575,8 +574,9 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
         KINSKI_CHECK_GL_ERRORS();
 
         // create PBO
+        size_t num_bytes_per_comp = data_type == GL_FLOAT ? 4 : data_type == GL_UNSIGNED_SHORT ? 2 : 1;
         gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
-        pixel_buf.set_data(nullptr, mip_size * mip_size * 4 * (use_float ? 4 : 1));
+        pixel_buf.set_data(nullptr, mip_size * mip_size * 4 * num_bytes_per_comp);
 
         // bind PBO for reading and writing
         pixel_buf.bind(GL_PIXEL_PACK_BUFFER);

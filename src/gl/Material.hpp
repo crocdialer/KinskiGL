@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <boost/variant.hpp>
 #include "gl/gl.hpp"
 #include "Shader.hpp"

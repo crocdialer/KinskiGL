@@ -7,6 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
+#include <unordered_map>
 #include "Fbo.hpp"
 
 using namespace std;
@@ -35,7 +36,7 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, GLen
     {
         constexpr uint32_t num_color_components = 3;
         GLenum format, internal_format;
-        gl::get_texture_format(num_color_components, false, the_datatype == GL_FLOAT, &format, &internal_format);
+        gl::get_texture_format(num_color_components, false, the_datatype, &format, &internal_format);
 
         gl::Texture::Format col_fmt;
         col_fmt.set_data_type(the_datatype);
