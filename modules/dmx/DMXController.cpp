@@ -108,7 +108,7 @@ namespace kinski{ namespace dmx
     
     bool DMXController::connect(const std::string &the_device_name)
     {
-        std::list<std::string> dev_name_patterns = {"tty.usbserial-EN", "ttyUSB"};
+        std::vector<std::string> dev_name_patterns = {"tty.usbserial-EN", "ttyUSB"};
         std::string found_name;
         
         if(the_device_name.empty())

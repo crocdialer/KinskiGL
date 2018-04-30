@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <map>
 #include "Connection.hpp"
 
 namespace kinski

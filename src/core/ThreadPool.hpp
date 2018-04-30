@@ -40,7 +40,7 @@ public:
 
     ~Task()
     {
-        auto task_str = m_description.empty() ? " task #" + to_string(m_id) : m_description;
+        auto task_str = m_description.empty() ? "task #" + to_string(m_id) : m_description;
         auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - m_start_time).count();
         LOG_DEBUG << "'" << task_str << "' completed (" << millis << " ms)";

@@ -57,7 +57,6 @@ namespace kinski {
         register_property(m_look_at);
 
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 7500);
-        m_distance->set_tweakable(false);
         register_property(m_distance);
 
         m_camera_fov = RangedProperty<float>::create("camera fov", 45.f, 1.f, 180.f);
