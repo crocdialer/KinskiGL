@@ -53,13 +53,7 @@
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glcorearb.h>
-//TODO: remove this extension definitions from here, when a better place is found
-#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
-#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
-#define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
-#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
-#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
-#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
+#include <GL/glext.h>
 #endif
 
 #if defined(KINSKI_COCOA)

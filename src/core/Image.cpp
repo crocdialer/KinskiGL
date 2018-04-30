@@ -55,7 +55,6 @@ namespace kinski
         ImagePtr ret;
         int width, height, num_components;
         bool is_hdr = stbi_is_hdr_from_memory(the_data, the_num_bytes);
-//        bool is_hdr = false;
 
         if(is_hdr)
         {
@@ -71,14 +70,7 @@ namespace kinski
             ret = Image_<uint8_t>::create(data, width, height, num_components);
             STBI_FREE(data);
         }
-
         LOG_TRACE << "decoded image: " << width << " x " << height << " (" <<num_components<<" ch)";
-
-        // ... process m_data if not NULL ...
-        // ... x = width, y = height, n = # 8-bit components per pixel ...
-        // ... replace '0' with '1'..'4' to force that many components per pixel
-        // ... but 'n' will always be the number that it would have been if you said 0
-
         return ret;
     }
 

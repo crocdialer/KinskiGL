@@ -1178,6 +1178,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         {
             auto &pair = *it;
 
+            constexpr float anisotropic_lvl = 8.f;
+
             // no DXT compression for normal maps
             bool use_compression = pair.second.key != (uint32_t)Texture::Usage::NORMAL;
 
@@ -1185,7 +1187,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             {
                 try
                 {
-                    auto t = gl::create_texture_from_file(pair.first, true, use_compression);
+                    auto t = gl::create_texture_from_file(pair.first, true, use_compression, anisotropic_lvl);
                     the_mat->add_texture(t, pair.second.key);
 //                    pair.second.status = gl::Material::AssetLoadStatus::DONE;
 
@@ -1204,7 +1206,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             }
             else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
             {
-                auto t = gl::create_texture_from_image(pair.second.image, true, use_compression);
+                auto t = gl::create_texture_from_image(pair.second.image, true, use_compression, anisotropic_lvl);
                 the_mat->add_texture(t, pair.second.key);
 //                pair.second.image = nullptr;
 //                pair.second.status = gl::Material::AssetLoadStatus::DONE;
@@ -1824,7 +1826,7 @@ Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bo
                                  GLfloat anisotropic_filter_lvl)
 {
     ImagePtr img = create_image_from_file(theFileName);
-    Texture ret = create_texture_from_image(img);
+    Texture ret = create_texture_from_image(img, mipmap, compress, anisotropic_filter_lvl);
     return ret;
 }
 

@@ -297,7 +297,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     int wireframe;
     aiString path_buf;
 
-    LOG_DEBUG_IF(the_scene->mNumTextures) << "num embedded textures: " << the_scene->mNumTextures;
+    LOG_TRACE_IF(the_scene->mNumTextures) << "num embedded textures: " << the_scene->mNumTextures;
 
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &c))
     {

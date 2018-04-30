@@ -529,7 +529,7 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 {
     auto task = Task::create("cubemap specular convolution");
-    constexpr uint32_t conv_size = 512;
+    constexpr uint32_t conv_size = 256;
     constexpr uint32_t num_color_components = 3;
     constexpr GLenum data_type = GL_FLOAT;
 
