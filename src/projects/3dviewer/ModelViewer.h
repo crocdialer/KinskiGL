@@ -26,7 +26,7 @@ namespace kinski
 
         gl::DeferredRendererPtr m_deferred_renderer = gl::DeferredRenderer::create();
 
-        gl::MeshPtr m_mesh, m_ground_mesh;
+        gl::MeshPtr m_mesh, m_ground_mesh, m_load_indicator;
         gl::Texture m_cube_map, m_normal_map;
         
         gl::Fbo m_post_process_fbo, m_offscreen_fbo;
@@ -100,7 +100,9 @@ namespace kinski
         void render_bones(const gl::MeshPtr &the_mesh, const gl::CameraPtr &the_cam, bool use_labels);
         
         void process_joystick(float the_time_delta);
-        
+
+        void draw_load_indicator(const gl::vec2 &the_screen_pos, float the_size);
+
     public:
         
         ModelViewer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};

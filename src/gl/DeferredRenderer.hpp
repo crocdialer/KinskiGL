@@ -19,7 +19,7 @@ public:
         G_BUFFER_NORMAL = 1,
         G_BUFFER_POSITION = 2,
         G_BUFFER_EMISSION = 3,
-        G_BUFFER_MATERIAL_PROPS = 4,
+        G_BUFFER_AO_ROUGH_METAL = 4,
         G_BUFFER_SIZE = 5
     };
 

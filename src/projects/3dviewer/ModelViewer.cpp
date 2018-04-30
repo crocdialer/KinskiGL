@@ -214,8 +214,7 @@ void ModelViewer::draw()
 
     if(is_loading())
     {
-        gl::draw_text_2D("loading ...", fonts()[0], gl::COLOR_WHITE,
-                         gl::vec2(gl::window_dimension().x - 130, 20));
+        draw_load_indicator(gl::vec2(gl::window_dimension().x - 100, 80), 50.f);
     }
 
     // draw texture map(s)
@@ -798,4 +797,25 @@ void ModelViewer::process_joystick(float the_time_delta)
             }
         }
     }
+}
+
+void ModelViewer::draw_load_indicator(const gl::vec2 &the_screen_pos, float the_size)
+{
+    constexpr float rot_speed = -3.f;
+    gl::ScopedMatrixPush mv_scope(gl::MODEL_VIEW_MATRIX), proj_scope(gl::PROJECTION_MATRIX);
+    gl::set_projection(gui_camera());
+
+    if(!m_load_indicator)
+    {
+        m_load_indicator = gl::Mesh::create(gl::Geometry::create_plane(1.f, 1.f));
+        m_load_indicator->material()->set_diffuse(gl::COLOR_RED);
+        m_load_indicator->material()->set_depth_write(false);
+        m_load_indicator->material()->set_depth_test(false);
+        m_load_indicator->material()->set_blending();
+    }
+    m_load_indicator->set_position(gl::vec3(the_screen_pos.x, gl::window_dimension().y - the_screen_pos.y, 0.f));
+    m_load_indicator->set_scale(gl::vec3(the_size, the_size, 1.f));
+    m_load_indicator->set_rotation(glm::rotate(glm::quat(), (float)get_application_time() * rot_speed, gl::Z_AXIS));
+    gl::load_matrix(gl::MODEL_VIEW_MATRIX, m_load_indicator->transform());
+    gl::draw_mesh(m_load_indicator);
 }

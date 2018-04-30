@@ -534,7 +534,7 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     constexpr GLenum data_type = GL_FLOAT;
 
     uint32_t num_mips = std::log2(conv_size) - 1;
-    m_mat_lighting_enviroment->shader()->uniform("u_num_mip_levels", num_mips);
+    m_mat_lighting_enviroment->uniform("u_num_mip_levels", num_mips);
 
     auto mat = gl::Material::create();
     mat->set_culling(gl::Material::CULL_FRONT);
