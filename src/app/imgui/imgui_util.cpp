@@ -266,8 +266,15 @@ void draw_material_ui(const gl::MaterialPtr &the_mat)
         the_mat->set_metalness(metalness);
     }
 
+    // ambient occlusion
+    float occlusion = the_mat->occlusion();
+    if(ImGui::SliderFloat("ambient occlusion", &occlusion, 0.f, 1.f))
+    {
+        the_mat->set_occlusion(occlusion);
+    }
+
     // textures
-    if(ImGui::TreeNode("textures"))
+    if(ImGui::TreeNode(("textures (" + to_string(the_mat->textures().size()) + ")").c_str()))
     {
         std::vector<gl::Texture> textures;
         for(const auto &p : the_mat->textures()){ textures.push_back(p.second); }

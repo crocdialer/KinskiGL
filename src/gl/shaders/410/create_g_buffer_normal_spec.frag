@@ -54,5 +54,5 @@ void main()
   out_position = vec4(vertex_in.eyeVec, 1);
   out_emission = u_material.emission * texColors;
   float roughness = 1 - texture(u_sampler_2D[SPECULARMAP], vertex_in.texCoord.xy).x;
-  out_ao_rough_metal = vec4(1.0, roughness, u_material.metalness, 1);
+  out_ao_rough_metal = vec4(u_material.occlusion, roughness, u_material.metalness, 1);
 }
