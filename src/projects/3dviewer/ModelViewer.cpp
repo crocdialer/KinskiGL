@@ -46,6 +46,7 @@ void ModelViewer::setup()
     register_property(m_ground_plane_texture_scale);
     register_property(m_mesh_metalness);
     register_property(m_mesh_roughness);
+    register_property(m_enviroment_strength);
     
     register_property(m_focal_depth);
     register_property(m_focal_length);
@@ -302,6 +303,7 @@ void ModelViewer::update_fbos()
         if(*m_use_deferred_render){ scene()->set_renderer(m_deferred_renderer); }
         m_deferred_renderer->set_g_buffer_resolution(*m_offscreen_resolution);
         m_deferred_renderer->set_use_fxaa(*m_use_fxaa);
+        m_deferred_renderer->set_enviroment_light_strength(*m_enviroment_strength);
         m_dirty_g_buffer = false;
     }
 }
@@ -564,6 +566,10 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
 
         range_prop = std::dynamic_pointer_cast<RangedProperty<float>>(m_fstop);
         range_prop->set_range(0.f, m_focal_length->value());
+    }
+    else if(theProperty == m_enviroment_strength)
+    {
+        if(m_deferred_renderer){ m_deferred_renderer->set_enviroment_light_strength(*m_enviroment_strength); }
     }
 }
 
