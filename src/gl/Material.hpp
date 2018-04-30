@@ -136,12 +136,14 @@ namespace kinski { namespace gl {
         const Color& emission() const { return m_emission; };
         const float metalness() const { return m_metalness; };
         const float roughness() const { return m_roughness; };
+        const float occlusion() const { return m_occlusion; };
         
         void set_diffuse(const Color &theColor);
         void set_ambient(const Color &theColor);
         void set_emission(const Color &theColor);
         void set_metalness(float m);
         void set_roughness(float r);
+        void set_occlusion(float ao);
         void set_point_size(float sz);
         void set_point_attenuation(float constant, float linear, float quadratic);
         void set_line_thickness(float t);
@@ -173,6 +175,7 @@ namespace kinski { namespace gl {
         Color m_emission;
         float m_metalness;
         float m_roughness;
+        float m_occlusion;
         float m_line_width;
         
         texture_load_map_t m_queued_textures;

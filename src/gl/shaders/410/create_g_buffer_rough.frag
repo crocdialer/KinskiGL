@@ -13,6 +13,7 @@ struct Material
     vec4 point_vals;// (size, constant_att, linear_att, quad_att)
     float metalness;
     float roughness;
+    float occlusion;
     int shadow_properties;
     int texture_properties;
 };

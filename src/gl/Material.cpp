@@ -50,6 +50,7 @@ namespace kinski { namespace gl {
     m_emission(gl::COLOR_BLACK),
     m_metalness(0.f),
     m_roughness(.8f),
+    m_occlusion(1.f),
     m_line_width(1.f),
     m_queued_shader(ShaderType::NONE),
     m_point_size(1.f)
@@ -103,9 +104,16 @@ namespace kinski { namespace gl {
         m_metalness = clamp(m, 0.f, 1.f);
         m_dirty_uniform_buffer = true;
     }
+    
     void Material::set_roughness(float r)
     {
         m_roughness = clamp(r, 0.f, 1.f);
+        m_dirty_uniform_buffer = true;
+    }
+    
+    void Material::set_occlusion(float ao)
+    {
+        m_occlusion = clamp(ao, 0.f, 1.f);
         m_dirty_uniform_buffer = true;
     }
     
@@ -219,8 +227,10 @@ namespace kinski { namespace gl {
             vec4 point_vals;
             float metalness;
             float roughness;
+            float occlusion;
             int shadow_properties;
             int texture_properties;
+            int pad[3];
         };
         
         if(m_dirty_uniform_buffer)
@@ -235,6 +245,7 @@ namespace kinski { namespace gl {
             m.point_vals[3] = m_point_attenuation.quadratic;
             m.metalness = m_metalness;
             m.roughness = m_roughness;
+            m.occlusion = m_occlusion;
             m.shadow_properties = m_shadow_properties;
             m.texture_properties = 0;
             for(const auto &pair : m_textures){ m.texture_properties |= pair.first; }
