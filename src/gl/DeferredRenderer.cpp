@@ -494,6 +494,7 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 {
     auto task = Task::create("cubemap diffuse convolution");
     constexpr uint32_t conv_size = 32;
+    constexpr GLenum data_type = GL_FLOAT;
 
     auto mat = gl::Material::create();
     mat->set_culling(gl::Material::CULL_FRONT);
@@ -504,7 +505,7 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 
     // render enviroment cubemap here
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
-    auto cube_fbo = gl::create_cube_framebuffer(conv_size, true, GL_FLOAT);
+    auto cube_fbo = gl::create_cube_framebuffer(conv_size, true, data_type);
     auto cube_shader = gl::Shader::create(cube_vert, cube_conv_diffuse_frag, cube_layers_env_geom);
 
     auto cam_matrices = cube_cam->view_matrices();
@@ -530,6 +531,7 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto task = Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 512;
     constexpr uint32_t num_color_components = 3;
+    constexpr GLenum data_type = GL_FLOAT;
 
     uint32_t num_mips = std::log2(conv_size) - 1;
     m_mat_lighting_enviroment->shader()->uniform("u_num_mip_levels", num_mips);
@@ -542,7 +544,6 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     auto box_mesh = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
 
     GLenum format = 0, internal_format = 0;
-    auto data_type = GL_UNSIGNED_SHORT;
     get_texture_format(num_color_components, false, data_type, &format, &internal_format);
 
     gl::Texture::Format fmt;

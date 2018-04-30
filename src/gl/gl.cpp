@@ -1765,7 +1765,7 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     Texture ret;
     if(!the_img){ return ret; }
     bool use_float = (the_img->num_bytes() / (the_img->width() * the_img->height() * the_img->num_components())) > 1;
-    LOG_DEBUG_IF(use_float) << "creating FLOAT texture ...";
+    LOG_TRACE_IF(use_float) << "creating FLOAT texture ...";
     auto data_type = use_float ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
     GLenum format = 0, internal_format = 0;
