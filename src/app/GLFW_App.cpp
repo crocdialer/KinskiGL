@@ -355,6 +355,7 @@ namespace kinski
 
         main_queue().submit([this, b, monitor_index, m]
         {
+
             // currently not in fullscreen mode
             if(!fullscreen())
             {
@@ -373,8 +374,10 @@ namespace kinski
             GLFW_WindowPtr window = GLFW_Window::create(new_res.x, new_res.y, name(), b, monitor_index,
                                                         m_windows.front()->handle());
 
-            if(!b){ window->set_position(m_win_params.zw()); }
+            if(!b)
+            { window->set_position(m_win_params.zw()); }
 //            else{ window->set_position(gl::vec2(0)); }
+
 
             // remove first elem from vector
             m_windows.erase(m_windows.begin());

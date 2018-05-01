@@ -42,7 +42,7 @@ namespace kinski
         m_ground_plane_texture_scale = RangedProperty<float>::create("groundplane texture scale", 1.f, -5.f, 5.f),
         m_mesh_metalness = RangedProperty<float>::create("metalness", 0.f, 0.f, 1.f),
         m_mesh_roughness = RangedProperty<float>::create("roughness", 1.f, 0.f, 1.f),
-        m_enviroment_strength = RangedProperty<float>::create("enviroment strength", 1.f, 0.f, 2.f);
+        m_enviroment_strength = RangedProperty<float>::create("enviroment strength", 1.f, 0.f, 4.f);
         
         Property_<bool>::Ptr
         m_debug_focus = Property_<bool>::create("debug focus", false),

@@ -56,7 +56,7 @@ namespace kinski {
         m_look_at = Property_<glm::vec3>::create("look at", glm::vec3());
         register_property(m_look_at);
 
-        m_distance = RangedProperty<float>::create("view distance", 25, 0, 7500);
+        m_distance = RangedProperty<float>::create("view distance", 25, 0, 1000);
         register_property(m_distance);
 
         m_camera_fov = RangedProperty<float>::create("camera fov", 45.f, 1.f, 180.f);
