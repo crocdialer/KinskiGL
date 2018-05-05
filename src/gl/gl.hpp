@@ -94,6 +94,22 @@ DEFINE_CLASS_PTR(Camera);
 DEFINE_CLASS_PTR(Bone);
 DEFINE_CLASS_PTR(Scene);
 
+class Context
+{
+public:
+
+    Context(std::shared_ptr<PlatformData> platform_data);
+    std::shared_ptr<PlatformData> platform_data();
+    void* current_context_id();
+    void set_current_context_id(void* the_id);
+
+    uint32_t get_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
+    uint32_t create_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
+
+private:
+    std::shared_ptr<struct ContextImpl> m_impl;
+};
+
 KINSKI_API void create_context(const std::shared_ptr<PlatformData> &the_platform_data);
 KINSKI_API const std::unique_ptr<Context>& context();
 

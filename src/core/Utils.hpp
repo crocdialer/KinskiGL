@@ -129,15 +129,15 @@ namespace kinski
         std::transform(str.begin(), str.end(), ret.begin(), ::toupper);
         return ret;
     }
-    
+
     template <class T>
     inline void hash_combine(std::size_t& seed, const T& v)
     {
         std::hash<T> hasher;
         seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
-    
-    template <class T, class U> struct PairHash
+
+    template<class T, class U> struct PairHash
     {
         inline size_t operator()(const std::pair<T, U> &the_pair) const
         {

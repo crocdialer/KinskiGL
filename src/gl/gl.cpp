@@ -48,13 +48,17 @@ namespace kinski { namespace gl {
             {ShaderType::NOISE_3D, "NOISE_3D"}, {ShaderType::DEPTH_OF_FIELD, "DEPTH_OF_FIELD"},
             {ShaderType::SDF_FONT, "SDF_FONT"}
         };
+
+        using vao_map_key_t = std::pair<gl::Geometry*, gl::Shader*>;
+        using vao_map_t = std::unordered_map<vao_map_key_t, uint32_t, PairHash<gl::Geometry*, gl::Shader*>>;
+//        using vao_map_t = std::map<vao_map_key_t, uint32_t>;
     };
 
     struct ContextImpl
     {
         std::shared_ptr<PlatformData> m_platform_data;
         void* m_current_context_id = nullptr;
-        //std::map<std::pair<void*, gl::MeshWeakPtr>, std::vector<GLuint>> m_vao_map;
+        std::unordered_map<void*, vao_map_t> m_vao_maps;
     };
 
     Context::Context(std::shared_ptr<PlatformData> platform_data):m_impl(new ContextImpl)
@@ -77,6 +81,33 @@ namespace kinski { namespace gl {
         m_impl->m_current_context_id = the_id;
     }
 
+    uint32_t Context::get_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader)
+    {
+        vao_map_t& vao_map = m_impl->m_vao_maps[m_impl->m_current_context_id];
+        auto it = vao_map.find(vao_map_key_t(the_geom.get(), the_shader.get()));
+        if(it != vao_map.end()){ return it->second; }
+        return 0;
+    }
+
+    uint32_t Context::create_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader)
+    {
+        auto key = vao_map_key_t(the_geom.get(), the_shader.get());
+        vao_map_t& vao_map = m_impl->m_vao_maps[m_impl->m_current_context_id];
+        auto it = vao_map.find(key);
+
+#ifndef KINSKI_NO_VAO
+
+        // delete old vao
+        if(it != vao_map.end()){ GL_SUFFIX(glDeleteVertexArrays)(1, &it->second); }
+
+        // create new vao
+        uint32_t vao_id;
+        GL_SUFFIX(glGenVertexArrays)(1, &vao_id);
+        vao_map[key] = vao_id;
+        return vao_id;
+#endif
+        return 0;
+    }
 
     void create_context(const std::shared_ptr<PlatformData> &the_platform_data)
     {

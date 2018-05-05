@@ -123,18 +123,18 @@ namespace kinski
         static void s_error_cb(int error_code, const char* error_msg);
         static void s_window_refresh(GLFWwindow* window);
         static void s_resize(GLFWwindow* window, int w, int h);
-        static void s_mouseMove(GLFWwindow* window,double x, double y);
-        static void s_mouseButton(GLFWwindow* window,int button, int action, int modifier_mask);
-        static void s_mouseWheel(GLFWwindow* window,double offset_x, double offset_y);        
-        static void s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask);
-        static void s_charFunc(GLFWwindow* window, unsigned int key);
+        static void s_mouse_move(GLFWwindow *window, double x, double y);
+        static void s_mouse_button(GLFWwindow *window, int button, int action, int modifier_mask);
+        static void s_mouse_wheel(GLFWwindow *window, double offset_x, double offset_y);
+        static void s_key_func(GLFWwindow *window, int key, int scancode, int action, int modifier_mask);
+        static void s_char_func(GLFWwindow *window, unsigned int key);
         static void s_file_drop_func(GLFWwindow* window, int num_files, const char **paths);
         static void s_monitor_func(GLFWmonitor* the_monitor, int);
         static void s_joystick_cb(int joy, int event);
 
         // return the current key and mouse button modifier mask
-        static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,
-                                   uint32_t &keyModifiers);
+        static void s_get_modifiers(GLFWwindow *window, uint32_t &buttonModifiers,
+                                    uint32_t &keyModifiers);
         
         gl::OutstreamGL m_outstream_gl;
     };

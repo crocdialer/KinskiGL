@@ -414,11 +414,11 @@ namespace kinski
         glfwSetInputMode(w, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
         // static callbacks
-        glfwSetMouseButtonCallback(w, &GLFW_App::s_mouseButton);
-        glfwSetCursorPosCallback(w, &GLFW_App::s_mouseMove);
-        glfwSetScrollCallback(w, &GLFW_App::s_mouseWheel);
-        glfwSetKeyCallback(w, &GLFW_App::s_keyFunc);
-        glfwSetCharCallback(w, &GLFW_App::s_charFunc);
+        glfwSetMouseButtonCallback(w, &GLFW_App::s_mouse_button);
+        glfwSetCursorPosCallback(w, &GLFW_App::s_mouse_move);
+        glfwSetScrollCallback(w, &GLFW_App::s_mouse_wheel);
+        glfwSetKeyCallback(w, &GLFW_App::s_key_func);
+        glfwSetCharCallback(w, &GLFW_App::s_char_func);
 
         main_queue().submit_with_delay([w]()
         {
@@ -503,14 +503,14 @@ namespace kinski
         if(app->running()) app->resize(w, h);
     }
 
-    void GLFW_App::s_mouseMove(GLFWwindow* window, double x, double y)
+    void GLFW_App::s_mouse_move(GLFWwindow *window, double x, double y)
     {
         if(!ImGui::GetIO().WantCaptureMouse)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
 
             uint32_t buttonModifiers, keyModifiers, bothMods;
-            s_getModifiers(window, buttonModifiers, keyModifiers);
+            s_get_modifiers(window, buttonModifiers, keyModifiers);
             bothMods = buttonModifiers | keyModifiers;
             MouseEvent e(buttonModifiers, (int)x, (int)y, bothMods, glm::ivec2(0));
 
@@ -519,7 +519,7 @@ namespace kinski
         }
     }
 
-    void GLFW_App::s_mouseButton(GLFWwindow* window, int button, int action, int modifier_mask)
+    void GLFW_App::s_mouse_button(GLFWwindow *window, int button, int action, int modifier_mask)
     {
         // ImGUI
         ImGui_ImplGlfw_MouseButtonCallback(window,button, action, modifier_mask);
@@ -529,7 +529,7 @@ namespace kinski
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
 
             uint32_t initiator, keyModifiers, bothMods;
-            s_getModifiers(window, initiator, keyModifiers);
+            s_get_modifiers(window, initiator, keyModifiers);
             bothMods = initiator | keyModifiers;
 
             double posX, posY;
@@ -549,7 +549,7 @@ namespace kinski
         }
     }
 
-    void GLFW_App::s_mouseWheel(GLFWwindow* window,double offset_x, double offset_y)
+    void GLFW_App::s_mouse_wheel(GLFWwindow *window, double offset_x, double offset_y)
     {
         ImGui_ImplGlfw_ScrollCallback(window, offset_x, offset_y);
 
@@ -561,13 +561,13 @@ namespace kinski
             double posX, posY;
             glfwGetCursorPos(window, &posX, &posY);
             uint32_t buttonMod, keyModifiers = 0;
-            s_getModifiers(window, buttonMod, keyModifiers);
+            s_get_modifiers(window, buttonMod, keyModifiers);
             MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
             if(app->running()) app->mouse_wheel(e);
         }
     }
 
-    void GLFW_App::s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask)
+    void GLFW_App::s_key_func(GLFWwindow *window, int key, int scancode, int action, int modifier_mask)
     {
         ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, modifier_mask);
 
@@ -576,7 +576,7 @@ namespace kinski
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
 
             uint32_t buttonMod, keyMod;
-            s_getModifiers(window, buttonMod, keyMod);
+            s_get_modifiers(window, buttonMod, keyMod);
 
             KeyEvent e(key, key, keyMod);
 
@@ -598,7 +598,7 @@ namespace kinski
         }
     }
 
-    void GLFW_App::s_charFunc(GLFWwindow* window, unsigned int key)
+    void GLFW_App::s_char_func(GLFWwindow *window, unsigned int key)
     {
         ImGui_ImplGlfw_CharCallback(window, key);
 
@@ -608,9 +608,9 @@ namespace kinski
         }
     }
 
-    void GLFW_App::s_getModifiers(GLFWwindow* window,
-                                  uint32_t &buttonModifiers,
-                                  uint32_t &keyModifiers)
+    void GLFW_App::s_get_modifiers(GLFWwindow *window,
+                                   uint32_t &buttonModifiers,
+                                   uint32_t &keyModifiers)
     {
         buttonModifiers = 0;
         if( glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) )
@@ -641,7 +641,7 @@ namespace kinski
             files.push_back(paths[i]);
         }
         uint32_t initiator, keyModifiers, bothMods;
-        s_getModifiers(window, initiator, keyModifiers);
+        s_get_modifiers(window, initiator, keyModifiers);
         bothMods = initiator | keyModifiers;
         double posX, posY;
         glfwGetCursorPos(window, &posX, &posY);
