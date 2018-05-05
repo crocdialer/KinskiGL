@@ -3,7 +3,7 @@
 //
 
 #include "imgui_util.h"
-#include "gl/Material.hpp"
+#include "gl/Mesh.hpp"
 
 namespace kinski{ namespace gui{
 
@@ -285,8 +285,6 @@ void draw_material_ui(const gl::MaterialPtr &the_mat)
 
 void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
 {
-    ImGui::Begin("materials");
-
     for(size_t i = 0; i < the_materials.size(); ++i)
     {
         if(ImGui::TreeNode(("material " + to_string(i)).c_str()))
@@ -295,6 +293,18 @@ void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
             ImGui::TreePop();
         }
     }
+}
+
+void draw_mesh_ui(const gl::MeshPtr &the_mesh)
+{
+    ImGui::Begin(the_mesh->name().c_str());
+    std::stringstream ss;
+    ss << the_mesh->name() << "\nvertices: " << to_string(the_mesh->geometry()->vertices().size()) <<
+          "\nfaces: " << to_string(the_mesh->geometry()->faces().size());
+    ImGui::Text("%s", ss.str().c_str());
+    ImGui::Separator();
+
+    draw_materials_ui(the_mesh->materials());
     ImGui::End();
 }
 

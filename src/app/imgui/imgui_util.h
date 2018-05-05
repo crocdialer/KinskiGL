@@ -25,6 +25,8 @@ void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights);
 void draw_material_ui(const gl::MaterialPtr &the_mat);
 void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials);
 
+void draw_mesh_ui(const gl::MeshPtr &the_mesh);
+
 }}// namespaces
 
 #endif //KINSKIGL_IMGUI_UTIL_H

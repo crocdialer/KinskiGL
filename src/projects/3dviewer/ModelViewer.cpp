@@ -44,8 +44,6 @@ void ModelViewer::setup()
     register_property(m_skybox_path);
     register_property(m_ground_textures);
     register_property(m_ground_plane_texture_scale);
-    register_property(m_mesh_metalness);
-    register_property(m_mesh_roughness);
     register_property(m_enviroment_strength);
     
     register_property(m_focal_depth);
@@ -87,6 +85,8 @@ void ModelViewer::setup()
 
     // initial fbo setup
     update_fbos();
+
+//    set_precise_selection(false);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ void ModelViewer::update(float timeDelta)
         gui::draw_component_ui(shared_from_this());
         gui::draw_component_ui(m_light_component);
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
-        if(m_mesh){ gui::draw_materials_ui(m_mesh->materials()); }
+        if(m_mesh){ gui::draw_mesh_ui(m_mesh); }
     }
 
     update_shader();
@@ -441,6 +441,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         {
             if(m)
             {
+                m_selected_mesh.reset();
                 scene()->remove_object(m_mesh);
                 m_mesh = m;
                 scene()->add_object(m_mesh);
@@ -547,17 +548,6 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
             t.set_wrap(GL_REPEAT, GL_REPEAT);
         }
     }
-    else if(theProperty == m_mesh_roughness || theProperty == m_mesh_metalness)
-    {
-        if(m_mesh)
-        {
-            for(auto &mat : m_mesh->materials())
-            {
-                mat->set_metalness(*m_mesh_metalness);
-                mat->set_roughness(*m_mesh_roughness);
-            }
-        }
-    }
     else if(theProperty == m_focal_length)
     {
         auto range_prop = std::dynamic_pointer_cast<RangedProperty<float>>(m_focal_depth);
@@ -653,12 +643,6 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
         }
         m->set_animation_speed(*m_animation_speed);
         m->set_animation_index(*m_animation_index);
-        
-        for(auto &mat : m->materials())
-        {
-            mat->set_metalness(*m_mesh_metalness);
-            mat->set_roughness(*m_mesh_roughness);
-        }
     }
     return m;
 }
