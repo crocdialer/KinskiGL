@@ -31,7 +31,7 @@ ray_triangle_intersection intersect(const Triangle &theTri, const Ray &theRay)
     glm::vec3 e1 = theTri.v1 - theTri.v0, e2 = theTri.v2 - theTri.v0;
     glm::vec3 pvec = glm::cross(theRay.direction, e2);
     float det = glm::dot(e1, pvec);
-    constexpr float epsilon = 10.0e-5;
+    constexpr float epsilon = 10.0e-8;
     if(det > -epsilon && det < epsilon) return REJECT;
     float inv_det = 1.0f / det;
     glm::vec3 tvec = theRay.origin - theTri.v0;
