@@ -297,7 +297,8 @@ void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
 
 void draw_mesh_ui(const gl::MeshPtr &the_mesh)
 {
-    ImGui::Begin(the_mesh->name().c_str());
+    if(!the_mesh){ return; }
+    ImGui::Begin("mesh");
     std::stringstream ss;
     ss << the_mesh->name() << "\nvertices: " << to_string(the_mesh->geometry()->vertices().size()) <<
           "\nfaces: " << to_string(the_mesh->geometry()->faces().size());

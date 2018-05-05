@@ -12,6 +12,7 @@
 //  Created by Croc Dialer on 11/09/16.
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_STDIO
 #include "stb_image.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -78,8 +79,8 @@ namespace kinski
     void copy_image(const typename Image_<T>::Ptr &src_mat, typename Image_<T>::Ptr &dst_mat)
     {
         if(!src_mat){ return; }
-        if(!dst_mat){ dst_mat = Image_<uint8_t >::create(src_mat->width(), src_mat->height(), src_mat->num_components()); }
-        uint32_t bytes_per_pixel = src_mat->num_components();
+        if(!dst_mat){ dst_mat = Image_<T>::create(src_mat->width(), src_mat->height(), src_mat->num_components()); }
+        uint32_t bytes_per_pixel = src_mat->num_components() * sizeof(T);
         
         assert(src_mat->roi().width() <= src_mat->width() && src_mat->roi().height() <= src_mat->height());
         assert(dst_mat->roi().width() <= dst_mat->width() && dst_mat->roi().height() <= dst_mat->height());
@@ -88,13 +89,13 @@ namespace kinski
         uint32_t src_row_offset = src_mat->width() - src_mat->roi().width();
         uint32_t dst_row_offset = dst_mat->width() - dst_mat->roi().width();
         
-        const uint8_t* src_area_start = (uint8_t*)src_mat->data() + (src_mat->roi().y0 * src_mat->width() + src_mat->roi().x0) * bytes_per_pixel;
-        uint8_t* dst_area_start = (uint8_t*)dst_mat->data() + (dst_mat->roi().y0 * dst_mat->width() + dst_mat->roi().x0) * bytes_per_pixel;
+        const T* src_area_start = (uint8_t*)src_mat->data() + (src_mat->roi().y0 * src_mat->width() + src_mat->roi().x0) * bytes_per_pixel;
+        T* dst_area_start = (uint8_t*)dst_mat->data() + (dst_mat->roi().y0 * dst_mat->width() + dst_mat->roi().x0) * bytes_per_pixel;
         
         for(uint32_t r = 0; r < src_mat->roi().height(); r++)
         {
-            const uint8_t* src_row_start = src_area_start + r * (src_mat->roi().width() + src_row_offset) * bytes_per_pixel;
-            uint8_t* dst_row_start = dst_area_start + r * (dst_mat->roi().width() + dst_row_offset) * bytes_per_pixel;
+            const T* src_row_start = src_area_start + r * (src_mat->roi().width() + src_row_offset) * bytes_per_pixel;
+            T* dst_row_start = dst_area_start + r * (dst_mat->roi().width() + dst_row_offset) * bytes_per_pixel;
             
             for(uint32_t c = 0; c < src_mat->roi().width(); c++)
             {

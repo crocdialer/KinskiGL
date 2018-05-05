@@ -85,8 +85,6 @@ void ModelViewer::setup()
 
     // initial fbo setup
     update_fbos();
-
-//    set_precise_selection(false);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -101,7 +99,8 @@ void ModelViewer::update(float timeDelta)
         gui::draw_component_ui(shared_from_this());
         gui::draw_component_ui(m_light_component);
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
-        if(m_mesh){ gui::draw_mesh_ui(m_mesh); }
+        if(selected_mesh()){ gui::draw_mesh_ui(selected_mesh()); }
+        else if(m_mesh){ gui::draw_mesh_ui(m_mesh); }
     }
 
     update_shader();
@@ -242,7 +241,6 @@ void ModelViewer::draw()
             display_textures = textures();
         }
         draw_textures(display_textures);
-//        gl::draw_textures_ui(display_textures);
     }
 }
 
