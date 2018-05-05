@@ -97,6 +97,7 @@ namespace kinski
     GLFW_Window::~GLFW_Window()
     {
         glfwDestroyWindow(m_handle);
+        gl::context()->clear_assets_for_context(m_handle);
     }
 
     gl::ivec2 GLFW_Window::framebuffer_size() const
@@ -382,7 +383,7 @@ namespace kinski
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
 
-            gl::context()->clear_vao_map();
+//            gl::context()->clear_vao_map();
             add_window(window);
             set_window_size(new_res);
 

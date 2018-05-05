@@ -51,7 +51,6 @@ namespace kinski { namespace gl {
 
         using vao_map_key_t = std::pair<gl::Geometry*, gl::Shader*>;
         using vao_map_t = std::unordered_map<vao_map_key_t, uint32_t, PairHash<gl::Geometry*, gl::Shader*>>;
-//        using vao_map_t = std::map<vao_map_key_t, uint32_t>;
     };
 
     struct ContextImpl
@@ -109,9 +108,9 @@ namespace kinski { namespace gl {
         return 0;
     }
 
-    void Context::clear_vao_map()
+    void Context::clear_assets_for_context(void* the_context_id)
     {
-        m_impl->m_vao_maps.clear();
+        m_impl->m_vao_maps.erase(the_context_id);
     }
 
     void create_context(const std::shared_ptr<PlatformData> &the_platform_data)
