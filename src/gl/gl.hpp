@@ -108,7 +108,7 @@ public:
     void clear_assets_for_context(void* the_context_id);
 
 private:
-    std::shared_ptr<struct ContextImpl> m_impl;
+    std::unique_ptr<struct ContextImpl> m_impl;
 };
 
 KINSKI_API void create_context(const std::shared_ptr<PlatformData> &the_platform_data);

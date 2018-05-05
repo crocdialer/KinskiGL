@@ -211,24 +211,12 @@ void ModelViewer::draw()
                          gl::vec2(10));
     }
 
-    if(is_loading())
-    {
-        draw_load_indicator(gl::vec2(gl::window_dimension().x - 100, 80), 50.f);
-    }
-
     // draw texture map(s)
     if(display_tweakbar())
     {
         std::vector<gl::Texture> display_textures;
 
-        if(selected_mesh())
-        {
-            for(auto &mat : selected_mesh()->materials())
-            {
-                for(auto &tex_pair : mat->textures()){ display_textures.push_back(tex_pair.second); }
-            }
-        }
-        else if(*m_use_deferred_render && m_deferred_renderer->g_buffer())
+        if(*m_use_deferred_render && m_deferred_renderer->g_buffer())
         {
             uint32_t  i = 0;
 
@@ -241,6 +229,11 @@ void ModelViewer::draw()
             display_textures = textures();
         }
         draw_textures(display_textures);
+    }
+
+    if(is_loading())
+    {
+        draw_load_indicator(gl::vec2(gl::window_dimension().x - 100, 80), 50.f);
     }
 }
 

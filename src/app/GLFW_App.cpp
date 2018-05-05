@@ -379,11 +379,9 @@ namespace kinski
             { window->set_position(m_win_params.zw()); }
 //            else{ window->set_position(gl::vec2(0)); }
 
-
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
 
-//            gl::context()->clear_vao_map();
             add_window(window);
             set_window_size(new_res);
 
