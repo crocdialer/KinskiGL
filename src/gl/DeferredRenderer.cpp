@@ -192,7 +192,6 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     {
         gl::Fbo::Format fmt;
         fmt.set_color_internal_format(GL_RGB16F);
-        fmt.enable_stencil_buffer(true);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
         m_fbo_geometry = gl::Fbo(the_size, fmt);
 
