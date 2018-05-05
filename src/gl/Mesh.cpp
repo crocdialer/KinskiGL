@@ -65,14 +65,7 @@ m_boneWeightsLocationName("a_boneWeights")
 
 Mesh::~Mesh()
 {
-#ifndef KINSKI_NO_VAO
-    for(auto &pair : m_vertexArrays)
-    {
-        std::map<gl::ShaderPtr, GLuint>& vaos = pair.second;
 
-        for(auto v : vaos){ GL_SUFFIX(glDeleteVertexArrays)(1, &v.second); }
-    }
-#endif
 }
 
 void Mesh::create_vertex_attribs(bool recreate)
@@ -364,22 +357,8 @@ GLuint Mesh::create_vertex_array(const gl::ShaderPtr &the_shader)
     create_vertex_attribs();
 
 #ifndef KINSKI_NO_VAO
-
-    std::map<gl::ShaderPtr, GLuint> vao_map;
-    auto context_id = gl::context()->current_context_id();
-    auto it = m_vertexArrays.find(context_id);
-    if(it != m_vertexArrays.end()){ vao_map = it->second; }
-
-    auto vao_it = vao_map.find(the_shader);
-
-    // did not find the shader <-> vao mapping
-    if(vao_it == vao_map.end())
-    {
-        GL_SUFFIX(glGenVertexArrays)(1, &vao_id);
-        vao_map[the_shader] = vao_id;
-        m_vertexArrays[context_id] = vao_map;
-    }else{ vao_id = vao_it->second; }
-
+    vao_id = gl::context()->get_vao(m_geometry, the_shader);
+    vao_id = vao_id ? vao_id : gl::context()->create_vao(m_geometry, the_shader);
     GL_SUFFIX(glBindVertexArray)(vao_id);
     bind_vertex_pointers(the_shader);
     GL_SUFFIX(glBindVertexArray)(0);
@@ -394,16 +373,7 @@ GLuint Mesh::vertex_array(uint32_t i) const
 
 GLuint Mesh::vertex_array(const gl::ShaderPtr &the_shader) const
 {
-    auto context_id = gl::context()->current_context_id();
-    auto it = m_vertexArrays.find(context_id);
-
-    if(it != m_vertexArrays.end())
-    {
-        const std::map<gl::ShaderPtr, GLuint> &vao_map = it->second;
-        auto vao_it = vao_map.find(the_shader);
-        if(vao_it != vao_map.end()){ return vao_it->second; }
-    }
-    return 0;
+    return gl::context()->get_vao(m_geometry, the_shader);
 }
 
 void Mesh::bind_vertex_array(uint32_t i)
@@ -429,7 +399,6 @@ MeshPtr Mesh::copy()
 
     //TODO: deep copy bones, rebuild animations
 
-    ret->m_vertexArrays.clear();
     return ret;
 }
 

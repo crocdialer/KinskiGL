@@ -381,8 +381,9 @@ namespace kinski
 
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
-            add_window(window);
 
+            gl::context()->clear_vao_map();
+            add_window(window);
             set_window_size(new_res);
 
             ImGui_ImplGlfwGL3_Init(window->handle(), false, "#version 410");

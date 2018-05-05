@@ -109,6 +109,11 @@ namespace kinski { namespace gl {
         return 0;
     }
 
+    void Context::clear_vao_map()
+    {
+        m_impl->m_vao_maps.clear();
+    }
+
     void create_context(const std::shared_ptr<PlatformData> &the_platform_data)
     {
         g_context.reset(new Context(the_platform_data));
