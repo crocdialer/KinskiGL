@@ -331,18 +331,18 @@ namespace kinski{ namespace media{
             uint32_t h = CVPixelBufferGetHeight(buffer);
             constexpr uint8_t num_channels = 4;
             
-            if(!the_image || the_image->width != w || the_image->height != h ||
+            if(!the_image || the_image->width() != w || the_image->height() != h ||
                the_image->num_components() != num_channels)
             {
-                the_image = Image::create(w, h, num_channels);
+                auto img = Image_<uint8_t>::create(w, h, num_channels);
+                img->m_type = Image::Type::BGRA;
+                the_image = img;
             }
-            the_image->m_type = Image::Type::BGRA;
-            
             size_t num_bytes = std::min(the_image->num_bytes(), CVPixelBufferGetDataSize(buffer));
             
             // lock base adress
             CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
-            memcpy(the_image->data, CVPixelBufferGetBaseAddress(buffer), num_bytes);
+            memcpy(the_image->data(), CVPixelBufferGetBaseAddress(buffer), num_bytes);
             
             // unlock base address, release buffer
             CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
