@@ -1158,10 +1158,10 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 ///////////////////////////////////////////////////////////////////////////////
 
     KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene,
-                                             gl::Fbo &theFbo,
+                                             const FboPtr &the_fbo,
                                              const gl::CameraPtr &theCam)
     {
-        if(!theFbo)
+        if(!the_fbo)
         {
             LOG_WARNING << "trying to use an uninitialized FBO";
             return gl::Texture();
@@ -1169,27 +1169,26 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::set_window_dimension(theFbo.size());
-        theFbo.bind();
+        gl::set_window_dimension(the_fbo->size());
+        the_fbo->bind();
         gl::clear();
         theScene->render(theCam);
-        return theFbo.texture();
+        return the_fbo->texture();
     }
 
-    KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor)
+    KINSKI_API gl::Texture render_to_texture(const FboPtr &the_fbo, std::function<void()> the_functor)
     {
-        if(!theFbo)
+        if(!the_fbo)
         {
             LOG_WARNING << "trying to use an uninitialized FBO";
             return gl::Texture();
         }
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::set_window_dimension(theFbo.size());
-        theFbo.bind();
-        functor();
-//        gl::reset_state();
-        return theFbo.texture();
+        gl::set_window_dimension(the_fbo->size());
+        the_fbo->bind();
+        the_functor();
+        return the_fbo->texture();
     }
 
 ///////////////////////////////////////////////////////////////////////////////

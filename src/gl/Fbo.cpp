@@ -16,12 +16,12 @@ namespace kinski { namespace gl {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, GLenum the_datatype)
+gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, GLenum the_datatype)
 {
     uint32_t cube_sz = the_width;
     gl::Fbo::Format fbo_fmt;
     fbo_fmt.set_num_color_buffers(0);
-    gl::Fbo fbo(cube_sz, cube_sz, fbo_fmt);
+    auto fbo = gl::Fbo::create(cube_sz, cube_sz, fbo_fmt);
     
     gl::Texture::Format cube_depth_fmt;
     cube_depth_fmt.set_target(GL_TEXTURE_CUBE_MAP);
@@ -30,7 +30,7 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, GLen
     cube_depth_fmt.set_min_filter(GL_NEAREST);
     cube_depth_fmt.set_mag_filter(GL_NEAREST);
     auto cube_depth_tex = gl::Texture(nullptr, GL_DEPTH_COMPONENT, cube_sz, cube_sz, cube_depth_fmt);
-    fbo.set_depth_texture(cube_depth_tex);
+    fbo->set_depth_texture(cube_depth_tex);
 
     if(with_color_buffer)
     {
@@ -45,14 +45,14 @@ gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, GLen
         col_fmt.set_min_filter(GL_NEAREST);
         col_fmt.set_mag_filter(GL_NEAREST);
         auto cube_tex = gl::Texture(nullptr, format, cube_sz, cube_sz, col_fmt);
-        fbo.add_attachment(cube_tex, 0);
+        fbo->add_attachment(cube_tex, 0);
     }
     return fbo;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
     
-ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo)
+ImagePtr create_image_from_framebuffer(gl::FboPtr the_fbo)
 {
     gl::SaveFramebufferBinding sfb;
     int w = gl::window_dimension().x, h = gl::window_dimension().y, num_comp = 3;
@@ -60,9 +60,9 @@ ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo)
     
     if(the_fbo)
     {
-        the_fbo.bind();
-        w = the_fbo.width();
-        h = the_fbo.height();
+        the_fbo->bind();
+        w = the_fbo->width();
+        h = the_fbo->height();
         num_comp = 4;
         format = GL_RGBA;
     }
@@ -275,6 +275,16 @@ void Fbo::Format::enable_depth_buffer(bool the_depth_buffer, bool as_texture)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fbo
 
+FboPtr Fbo::create(uint32_t width, uint32_t height, Format format)
+{
+    return FboPtr(new Fbo(width, height, format));
+}
+
+FboPtr Fbo::create(const gl::vec2 &the_size, Format format)
+{
+    return FboPtr(new Fbo(the_size.x, the_size.y, format));
+}
+
 
 void Fbo::init()
 {
@@ -483,24 +493,23 @@ bool Fbo::init_multisample()
 #endif // ! KINSKI_GLES
 }
 
-Fbo::Fbo(const glm::vec2 &the_size, Format format): Fbo(the_size.x, the_size.y, format){}
     
-Fbo::Fbo(int width, int height, Format format):
+Fbo::Fbo(uint32_t width, uint32_t height, Format format):
 m_impl(new FboImpl(width, height))
 {
 	m_impl->m_format = format;
 	init();
 }
 
-Fbo::Fbo(int width, int height, bool alpha, bool color, bool depth):
-m_impl(new FboImpl(width, height))
-{
-	Format format;
-	m_impl->m_format.m_color_internal_format = (alpha) ? GL_ENUM(GL_RGBA8) : GL_ENUM(GL_RGB8);
-	m_impl->m_format.m_depth_buffer = depth;
-	m_impl->m_format.m_num_color_buffers = color ? 1 : 0;
-	init();
-}
+//Fbo::Fbo(int width, int height, bool alpha, bool color, bool depth):
+//m_impl(new FboImpl(width, height))
+//{
+//	Format format;
+//	m_impl->m_format.m_color_internal_format = (alpha) ? GL_ENUM(GL_RGBA8) : GL_ENUM(GL_RGB8);
+//	m_impl->m_format.m_depth_buffer = depth;
+//	m_impl->m_format.m_num_color_buffers = color ? 1 : 0;
+//	init();
+//}
 
 GLuint Fbo::id() const
 {

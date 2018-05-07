@@ -29,7 +29,7 @@ namespace kinski
         
         gl::Noise m_noise;
         
-        gl::Fbo m_offscreen_fbo;
+        gl::FboPtr m_offscreen_fbo;
         
         // properties
         Property_<float>::Ptr m_circle_radius = Property_<float>::create("circle radius", 65.f);

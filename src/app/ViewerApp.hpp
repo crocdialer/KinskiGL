@@ -105,7 +105,7 @@ namespace kinski {
         
         gl::Texture generate_snapshot();
         gl::Texture& snapshot_texture(){ return m_snapshot_texture; }
-        gl::Fbo& snapshot_fbo(){ return m_snapshot_fbo; }
+        const gl::FboPtr& snapshot_fbo(){ return m_snapshot_fbo; }
         
         RemoteControl& remote_control(){ return m_remote_control; }
         
@@ -135,7 +135,7 @@ namespace kinski {
         bool m_center_selected;
         glm::vec3 m_look_at_tmp;
         
-        gl::Fbo m_snapshot_fbo;
+        gl::FboPtr m_snapshot_fbo;
         
         std::string m_default_config_path = "./";
         

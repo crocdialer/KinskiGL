@@ -47,7 +47,7 @@ namespace kinski{ namespace gl{
         gl::Font m_font;
         gl::Color m_color;
         CircularBuffer<std::string> m_lines;
-        gl::Fbo m_fbo;
+        gl::FboPtr m_fbo;
         gl::ScenePtr m_gui_scene;
         gl::MaterialPtr m_blend_material;
         bool m_dirty;

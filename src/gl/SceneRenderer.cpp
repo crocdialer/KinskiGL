@@ -254,12 +254,12 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                     int tex_unit = mat->textures().size() + i;
                     shadow_matrices.push_back(m_shadow_cams[i]->projection_matrix() *
                                               m_shadow_cams[i]->view_matrix() * m->global_transform());
-                    m_shadow_fbos[i].depth_texture().bind(tex_unit);
+                    m_shadow_fbos[i]->depth_texture().bind(tex_unit);
                     sprintf(buf, "u_shadow_map[%d]", i);
                     mat->uniform(buf, tex_unit);
                 }
                 mat->uniform("u_shadow_matrices", shadow_matrices);
-                mat->uniform("u_shadow_map_size", m_shadow_fbos[0].size());
+                mat->uniform("u_shadow_map_size", m_shadow_fbos[0]->size());
                 //                    mat->uniform("u_poisson_radius", 3.f);
             }
             
@@ -470,9 +470,9 @@ void SceneRenderer::set_shadowmap_size(const glm::ivec2 &the_size)
     
     for(size_t i = 0; i < m_shadow_fbos.size(); i++)
     {
-        if(!m_shadow_fbos[i] || m_shadow_fbos[i].size() != the_size)
+        if(!m_shadow_fbos[i] || m_shadow_fbos[i]->size() != the_size)
         {
-            m_shadow_fbos[i] = gl::Fbo(the_size.x, the_size.y, fmt);
+            m_shadow_fbos[i] = gl::Fbo::create(the_size.x, the_size.y, fmt);
         }
     }
 #endif

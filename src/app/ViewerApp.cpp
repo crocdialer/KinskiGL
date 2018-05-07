@@ -619,11 +619,11 @@ namespace kinski {
     {
         gl::Texture ret;
 
-        if(!m_snapshot_fbo || m_snapshot_fbo.size() != gl::ivec2(gl::window_dimension()))
+        if(!m_snapshot_fbo || m_snapshot_fbo->size() != gl::ivec2(gl::window_dimension()))
         {
             gl::Fbo::Format fmt;
 //            fmt.set_num_samples(8);
-            m_snapshot_fbo = gl::Fbo(gl::window_dimension(), fmt);
+            m_snapshot_fbo = gl::Fbo::create(gl::window_dimension(), fmt);
         }
 
         ret = gl::render_to_texture(m_snapshot_fbo, [this]()

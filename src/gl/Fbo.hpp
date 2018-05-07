@@ -62,16 +62,130 @@ class KINSKI_API Renderbuffer
 class KINSKI_API Fbo
 {
  public:
-	struct Format;
 
-	//! Creates a NULL FBO
-	Fbo() {}
-    //! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
-    Fbo( const vec2 &the_size, Format format = Format() );
-	//! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
-	Fbo( int width, int height, Format format = Format() );
-	//! Creates an FBO \a width pixels wide and \a height pixels high, with an optional alpha channel, color buffer and depth buffer
-	Fbo( int width, int height, bool alpha, bool color = true, bool depth = true );
+    struct KINSKI_API Format
+    {
+    public:
+
+        //! Default constructor, sets the target to \c GL_TEXTURE_2D with an 8-bit color+alpha, a 24-bit depth texture, and no multisampling or mipmapping
+        Format();
+
+        //! Set the texture target associated with the FBO. Defaults to \c GL_TEXTURE_2D, \c GL_TEXTURE_RECTANGLE_ARB is a common option as well
+        void set_target(GLenum the_target) { m_target = the_target; }
+
+        //! Sets the GL internal format for the color buffer. Defaults to \c GL_RGBA8 (and \c GL_RGBA on OpenGL ES). Common options also include \c GL_RGB8 and \c GL_RGBA32F
+        void set_color_internal_format(GLenum the_color_internal_format)
+        {
+            m_color_internal_format = the_color_internal_format;
+        }
+
+        //! Sets the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24. Common options also include \c GL_DEPTH_COMPONENT16 and \c GL_DEPTH_COMPONENT32
+        void set_depth_internal_format(GLenum the_depth_internal_format)
+        {
+            m_depth_internal_format = the_depth_internal_format;
+        }
+
+        //! Sets the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling. Note that not all implementations support multisampling. Ignored on OpenGL ES.
+        void set_num_samples(int the_num_samples) { m_num_samples = the_num_samples; }
+
+        //! Sets the number of coverage samples used in CSAA-style antialiasing. Defaults to none. Note that not all implementations support CSAA, and is currenlty Windows-only Nvidia. Ignored on OpenGL ES.
+        void set_coverage_samples(int the_coverage_samples)
+        {
+            m_num_coverage_samples = the_coverage_samples;
+        }
+
+        //! Enables or disables the creation of a color buffer for the FBO.. Creates multiple color attachments when \a numColorsBuffers >1, except on OpenGL ES which supports only 1.
+        void enable_color_buffer(bool the_color_buffer = true, int the_num_buffers = 1);
+
+        //! Enables or disables the creation of a depth buffer for the FBO. If \a asTexture the depth buffer is created as a gl::Texture, obtainable via getDepthTexture(). Not supported on OpenGL ES.
+        void enable_depth_buffer(bool the_depth_buffer = true, bool as_texture = true);
+
+        void enable_stencil_buffer(bool the_stencil_buffer = true)
+        {
+            m_stencil_buffer = the_stencil_buffer;
+        }
+
+        //! Enables or disables mip-mapping for the FBO's textures
+        void enable_mipmapping( bool the_enable_mipmapping = true )
+        {
+            m_mipmapping = the_enable_mipmapping;
+        }
+
+        //! Sets the wrapping behavior for the FBO's textures. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. Default is \c GL_CLAMP_TO_EDGE.
+        void set_wrap(GLenum the_wrap_s, GLenum the_wrap_t)
+        {
+            set_wrap_s(the_wrap_s); set_wrap_t(the_wrap_t);
+        }
+
+        /** \brief Sets the horizontal wrapping behavior for the FBO's textures. Default is \c GL_CLAMP_TO_EDGE.
+            Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
+        void set_wrap_s(GLenum the_wrap_s) { m_wrap_s = the_wrap_s; }
+
+        /** \brief Sets the vertical wrapping behavior for the FBO's textures. Default is \c GL_CLAMP_TO_EDGE.
+            Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
+        void set_wrap_t(GLenum the_wrap_t) { m_wrap_t = the_wrap_t; }
+
+        /** \brief Sets the minification filtering behavior for the FBO's textures. Default is \c GL_LINEAR:
+         * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
+        void set_min_filter(GLenum the_min_filter) { m_min_filter = the_min_filter; }
+
+        /** Sets the magnification filtering behavior for the FBO's textures. Default is \c GL_LINEAR:
+         * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
+        void set_mag_filter(GLenum the_mag_filter) { m_mag_filter = the_mag_filter; }
+
+        //! Returns the texture target associated with the FBO.
+        GLenum target() const { return m_target; }
+
+        //! Returns the GL internal format for the color buffer. Defaults to \c GL_RGBA8.
+        GLenum color_internal_format() const { return m_color_internal_format; }
+
+        //! Returns the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24.
+        GLenum depth_internal_format() const { return m_depth_internal_format; }
+
+        //! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling. OpenGL ES does not support multisampling.
+        int num_samples() const { return m_num_samples; }
+
+        //! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none. OpenGL ES does not support multisampling.
+        int num_num_coverage_samples() const { return m_num_coverage_samples; }
+
+        //! Returns whether the FBO contains a color buffer
+        bool has_color_buffer() const { return m_num_color_buffers > 0; }
+
+        //! Returns whether the FBO contains a depth buffer
+        bool has_depth_buffer() const { return m_depth_buffer; }
+
+        //! Returns whether the FBO contains a depth buffer implemened as a texture. Always \c false on OpenGL ES.
+        bool has_depth_buffer_texture() const { return m_depth_buffer_texture; }
+
+        bool has_stencil_buffer() const { return m_stencil_buffer; }
+
+        //! Returns whether the contents of the FBO textures are mip-mapped.
+        bool has_mipmapping() const { return m_mipmapping; }
+
+        //! Returns the number of color buffers
+        uint32_t num_color_buffers() const { return m_num_color_buffers; }
+        void set_num_color_buffers(int the_num) { m_num_color_buffers = the_num; }
+
+    protected:
+        GLenum	m_target;
+        GLenum	m_color_internal_format, m_depth_internal_format, m_stencil_internal_format;
+        GLenum m_depth_data_type;
+
+        GLint       m_data_type;
+        int			m_num_samples;
+        int			m_num_coverage_samples;
+        bool		m_mipmapping;
+        bool		m_depth_buffer, m_depth_buffer_texture, m_stencil_buffer;
+        uint32_t	m_num_color_buffers;
+        GLenum		m_wrap_s, m_wrap_t;
+        GLenum		m_min_filter, m_mag_filter;
+
+        friend class Fbo;
+    };
+
+    static FboPtr create(uint32_t width, uint32_t height, Format format = Format());
+
+    static FboPtr create(const gl::vec2 &the_size, Format format = Format());
 
 	//! Returns the width of the FBO in pixels
     int width() const;
@@ -141,127 +255,15 @@ class KINSKI_API Fbo
 	static GLint	max_num_samples();
 	//! Returns the maximum number of color attachments the graphics card is capable of using for an Fbo
 	static GLint	max_num_attachments();
-	
-	struct KINSKI_API Format
-    {
-	  public:
-		//! Default constructor, sets the target to \c GL_TEXTURE_2D with an 8-bit color+alpha, a 24-bit depth texture, and no multisampling or mipmapping
-		Format();
-
-		//! Set the texture target associated with the FBO. Defaults to \c GL_TEXTURE_2D, \c GL_TEXTURE_RECTANGLE_ARB is a common option as well
-		void set_target(GLenum the_target) { m_target = the_target; }
-        
-		//! Sets the GL internal format for the color buffer. Defaults to \c GL_RGBA8 (and \c GL_RGBA on OpenGL ES). Common options also include \c GL_RGB8 and \c GL_RGBA32F
-		void set_color_internal_format(GLenum the_color_internal_format)
-        {
-            m_color_internal_format = the_color_internal_format;
-        }
-        
-		//! Sets the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24. Common options also include \c GL_DEPTH_COMPONENT16 and \c GL_DEPTH_COMPONENT32
-		void set_depth_internal_format(GLenum the_depth_internal_format)
-        {
-            m_depth_internal_format = the_depth_internal_format;
-        }
-        
-		//! Sets the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling. Note that not all implementations support multisampling. Ignored on OpenGL ES.
-		void set_num_samples(int the_num_samples) { m_num_samples = the_num_samples; }
-        
-		//! Sets the number of coverage samples used in CSAA-style antialiasing. Defaults to none. Note that not all implementations support CSAA, and is currenlty Windows-only Nvidia. Ignored on OpenGL ES.
-		void set_coverage_samples(int the_coverage_samples)
-        {
-            m_num_coverage_samples = the_coverage_samples;
-        }
-        
-		//! Enables or disables the creation of a color buffer for the FBO.. Creates multiple color attachments when \a numColorsBuffers >1, except on OpenGL ES which supports only 1.
-		void enable_color_buffer(bool the_color_buffer = true, int the_num_buffers = 1);
-        
-		//! Enables or disables the creation of a depth buffer for the FBO. If \a asTexture the depth buffer is created as a gl::Texture, obtainable via getDepthTexture(). Not supported on OpenGL ES.
-		void enable_depth_buffer(bool the_depth_buffer = true, bool as_texture = true);
-        
-        void enable_stencil_buffer(bool the_stencil_buffer = true)
-        {
-            m_stencil_buffer = the_stencil_buffer;
-        }
-        
-		//! Enables or disables mip-mapping for the FBO's textures
-		void enable_mipmapping( bool the_enable_mipmapping = true )
-        {
-            m_mipmapping = the_enable_mipmapping;
-        }
-
-		//! Sets the wrapping behavior for the FBO's textures. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. Default is \c GL_CLAMP_TO_EDGE.
-		void set_wrap(GLenum the_wrap_s, GLenum the_wrap_t)
-        {
-            set_wrap_s(the_wrap_s); set_wrap_t(the_wrap_t);
-        }
-        
-		/** \brief Sets the horizontal wrapping behavior for the FBO's textures. Default is \c GL_CLAMP_TO_EDGE.
-			Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
-		void set_wrap_s(GLenum the_wrap_s) { m_wrap_s = the_wrap_s; }
-        
-		/** \brief Sets the vertical wrapping behavior for the FBO's textures. Default is \c GL_CLAMP_TO_EDGE.
-			Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. **/
-		void set_wrap_t(GLenum the_wrap_t) { m_wrap_t = the_wrap_t; }
-        
-		/** \brief Sets the minification filtering behavior for the FBO's textures. Default is \c GL_LINEAR:
-		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
-		void set_min_filter(GLenum the_min_filter) { m_min_filter = the_min_filter; }
-        
-		/** Sets the magnification filtering behavior for the FBO's textures. Default is \c GL_LINEAR:
-		 * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
-		void set_mag_filter(GLenum the_mag_filter) { m_mag_filter = the_mag_filter; }
-
-		//! Returns the texture target associated with the FBO.
-		GLenum target() const { return m_target; }
-        
-		//! Returns the GL internal format for the color buffer. Defaults to \c GL_RGBA8.
-		GLenum color_internal_format() const { return m_color_internal_format; }
-        
-		//! Returns the GL internal format for the depth buffer. Defaults to \c GL_DEPTH_COMPONENT24.
-		GLenum depth_internal_format() const { return m_depth_internal_format; }
-        
-		//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling. OpenGL ES does not support multisampling.
-		int num_samples() const { return m_num_samples; }
-        
-		//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none. OpenGL ES does not support multisampling.
-		int num_num_coverage_samples() const { return m_num_coverage_samples; }
-        
-		//! Returns whether the FBO contains a color buffer
-		bool has_color_buffer() const { return m_num_color_buffers > 0; }
-		
-		//! Returns whether the FBO contains a depth buffer
-		bool has_depth_buffer() const { return m_depth_buffer; }
-        
-		//! Returns whether the FBO contains a depth buffer implemened as a texture. Always \c false on OpenGL ES.
-		bool has_depth_buffer_texture() const { return m_depth_buffer_texture; }
-
-        bool has_stencil_buffer() const { return m_stencil_buffer; }
-        
-		//! Returns whether the contents of the FBO textures are mip-mapped.
-		bool has_mipmapping() const { return m_mipmapping; }
-        
-        //! Returns the number of color buffers
-		uint32_t num_color_buffers() const { return m_num_color_buffers; }
-        void set_num_color_buffers(int the_num) { m_num_color_buffers = the_num; }
-		
-	  protected:
-		GLenum	m_target;
-		GLenum	m_color_internal_format, m_depth_internal_format, m_stencil_internal_format;
-		GLenum m_depth_data_type;
-        
-        GLint       m_data_type;
-		int			m_num_samples;
-		int			m_num_coverage_samples;
-		bool		m_mipmapping;
-		bool		m_depth_buffer, m_depth_buffer_texture, m_stencil_buffer;
-		uint32_t	m_num_color_buffers;
-		GLenum		m_wrap_s, m_wrap_t;
-		GLenum		m_min_filter, m_mag_filter;
-		
-		friend class Fbo;
-	};
 
  private:
+
+    //! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
+    Fbo(uint32_t width, uint32_t height, Format format);
+
+    //! Creates an FBO \a width pixels wide and \a height pixels high, with an optional alpha channel, color buffer and depth buffer
+//    Fbo( int width, int height, bool alpha, bool color = true, bool depth = true );
+
 	void		init();
 	bool		init_multisample();
 	void		resolve_textures() const;
@@ -271,11 +273,6 @@ class KINSKI_API Fbo
     
 	std::shared_ptr<struct FboImpl>	m_impl;
 	static GLint sMaxSamples, sMaxAttachments;
-	
-  public:
-	//! Emulates shared_ptr-like behavior
-	operator bool() const { return m_impl.get(); }
-	void reset() { m_impl.reset(); }
 };
 
 class FboException : public Exception {
@@ -296,12 +293,12 @@ class FboExceptionInvalidSpecification : public FboException {
 
 
 //! create a framebuffer object with attached cubemaps
-KINSKI_API gl::Fbo create_cube_framebuffer(uint32_t the_width, bool with_color_buffer = true,
-										   GLenum the_datatype = GL_UNSIGNED_BYTE);
+KINSKI_API gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer = true,
+                                              GLenum the_datatype = GL_UNSIGNED_BYTE);
 
 /* create an image from the content of the provided framebuffer object.
  * if no framebuffer-object is provided, the display framebuffer will be used instead
  */
-KINSKI_API ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo = gl::Fbo());
+KINSKI_API ImagePtr create_image_from_framebuffer(gl::FboPtr the_fbo = gl::FboPtr());
 
 }}// namespace gl

@@ -19,7 +19,7 @@ namespace kinski{ namespace gl{
 
     struct NoiseImpl
     {
-        gl::Fbo m_fbo;
+        gl::FboPtr m_fbo;
         gl::MaterialPtr m_material;
         
         vec2 m_scale;
@@ -37,13 +37,13 @@ namespace kinski{ namespace gl{
     {
         gl::Texture noise_tex;
         
-        if(!m_impl->m_fbo || m_impl->m_fbo.size() != m_impl->m_tex_size)
+        if(!m_impl->m_fbo || m_impl->m_fbo->size() != m_impl->m_tex_size)
         {
             gl::Fbo::Format fmt;
 #if !defined(KINSKI_GLES)
             fmt.set_color_internal_format(GL_R32F);
 #endif
-            m_impl->m_fbo = gl::Fbo(m_impl->m_tex_size, fmt);
+            m_impl->m_fbo = gl::Fbo::create(m_impl->m_tex_size, fmt);
         }
         if(!m_impl->m_material)
         {

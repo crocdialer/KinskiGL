@@ -82,7 +82,7 @@ public:
                                         const mat4 &projection);
 
     void set_shadowmap_size(const ivec2 &the_size);
-    std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
+    std::vector<gl::FboPtr>& shadow_fbos() { return m_shadow_fbos; }
     std::vector<gl::CameraPtr>& shadow_cams() { return m_shadow_cams; }
     void set_shadow_pass(bool b){ m_shadow_pass = b; }
 
@@ -100,7 +100,7 @@ private:
 
     // shadow params
     int m_num_shadow_lights;
-    std::vector<gl::Fbo> m_shadow_fbos;
+    std::vector<gl::FboPtr> m_shadow_fbos;
     std::vector<gl::CameraPtr> m_shadow_cams;
     bool m_shadow_pass;
 };

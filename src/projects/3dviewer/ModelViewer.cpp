@@ -155,8 +155,8 @@ void ModelViewer::draw()
             gl::clear();
             scene()->render(camera());
         });
-        m_post_process_mat->add_texture(m_post_process_fbo.texture());
-        m_post_process_mat->add_texture(m_post_process_fbo.depth_texture(),
+        m_post_process_mat->add_texture(m_post_process_fbo->texture());
+        m_post_process_mat->add_texture(m_post_process_fbo->depth_texture(),
                                         gl::Texture::Usage::DEPTH);
         textures()[TEXTURE_OFFSCREEN] = tex;
     }
@@ -220,9 +220,9 @@ void ModelViewer::draw()
         {
             uint32_t  i = 0;
 
-            for(; i < m_deferred_renderer->g_buffer().format().num_color_buffers(); ++i)
+            for(; i < m_deferred_renderer->g_buffer()->format().num_color_buffers(); ++i)
             {
-                textures()[i + 2] = m_deferred_renderer->g_buffer().texture(i);
+                textures()[i + 2] = m_deferred_renderer->g_buffer()->texture(i);
             }
             textures()[i + 2] = m_deferred_renderer->final_texture();
 
@@ -248,19 +248,19 @@ void ModelViewer::update_fbos()
 
     if(*m_use_warping)
     {
-        if(!m_offscreen_fbo || m_offscreen_fbo.size() != ivec2(sz) || m_dirty_g_buffer)
+        if(!m_offscreen_fbo || m_offscreen_fbo->size() != ivec2(sz) || m_dirty_g_buffer)
         {
             gl::Fbo::Format fmt;
-            try{ m_offscreen_fbo = gl::Fbo(sz, fmt); }
+            try{ m_offscreen_fbo = gl::Fbo::create(sz, fmt); }
             catch(Exception &e){ LOG_WARNING << e.what(); }
         }
     }
     if(*m_use_post_process)
     {
-        if(!m_post_process_fbo || m_post_process_fbo.size() != ivec2(sz) || m_dirty_g_buffer)
+        if(!m_post_process_fbo || m_post_process_fbo->size() != ivec2(sz) || m_dirty_g_buffer)
         {
             gl::Fbo::Format fmt;
-            try{ m_post_process_fbo = gl::Fbo(sz, fmt); }
+            try{ m_post_process_fbo = gl::Fbo::create(sz, fmt); }
             catch(Exception &e){ LOG_WARNING << e.what(); }
         }
 

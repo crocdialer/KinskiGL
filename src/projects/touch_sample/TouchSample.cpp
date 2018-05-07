@@ -87,7 +87,7 @@ void TouchSample::draw()
 void TouchSample::resize(int w ,int h)
 {
     ViewerApp::resize(w, h);
-    m_offscreen_fbo = gl::Fbo(w, h);
+    m_offscreen_fbo = gl::Fbo::create(w, h);
 }
 
 /////////////////////////////////////////////////////////////////

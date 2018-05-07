@@ -29,7 +29,7 @@ namespace kinski
         gl::MeshPtr m_mesh, m_ground_mesh, m_load_indicator;
         gl::Texture m_cube_map, m_normal_map;
         
-        gl::Fbo m_post_process_fbo, m_offscreen_fbo;
+        gl::FboPtr m_post_process_fbo, m_offscreen_fbo;
         gl::MaterialPtr m_post_process_mat;
         
         Property_<float>::Ptr

@@ -72,7 +72,6 @@ template<> struct KINSKI_API Vector<4, uint32_t>{ using Type = ivec4; };
     
 // forward declarations
 class Buffer;
-class Fbo;
 class Texture;
 class Font;
 class Visitor;
@@ -82,7 +81,8 @@ struct OBB;
 struct Sphere;
 struct Frustum;
 
-typedef vec4 Color;
+using Color = vec4;
+DEFINE_CLASS_PTR(Fbo);
 DEFINE_CLASS_PTR(Shader);
 DEFINE_CLASS_PTR(Material);
 DEFINE_CLASS_PTR(Geometry);
@@ -221,10 +221,10 @@ KINSKI_API void draw_circle(const vec2 &center, float radius, const gl::Color &t
 KINSKI_API void draw_circle(const vec2 &center, float radius, const MaterialPtr &theMaterial,
                             bool solid = true, uint32_t the_num_segments = 0);
 
-KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene, gl::Fbo &theFbo,
+KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene, const FboPtr &the_fbo,
                                          const gl::CameraPtr &theCam);
 
-KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor);
+KINSKI_API gl::Texture render_to_texture(const FboPtr &the_fbo, std::function<void()> the_functor);
 
 /*********************************** lazy state changing **********************************/
 

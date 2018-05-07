@@ -83,7 +83,7 @@ namespace kinski{ namespace gl{
         constexpr uint32_t margin = 10;
         bool use_caching = true;
         
-        if(use_caching && (!m_fbo || m_fbo.size().x != window_dimension().x)){ m_dirty = true; }
+        if(use_caching && (!m_fbo || m_fbo->size().x != window_dimension().x)){ m_dirty = true; }
     
         if(m_dirty)
         {
@@ -121,7 +121,7 @@ namespace kinski{ namespace gl{
             {
                 gl::ivec2 fbo_sz(window_dimension().x, aabb.height() + margin);
                 fbo_sz = glm::min(fbo_sz, gl::ivec2(gl::window_dimension()));
-                if(!m_fbo || m_fbo.size() != fbo_sz){ m_fbo = gl::Fbo(fbo_sz); }
+                if(!m_fbo || m_fbo->size() != fbo_sz){ m_fbo = gl::Fbo::create(fbo_sz); }
                 gl::render_to_texture(m_fbo, [this]()
                 {
                     gl::clear(gl::vec4(0));
@@ -140,15 +140,15 @@ namespace kinski{ namespace gl{
                     m_blend_material->set_blend_factors(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 #endif
                 }
-                m_blend_material->add_texture(m_fbo.texture(), Texture::Usage::COLOR);
+                m_blend_material->add_texture(m_fbo->texture(), Texture::Usage::COLOR);
             }
             m_gui_scene->clear();
             m_dirty = false;
         }
         if(use_caching)
         {
-            gl::draw_quad(m_fbo.size(), m_blend_material,
-                          gl::vec2(0.f, gl::window_dimension().y - m_fbo.size().y));
+            gl::draw_quad(m_fbo->size(), m_blend_material,
+                          gl::vec2(0.f, gl::window_dimension().y - m_fbo->size().y));
         }
         else{ m_gui_scene->render(gl::OrthoCamera::create_for_window()); }
     }
