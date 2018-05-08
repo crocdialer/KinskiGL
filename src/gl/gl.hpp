@@ -105,6 +105,9 @@ public:
 
     uint32_t get_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
     uint32_t create_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
+
+    uint32_t get_fbo(const gl::Fbo* the_fbo);
+    uint32_t create_fbo(const gl::Fbo* the_fbo);
     void clear_assets_for_context(void* the_context_id);
 
 private:

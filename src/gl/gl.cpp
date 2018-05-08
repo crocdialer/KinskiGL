@@ -49,8 +49,9 @@ namespace kinski { namespace gl {
             {ShaderType::SDF_FONT, "SDF_FONT"}
         };
 
-        using vao_map_key_t = std::pair<gl::Geometry*, gl::Shader*>;
-        using vao_map_t = std::unordered_map<vao_map_key_t, uint32_t, PairHash<gl::Geometry*, gl::Shader*>>;
+        using vao_map_key_t = std::pair<const gl::Geometry*, const gl::Shader*>;
+        using vao_map_t = std::unordered_map<vao_map_key_t, uint32_t, PairHash<const gl::Geometry*, const gl::Shader*>>;
+        using fbo_map_t = std::unordered_map<const gl::Fbo*, uint32_t>;
     };
 
     struct ContextImpl
@@ -58,6 +59,7 @@ namespace kinski { namespace gl {
         std::shared_ptr<PlatformData> m_platform_data;
         void* m_current_context_id = nullptr;
         std::unordered_map<void*, vao_map_t> m_vao_maps;
+        std::unordered_map<void*, fbo_map_t> m_fbo_maps;
     };
 
     Context::Context(std::shared_ptr<PlatformData> platform_data):m_impl(new ContextImpl)
@@ -100,7 +102,7 @@ namespace kinski { namespace gl {
         if(it != vao_map.end()){ GL_SUFFIX(glDeleteVertexArrays)(1, &it->second); }
 
         // create new vao
-        uint32_t vao_id;
+        uint32_t vao_id = 0;
         GL_SUFFIX(glGenVertexArrays)(1, &vao_id);
         vao_map[key] = vao_id;
         return vao_id;
@@ -108,9 +110,33 @@ namespace kinski { namespace gl {
         return 0;
     }
 
+    uint32_t Context::get_fbo(const gl::Fbo* the_fbo)
+    {
+        fbo_map_t &fbo_map = m_impl->m_fbo_maps[m_impl->m_current_context_id];
+        auto it = fbo_map.find(the_fbo);
+        if(it != fbo_map.end()){ return it->second; }
+        return 0;
+    }
+
+    uint32_t Context::create_fbo(const gl::Fbo* the_fbo)
+    {
+        fbo_map_t &fbo_map = m_impl->m_fbo_maps[m_impl->m_current_context_id];
+        auto it = fbo_map.find(the_fbo);
+
+        // delete old fbo
+        if(it != fbo_map.end()){ glDeleteFramebuffers(1, &it->second); }
+
+        // create new vao
+        uint32_t fbo_id = 0;
+        glGenFramebuffers(1, &fbo_id);
+        fbo_map[the_fbo] = fbo_id;
+        return fbo_id;
+    }
+
     void Context::clear_assets_for_context(void* the_context_id)
     {
         m_impl->m_vao_maps.erase(the_context_id);
+        m_impl->m_fbo_maps.erase(the_context_id);
     }
 
     void create_context(const std::shared_ptr<PlatformData> &the_platform_data)
