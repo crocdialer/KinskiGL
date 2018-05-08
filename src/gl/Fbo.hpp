@@ -63,6 +63,8 @@ class KINSKI_API Fbo
 {
  public:
 
+    ~Fbo();
+
     struct KINSKI_API Format
     {
     public:
@@ -166,7 +168,7 @@ class KINSKI_API Fbo
         uint32_t num_color_buffers() const { return m_num_color_buffers; }
         void set_num_color_buffers(int the_num) { m_num_color_buffers = the_num; }
 
-    protected:
+    private:
         GLenum	m_target;
         GLenum	m_color_internal_format, m_depth_internal_format, m_stencil_internal_format;
         GLenum m_depth_data_type;
@@ -230,6 +232,9 @@ class KINSKI_API Fbo
 
 	//! Returns the ID of the framebuffer itself. For antialiased FBOs this is the ID of the output multisampled FBO
     GLuint id() const;
+
+    GLuint resolve_id() const;
+
 
 #if !defined(KINSKI_GLES_2)
 //	//! For antialiased FBOs this returns the ID of the mirror FBO designed for reading, where the multisampled render buffers are resolved to. For non-antialised, this is the equivalent to getId()

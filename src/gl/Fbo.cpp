@@ -158,12 +158,6 @@ int Renderbuffer::num_samples() const { return m_impl->m_num_samples; }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct id_t
-{
-    uint32_t fbo_id = 0;
-    uint32_t fbo_resolve_id = 0;
-};
-
 struct FboImpl
 {
     FboImpl(){}
@@ -174,41 +168,11 @@ struct FboImpl
     
     ~FboImpl()
     {
-        auto current_ctx = gl::context()->current_context_id();
 
-        for(auto &e : m_id_map)
-        {
-            if(e.first == current_ctx)
-            {
-                if(e.second.fbo_id){ glDeleteFramebuffers(1, &e.second.fbo_id); }
-                if(e.second.fbo_resolve_id){ glDeleteFramebuffers(1, &e.second.fbo_resolve_id); }
-            }
-        }
-    }
-
-    uint32_t fbo_id()
-    {
-        auto it = m_id_map.find(gl::context()->current_context_id());
-        if(it != m_id_map.end()){ return it->second.fbo_id; }
-//        LOG_WARNING << "fbo not valid in this context";
-        return 0;
-    }
-
-    uint32_t fbo_resolve_id()
-    {
-        auto it = m_id_map.find(gl::context()->current_context_id());
-        if(it != m_id_map.end())
-        {
-            return it->second.fbo_resolve_id;
-        }
-//        LOG_WARNING << "fbo not valid in this context";
-        return 0;
     }
 
     int m_width, m_height;
     Fbo::Format m_format;
-
-    std::unordered_map<void*, id_t> m_id_map;
 
     std::vector<Renderbuffer> mMultisampleColorRenderbuffers;
     Renderbuffer m_multisample_depth_renderbuffer;
@@ -275,6 +239,15 @@ void Fbo::Format::enable_depth_buffer(bool the_depth_buffer, bool as_texture)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fbo
 
+Fbo::~Fbo()
+{
+    uint32_t fbo_id = gl::context()->get_fbo(this, 0);
+    uint32_t resolve_fbo_id = gl::context()->get_fbo(this, 1);
+
+    if(fbo_id){ glDeleteFramebuffers(1, &fbo_id); }
+    if(resolve_fbo_id){ glDeleteFramebuffers(1, &resolve_fbo_id); }
+}
+
 FboPtr Fbo::create(uint32_t width, uint32_t height, Format format)
 {
     return FboPtr(new Fbo(width, height, format));
@@ -292,11 +265,8 @@ void Fbo::init()
 
 	bool useAA = m_impl->m_format.m_num_samples > 0;
 
-	// allocate the framebuffer itself
-    id_t s = {};
-	glGenFramebuffers(1, &s.fbo_id);
-	m_impl->m_id_map[gl::context()->current_context_id()] = s;
-    glBindFramebuffer(GL_FRAMEBUFFER, id());
+	uint32_t fbo_id = gl::context()->create_fbo(this, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo_id);
 
 	Texture::Format textureFormat;
 	textureFormat.set_target(target());
@@ -422,10 +392,9 @@ bool Fbo::init_multisample()
 #if defined(KINSKI_GLES_2)
 	return false;
 #else
-    id_t s = m_impl->m_id_map[gl::context()->current_context_id()];
-    glGenFramebuffers(1, &s.fbo_resolve_id);
-    m_impl->m_id_map[gl::context()->current_context_id()] = s;
-	glBindFramebuffer(GL_FRAMEBUFFER, m_impl->fbo_resolve_id());
+
+    uint32_t resolve_fbo_id = gl::context()->create_fbo(this, 1);
+    glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo_id);
 	
 	// bind all of the color buffers to the resolve FB's attachment points
 	vector<GLenum> drawBuffers;
@@ -442,7 +411,7 @@ bool Fbo::init_multisample()
 	FboExceptionInvalidSpecification ignoredException;
     if(!check_status(&ignoredException)){ return false; }
 
-	glBindFramebuffer(GL_FRAMEBUFFER, m_impl->fbo_id());
+	glBindFramebuffer(GL_FRAMEBUFFER, id());
 
 	m_impl->m_format.m_num_samples = std::min(m_impl->m_format.m_num_samples, max_num_samples());
     
@@ -513,9 +482,14 @@ m_impl(new FboImpl(width, height))
 
 GLuint Fbo::id() const
 {
-    return m_impl->fbo_id();
+    return gl::context()->get_fbo(this, 0);
 }
-    
+
+GLuint Fbo::resolve_id() const
+{
+    return gl::context()->get_fbo(this, 1);
+}
+
 int Fbo::width() const{ return m_impl->m_width; }
     
 int Fbo::height() const{ return m_impl->m_height; }
@@ -555,7 +529,8 @@ void Fbo::add_attachment(gl::Texture the_attachment, int the_index)
     uint32_t index = the_index <= 0 ? m_impl->m_color_textures.size() : the_index;
 
     SaveFramebufferBinding sfb;
-    glBindFramebuffer(GL_FRAMEBUFFER, m_impl->fbo_id());
+    bind();
+
 #if defined(KINSKI_GLES_2)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, target(),
                            the_attachment.id(), 0);
@@ -649,12 +624,14 @@ void Fbo::resolve_textures() const
 
 #if !defined(KINSKI_GLES_2)
 	// if this FBO is multisampled, resolve it, so it can be displayed
-	if(m_impl->fbo_resolve_id())
+    uint32_t resolve_id = gl::context()->get_fbo(this, 1);
+
+	if(resolve_id)
     {
 		//SaveFramebufferBinding saveFboBinding;
 
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_impl->fbo_id());
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_impl->fbo_resolve_id());
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, id());
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolve_id);
 		
 		for(size_t c = 0; c < m_impl->m_color_textures.size(); ++c)
         {
@@ -678,7 +655,7 @@ void Fbo::resolve_textures() const
 		for(size_t c = 0; c < m_impl->m_color_textures.size(); ++c)
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
         
-		glBindFramebuffer(GL_FRAMEBUFFER, m_impl->fbo_id());
+		glBindFramebuffer(GL_FRAMEBUFFER, resolve_id);
 		glDrawBuffers(drawBuffers.size(), drawBuffers.data());
         KINSKI_CHECK_GL_ERRORS();
 	}
@@ -704,9 +681,9 @@ void Fbo::bind()
 {
 	if(m_impl)
 	{
-	    if(!m_impl->fbo_id()){ init(); }
-		glBindFramebuffer(GL_FRAMEBUFFER, m_impl->fbo_id());
-		if(m_impl->fbo_resolve_id()){ m_impl->m_needs_resolve = true; }
+	    if(!id()){ init(); }
+		glBindFramebuffer(GL_FRAMEBUFFER, id());
+		if(resolve_id()){ m_impl->m_needs_resolve = true; }
 		if(m_impl->m_format.has_mipmapping()){ m_impl->m_needs_mipmap_update = true; }
 	}
 }
@@ -778,7 +755,7 @@ void Fbo::blit_to_current(const Area_<int> &the_src, const Area_<int> &the_dst,
 	if(!m_impl){ return; }
     SaveFramebufferBinding sb;
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_impl->fbo_id());
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, id());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, sb.value());
     glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1, the_dst.x0, the_dst.y0,
                       the_dst.x1, the_dst.y1, mask, filter);
@@ -791,7 +768,7 @@ void Fbo::blit_to(Fbo the_dst_fbo, const Area_<int> &the_src, const Area_<int> &
 	if(!m_impl){ return; }
 	SaveFramebufferBinding sb;
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_impl->fbo_id());
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, id());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, the_dst_fbo.id());
 	glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1, the_dst.x0, the_dst.y0,
                       the_dst.x1, the_dst.y1, mask, filter);
@@ -803,7 +780,7 @@ void Fbo::blit_to_screen(const Area_<int> &the_src, const Area_<int> &the_dst,
 	if(!m_impl){ return; }
 	SaveFramebufferBinding sb;
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_impl->fbo_id());
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, id());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1,
                       the_dst.x0, the_dst.y0, the_dst.x1, the_dst.y1, mask, filter);
@@ -815,7 +792,7 @@ void Fbo::blit_from_screen(const Area_<int> &the_src, const Area_<int> &the_dst,
 	if(!m_impl){ return; }
 	SaveFramebufferBinding sb;
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, GL_NONE);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_impl->fbo_id());
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, id());
 	glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1,
                       the_dst.x0, the_dst.y0, the_dst.x1, the_dst.y1, mask, filter);
 }

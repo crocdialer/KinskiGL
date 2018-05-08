@@ -51,7 +51,9 @@ namespace kinski { namespace gl {
 
         using vao_map_key_t = std::pair<const gl::Geometry*, const gl::Shader*>;
         using vao_map_t = std::unordered_map<vao_map_key_t, uint32_t, PairHash<const gl::Geometry*, const gl::Shader*>>;
-        using fbo_map_t = std::unordered_map<const gl::Fbo*, uint32_t>;
+
+        using fbo_map_key_t = std::pair<const gl::Fbo*, uint32_t>;
+        using fbo_map_t = std::unordered_map<fbo_map_key_t, uint32_t, PairHash<const gl::Fbo*, uint32_t>>;
     };
 
     struct ContextImpl
@@ -110,18 +112,20 @@ namespace kinski { namespace gl {
         return 0;
     }
 
-    uint32_t Context::get_fbo(const gl::Fbo* the_fbo)
+    uint32_t Context::get_fbo(const gl::Fbo* the_fbo, uint32_t the_index)
     {
+        auto key = fbo_map_key_t(the_fbo, the_index);
         fbo_map_t &fbo_map = m_impl->m_fbo_maps[m_impl->m_current_context_id];
-        auto it = fbo_map.find(the_fbo);
+        auto it = fbo_map.find(key);
         if(it != fbo_map.end()){ return it->second; }
         return 0;
     }
 
-    uint32_t Context::create_fbo(const gl::Fbo* the_fbo)
+    uint32_t Context::create_fbo(const gl::Fbo* the_fbo, uint32_t the_index)
     {
+        auto key = fbo_map_key_t(the_fbo, the_index);
         fbo_map_t &fbo_map = m_impl->m_fbo_maps[m_impl->m_current_context_id];
-        auto it = fbo_map.find(the_fbo);
+        auto it = fbo_map.find(key);
 
         // delete old fbo
         if(it != fbo_map.end()){ glDeleteFramebuffers(1, &it->second); }
@@ -129,7 +133,7 @@ namespace kinski { namespace gl {
         // create new vao
         uint32_t fbo_id = 0;
         glGenFramebuffers(1, &fbo_id);
-        fbo_map[the_fbo] = fbo_id;
+        fbo_map[key] = fbo_id;
         return fbo_id;
     }
 
