@@ -466,7 +466,7 @@ void SceneRenderer::set_shadowmap_size(const glm::ivec2 &the_size)
 {
 #ifndef KINSKI_GLES
     gl::Fbo::Format fmt;
-    fmt.set_num_color_buffers(0);
+    fmt.num_color_buffers = 0;
     
     for(size_t i = 0; i < m_shadow_fbos.size(); i++)
     {

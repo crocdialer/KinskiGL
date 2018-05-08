@@ -41,7 +41,7 @@ namespace kinski{ namespace gl{
         {
             gl::Fbo::Format fmt;
 #if !defined(KINSKI_GLES)
-            fmt.set_color_internal_format(GL_R32F);
+            fmt.color_internal_format = GL_R32F;
 #endif
             m_impl->m_fbo = gl::Fbo::create(m_impl->m_tex_size, fmt);
         }

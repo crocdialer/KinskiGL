@@ -20,7 +20,7 @@ gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, G
 {
     uint32_t cube_sz = the_width;
     gl::Fbo::Format fbo_fmt;
-    fbo_fmt.set_num_color_buffers(0);
+    fbo_fmt.num_color_buffers = 0;
     auto fbo = gl::Fbo::create(cube_sz, cube_sz, fbo_fmt);
     
     gl::Texture::Format cube_depth_fmt;
@@ -115,7 +115,7 @@ GLint Fbo::sMaxAttachments = -1;
         int m_width, m_height;
         GLuint m_id;
         GLenum m_internal_format;
-        int m_num_samples;
+        uint32_t m_num_samples;
     };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,17 +186,17 @@ struct FboImpl
 // Fbo::Format
 Fbo::Format::Format()
 {
-	m_target = GL_TEXTURE_2D;
+	target = GL_TEXTURE_2D;
 #if defined(KINSKI_GLES_2)
 	m_color_internal_format = GL_RGBA;
 	m_depth_internal_format = GL_ENUM(GL_DEPTH_COMPONENT24);
     m_stencil_internal_format = GL_STENCIL_INDEX8;
 	m_depth_buffer_texture = false;
 #else
-	m_color_internal_format = GL_RGBA8;
-    m_depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
-    m_depth_internal_format = GL_DEPTH32F_STENCIL8;//GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
-	m_depth_buffer_texture = true;
+	color_internal_format = GL_RGBA8;
+    depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+    depth_internal_format = GL_DEPTH32F_STENCIL8;//GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
+	depth_buffer_texture = true;
 //#if defined(KINSKI_GLES_3)
 //    m_depth_data_type = GL_UNSIGNED_INT_24_8;//GL_DEPTH24_STENCIL8;
 //    m_depth_internal_format = GL_DEPTH_COMPONENT24;
@@ -204,37 +204,17 @@ Fbo::Format::Format()
 //#endif
     
 #endif
-	m_num_samples = 0;
-	m_num_coverage_samples = 0;
-	m_num_color_buffers = 1;
-	m_depth_buffer = true;
-	m_stencil_buffer = false;
-	m_mipmapping = false;
-	m_wrap_s = GL_CLAMP_TO_EDGE;
-	m_wrap_t = GL_CLAMP_TO_EDGE;
-	m_min_filter = GL_LINEAR;
-	m_mag_filter = GL_LINEAR;
+	num_samples = 0;
+	num_coverage_samples = 0;
+	num_color_buffers = 1;
+	depth_buffer = true;
+	stencil_buffer = false;
+	mipmapping = false;
+	wrap_s = GL_CLAMP_TO_EDGE;
+	wrap_t = GL_CLAMP_TO_EDGE;
+	min_filter = GL_LINEAR;
+	mag_filter = GL_LINEAR;
 }
-
-void Fbo::Format::enable_color_buffer(bool the_color_buffer, int the_num_buffers)
-{
-#if !defined(KINSKI_GLES_2)
-	m_num_color_buffers = (the_color_buffer && m_num_color_buffers) ? 1 : 0;
-#else
-	m_num_color_buffers = the_color_buffer ? m_num_color_buffers : 0;
-#endif
-}
-
-void Fbo::Format::enable_depth_buffer(bool the_depth_buffer, bool as_texture)
-{
-	m_depth_buffer = the_depth_buffer;
-#if defined(KINSKI_GLES_2)
-	m_depth_buffer_texture = false;
-#else
-	m_depth_buffer_texture = as_texture;
-#endif
-}
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Fbo
@@ -263,14 +243,14 @@ void Fbo::init()
 {
     SaveFramebufferBinding sfb;
 
-	bool useAA = m_impl->m_format.m_num_samples > 0;
+	bool useAA = m_impl->m_format.num_samples > 0;
 
 	uint32_t fbo_id = gl::context()->create_fbo(this, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_id);
 
 	Texture::Format textureFormat;
 	textureFormat.set_target(target());
-    auto col_fmt = format().color_internal_format();
+    auto col_fmt = format().color_internal_format;
 	textureFormat.set_internal_format(col_fmt);
     
 #if !defined(KINSKI_GLES_2)
@@ -278,18 +258,18 @@ void Fbo::init()
     GLint one_comp_types[] = {GL_RED, GL_GREEN, GL_BLUE, GL_R32F};
     if(contains(float_types, col_fmt)){ textureFormat.set_data_type(GL_FLOAT); }
 #endif
-	textureFormat.set_wrap(m_impl->m_format.m_wrap_s, m_impl->m_format.m_wrap_t);
-	textureFormat.set_min_filter(m_impl->m_format.m_min_filter);
-	textureFormat.set_mag_filter(m_impl->m_format.m_mag_filter);
-	textureFormat.set_mipmapping(format().has_mipmapping());
+	textureFormat.set_wrap(m_impl->m_format.wrap_s, m_impl->m_format.wrap_t);
+	textureFormat.set_min_filter(m_impl->m_format.min_filter);
+	textureFormat.set_mag_filter(m_impl->m_format.mag_filter);
+	textureFormat.set_mipmapping(format().mipmapping);
 
 	// color textures might already exist, e.g. after context switch/loss
-    if(m_impl->m_color_textures.size() != m_impl->m_format.m_num_color_buffers)
+    if(m_impl->m_color_textures.size() != m_impl->m_format.num_color_buffers)
     {
         m_impl->m_color_textures.clear();
 
         // allocate the color buffers
-        for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+        for(uint32_t c = 0; c < m_impl->m_format.num_color_buffers; ++c)
         {
             auto tex = Texture(m_impl->m_width, m_impl->m_height, textureFormat);
 
@@ -301,7 +281,7 @@ void Fbo::init()
     }
 
 #if !defined(KINSKI_GLES)
-	if(m_impl->m_format.m_num_color_buffers == 0)
+	if(m_impl->m_format.num_color_buffers == 0)
     {
         // no color
 		glDrawBuffer(GL_NONE);
@@ -331,25 +311,25 @@ void Fbo::init()
 #endif
 
 		// allocate and attach depth texture
-		if(m_impl->m_format.m_depth_buffer)
+		if(m_impl->m_format.depth_buffer)
         {
-			if(m_impl->m_format.m_depth_buffer_texture)
+			if(m_impl->m_format.depth_buffer_texture)
             {
 #if !defined(KINSKI_GLES_2)
                 if(!m_impl->m_depth_texture)
                 {
                     gl::Texture::Format tex_fmt;
                     tex_fmt.set_target(target());
-                    tex_fmt.set_internal_format(format().depth_internal_format());
-                    tex_fmt.set_data_type(format().m_depth_data_type);
+                    tex_fmt.set_internal_format(format().depth_internal_format);
+                    tex_fmt.set_data_type(format().depth_data_type);
                     m_impl->m_depth_texture = Texture(nullptr, GL_DEPTH_STENCIL, m_impl->m_width, m_impl->m_height, tex_fmt);
-                    m_impl->m_depth_texture.set_min_filter(m_impl->m_format.m_min_filter);
-                    m_impl->m_depth_texture.set_mag_filter(m_impl->m_format.m_mag_filter);
-                    m_impl->m_depth_texture.set_wrap_s(m_impl->m_format.m_wrap_s);
-                    m_impl->m_depth_texture.set_wrap_t(m_impl->m_format.m_wrap_t);
+                    m_impl->m_depth_texture.set_min_filter(m_impl->m_format.min_filter);
+                    m_impl->m_depth_texture.set_mag_filter(m_impl->m_format.mag_filter);
+                    m_impl->m_depth_texture.set_wrap_s(m_impl->m_format.wrap_s);
+                    m_impl->m_depth_texture.set_wrap_t(m_impl->m_format.wrap_t);
                 }
 
-                auto attach = m_impl->m_format.has_stencil_buffer() ?
+                auto attach = m_impl->m_format.stencil_buffer ?
                               GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
                 
 #if defined(KINSKI_GLES_3)
@@ -362,14 +342,14 @@ void Fbo::init()
 #endif//KINSKI_GLES_2
 			}
             // implement depth buffer as RenderBuffer
-			else if(m_impl->m_format.m_depth_buffer)
+			else if(m_impl->m_format.depth_buffer)
             {
 				m_impl->m_depthRenderbuffer = Renderbuffer(m_impl->m_width, m_impl->m_height,
-                                                          m_impl->m_format.depth_internal_format());
+                                                          m_impl->m_format.depth_internal_format);
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
                                           m_impl->m_depthRenderbuffer.id());
                 
-                if(m_impl->m_format.has_stencil_buffer())
+                if(m_impl->m_format.stencil_buffer)
                 {
                     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
                                               GL_RENDERBUFFER, m_impl->m_depthRenderbuffer.id());
@@ -383,8 +363,6 @@ void Fbo::init()
 	}
 	m_impl->m_needs_resolve = false;
 	m_impl->m_needs_mipmap_update = false;
-    
-//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool Fbo::init_multisample()
@@ -413,17 +391,17 @@ bool Fbo::init_multisample()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, id());
 
-	m_impl->m_format.m_num_samples = std::min(m_impl->m_format.m_num_samples, max_num_samples());
+	m_impl->m_format.num_samples = std::min(m_impl->m_format.num_samples, max_num_samples());
     
 	// create the multisampled color renderbuffers
-    if(m_impl->mMultisampleColorRenderbuffers.size() != m_impl->m_format.m_num_color_buffers)
+    if(m_impl->mMultisampleColorRenderbuffers.size() != m_impl->m_format.num_color_buffers)
     {
         m_impl->mMultisampleColorRenderbuffers.clear();
 
-        for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+        for(uint32_t c = 0; c < m_impl->m_format.num_color_buffers; ++c)
         {
-            auto render_buf = Renderbuffer(m_impl->m_width, m_impl->m_height, m_impl->m_format.m_color_internal_format,
-                                           m_impl->m_format.m_num_samples);
+            auto render_buf = Renderbuffer(m_impl->m_width, m_impl->m_height, m_impl->m_format.color_internal_format,
+                                           m_impl->m_format.num_samples);
             m_impl->mMultisampleColorRenderbuffers.push_back(render_buf);
         }
     }
@@ -435,21 +413,21 @@ bool Fbo::init_multisample()
                                   m_impl->mMultisampleColorRenderbuffers[c].id());
 	}
 
-	if(m_impl->m_format.m_depth_buffer)
+	if(m_impl->m_format.depth_buffer)
     {
 		// create the multisampled depth Renderbuffer
         if(!m_impl->m_multisample_depth_renderbuffer)
         {
 		    m_impl->m_multisample_depth_renderbuffer = Renderbuffer(m_impl->m_width, m_impl->m_height,
-                                                                    m_impl->m_format.m_depth_internal_format,
-                                                                    m_impl->m_format.m_num_samples);
+                                                                    m_impl->m_format.depth_internal_format,
+                                                                    m_impl->m_format.num_samples);
         }
 
 		// attach the depth Renderbuffer
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
                                   m_impl->m_multisample_depth_renderbuffer.id());
         
-        if(m_impl->m_format.has_stencil_buffer())
+        if(m_impl->m_format.stencil_buffer)
         {
             // attach the depth Renderbuffer
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
@@ -500,7 +478,7 @@ float Fbo::aspect_ratio() const{ return m_impl->m_width / (float)m_impl->m_heigh
 
 const Fbo::Format& Fbo::format() const { return m_impl->m_format; }
     
-GLenum Fbo::target() const { return m_impl->m_format.m_target; }
+GLenum Fbo::target() const { return m_impl->m_format.target; }
 
 void Fbo::enable_draw_buffers(bool b)
 {
@@ -548,7 +526,7 @@ void Fbo::add_attachment(gl::Texture the_attachment, int the_index)
     	    m_impl->m_color_textures[the_index] = the_attachment;
     	}
         else{ m_impl->m_color_textures.push_back(the_attachment); }
-        m_impl->m_format.set_num_color_buffers(m_impl->m_color_textures.size());
+        m_impl->m_format.num_color_buffers = m_impl->m_color_textures.size();
         enable_draw_buffers(true);
     }
     else{ LOG_ERROR << exc.what(); }
@@ -573,13 +551,13 @@ Texture Fbo::depth_texture()
 void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 {
 #if !defined(KINSKI_GLES_2)
-    if(m_impl && m_impl->m_format.m_depth_buffer)
+    if(m_impl && m_impl->m_format.depth_buffer)
     {
-        if(m_impl->m_format.m_depth_buffer_texture)
+        if(m_impl->m_format.depth_buffer_texture)
         {
             SaveFramebufferBinding sfb;
             bind();
-            auto attach = m_impl->m_format.has_stencil_buffer() ?
+            auto attach = m_impl->m_format.stencil_buffer ?
                           GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
             
 #if defined(KINSKI_GLES_3)
@@ -684,7 +662,7 @@ void Fbo::bind()
 	    if(!id()){ init(); }
 		glBindFramebuffer(GL_FRAMEBUFFER, id());
 		if(resolve_id()){ m_impl->m_needs_resolve = true; }
-		if(m_impl->m_format.has_mipmapping()){ m_impl->m_needs_mipmap_update = true; }
+		if(m_impl->m_format.mipmapping){ m_impl->m_needs_mipmap_update = true; }
 	}
 }
 
@@ -727,7 +705,7 @@ bool Fbo::check_status(FboExceptionInvalidSpecification *resultExc)
     return status == GL_FRAMEBUFFER_COMPLETE;
 }
 
-GLint Fbo::max_num_samples()
+uint32_t Fbo::max_num_samples()
 {
 #if ! defined(KINSKI_GLES)
     if(sMaxSamples < 0){ glGetIntegerv(GL_MAX_SAMPLES, &sMaxSamples); }
@@ -737,7 +715,7 @@ GLint Fbo::max_num_samples()
 #endif
 }
 
-GLint Fbo::max_num_attachments()
+uint32_t Fbo::max_num_attachments()
 {
 #if ! defined(KINSKI_GLES)
 	if(sMaxAttachments < 0) { glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &sMaxAttachments); }

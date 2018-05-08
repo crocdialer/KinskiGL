@@ -220,7 +220,7 @@ void ModelViewer::draw()
         {
             uint32_t  i = 0;
 
-            for(; i < m_deferred_renderer->g_buffer()->format().num_color_buffers(); ++i)
+            for(; i < m_deferred_renderer->g_buffer()->format().num_color_buffers; ++i)
             {
                 textures()[i + 2] = m_deferred_renderer->g_buffer()->texture(i);
             }

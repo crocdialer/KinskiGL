@@ -119,7 +119,7 @@ void DeferredRenderer::init()
     
     // create shadow fbo (spot + directional lights)
     gl::Fbo::Format fbo_fmt;
-    fbo_fmt.set_num_color_buffers(0);
+    fbo_fmt.num_color_buffers = 0;
     m_fbo_shadow = gl::Fbo::create(sz, sz, fbo_fmt);
     
     // create shadow fbo (point lights)
@@ -191,8 +191,8 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     if(!m_fbo_geometry || m_fbo_geometry->size() != the_size)
     {
         gl::Fbo::Format fmt;
-        fmt.set_color_internal_format(GL_RGB16F);
-        fmt.set_num_color_buffers(G_BUFFER_SIZE);
+        fmt.color_internal_format = GL_RGB16F;
+        fmt.num_color_buffers = G_BUFFER_SIZE;
         m_fbo_geometry = gl::Fbo::create(the_size, fmt);
 
         for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
@@ -257,7 +257,7 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
     if(!m_fbo_lighting || m_fbo_lighting->size() != m_fbo_geometry->size())
     {
         gl::Fbo::Format fmt;
-        fmt.enable_stencil_buffer(true);
+        fmt.stencil_buffer = true;
         m_fbo_lighting = gl::Fbo::create(m_fbo_geometry->size(), fmt);
         m_fbo_lighting->set_depth_texture(m_fbo_geometry->depth_texture());
         KINSKI_CHECK_GL_ERRORS();
@@ -608,7 +608,7 @@ gl::Texture DeferredRenderer::create_brdf_lut()
     auto task = Task::create("BRDF-lut baking");
     constexpr uint32_t tex_size = 512;
     gl::Fbo::Format fmt;
-    fmt.set_color_internal_format(GL_RG32F);
+    fmt.color_internal_format = GL_RG32F;
     auto fbo = gl::Fbo::create(tex_size, tex_size, fmt);
     auto gen_brdf_shader = gl::Shader::create(unlit_vert, gen_brdf_lut_frag);
     auto mat = gl::Material::create(gen_brdf_shader);
