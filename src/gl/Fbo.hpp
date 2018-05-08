@@ -271,7 +271,7 @@ class KINSKI_API Fbo
 	bool		check_status( class FboExceptionInvalidSpecification *resultExc );
  
     
-	std::shared_ptr<struct FboImpl>	m_impl;
+	std::unique_ptr<struct FboImpl>	m_impl;
 	static GLint sMaxSamples, sMaxAttachments;
 };
 
