@@ -546,9 +546,9 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     get_texture_format(num_color_components, false, data_type, &format, &internal_format);
 
     gl::Texture::Format fmt;
-    fmt.set_target(GL_TEXTURE_CUBE_MAP);
-    fmt.set_internal_format(internal_format);
-    fmt.set_data_type(data_type);
+    fmt.target = GL_TEXTURE_CUBE_MAP;
+    fmt.internal_format = internal_format;
+    fmt.datatype = data_type;
     auto ret = gl::Texture(nullptr, format, conv_size, conv_size, fmt);
     ret.set_mipmapping(true);
 

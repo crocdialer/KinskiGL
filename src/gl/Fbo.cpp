@@ -24,11 +24,11 @@ gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, G
     auto fbo = gl::Fbo::create(cube_sz, cube_sz, fbo_fmt);
     
     gl::Texture::Format cube_depth_fmt;
-    cube_depth_fmt.set_target(GL_TEXTURE_CUBE_MAP);
-    cube_depth_fmt.set_data_type(GL_FLOAT);
-    cube_depth_fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
-    cube_depth_fmt.set_min_filter(GL_NEAREST);
-    cube_depth_fmt.set_mag_filter(GL_NEAREST);
+    cube_depth_fmt.target = GL_TEXTURE_CUBE_MAP;
+    cube_depth_fmt.datatype = GL_FLOAT;
+    cube_depth_fmt.internal_format = GL_DEPTH_COMPONENT32F;
+    cube_depth_fmt.min_filter = GL_NEAREST;
+    cube_depth_fmt.mag_filter = GL_NEAREST;
     auto cube_depth_tex = gl::Texture(nullptr, GL_DEPTH_COMPONENT, cube_sz, cube_sz, cube_depth_fmt);
     fbo->set_depth_texture(cube_depth_tex);
 
@@ -39,11 +39,11 @@ gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, G
         gl::get_texture_format(num_color_components, false, the_datatype, &format, &internal_format);
 
         gl::Texture::Format col_fmt;
-        col_fmt.set_data_type(the_datatype);
-        col_fmt.set_internal_format(internal_format);
-        col_fmt.set_target(GL_TEXTURE_CUBE_MAP);
-        col_fmt.set_min_filter(GL_NEAREST);
-        col_fmt.set_mag_filter(GL_NEAREST);
+        col_fmt.datatype = the_datatype;
+        col_fmt.internal_format = internal_format;
+        col_fmt.target = GL_TEXTURE_CUBE_MAP;
+        col_fmt.min_filter = GL_NEAREST;
+        col_fmt.mag_filter = GL_NEAREST;
         auto cube_tex = gl::Texture(nullptr, format, cube_sz, cube_sz, col_fmt);
         fbo->add_attachment(cube_tex, 0);
     }
@@ -249,19 +249,20 @@ void Fbo::init()
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_id);
 
 	Texture::Format textureFormat;
-	textureFormat.set_target(target());
+	textureFormat.target = target();
     auto col_fmt = format().color_internal_format;
-	textureFormat.set_internal_format(col_fmt);
+	textureFormat.internal_format = col_fmt;
     
 #if !defined(KINSKI_GLES_2)
     GLint float_types[] = {GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
     GLint one_comp_types[] = {GL_RED, GL_GREEN, GL_BLUE, GL_R32F};
-    if(contains(float_types, col_fmt)){ textureFormat.set_data_type(GL_FLOAT); }
+    if(contains(float_types, col_fmt)){ textureFormat.datatype = GL_FLOAT; }
 #endif
-	textureFormat.set_wrap(m_impl->m_format.wrap_s, m_impl->m_format.wrap_t);
-	textureFormat.set_min_filter(m_impl->m_format.min_filter);
-	textureFormat.set_mag_filter(m_impl->m_format.mag_filter);
-	textureFormat.set_mipmapping(format().mipmapping);
+	textureFormat.wrap_s = m_impl->m_format.wrap_s;
+    textureFormat.wrap_t = m_impl->m_format.wrap_t;
+	textureFormat.min_filter = m_impl->m_format.min_filter;
+	textureFormat.mag_filter = m_impl->m_format.mag_filter;
+	textureFormat.mipmapping = format().mipmapping;
 
 	// color textures might already exist, e.g. after context switch/loss
     if(m_impl->m_color_textures.size() != m_impl->m_format.num_color_buffers)
@@ -319,9 +320,9 @@ void Fbo::init()
                 if(!m_impl->m_depth_texture)
                 {
                     gl::Texture::Format tex_fmt;
-                    tex_fmt.set_target(target());
-                    tex_fmt.set_internal_format(format().depth_internal_format);
-                    tex_fmt.set_data_type(format().depth_data_type);
+                    tex_fmt.target = target();
+                    tex_fmt.internal_format = format().depth_internal_format;
+                    tex_fmt.datatype = format().depth_data_type;
                     m_impl->m_depth_texture = Texture(nullptr, GL_DEPTH_STENCIL, m_impl->m_width, m_impl->m_height, tex_fmt);
                     m_impl->m_depth_texture.set_min_filter(m_impl->m_format.min_filter);
                     m_impl->m_depth_texture.set_mag_filter(m_impl->m_format.mag_filter);

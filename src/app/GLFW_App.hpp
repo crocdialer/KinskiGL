@@ -70,9 +70,6 @@ namespace kinski
     {
     public:
         
-//        typedef std::shared_ptr<GLFW_App> Ptr;
-//        typedef std::weak_ptr<GLFW_App> WeakPtr;
-        
         GLFW_App(int argc = 0, char *argv[] = nullptr);
         virtual ~GLFW_App();
 

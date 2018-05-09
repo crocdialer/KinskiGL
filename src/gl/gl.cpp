@@ -1838,13 +1838,13 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     get_texture_format(the_img->num_components(), compress, data_type, &format, &internal_format);
 
     Texture::Format fmt;
-    fmt.set_internal_format(internal_format);
-    fmt.set_data_type(data_type);
+    fmt.internal_format = internal_format;
+    fmt.datatype = data_type;
 
     if(mipmap)
     {
-        fmt.set_mipmapping();
-        fmt.set_min_filter(GL_LINEAR_MIPMAP_NEAREST);
+        fmt.mipmapping = true;
+        fmt.min_filter = GL_LINEAR_MIPMAP_NEAREST;
     }
     void *data = the_img->data();
 
@@ -1981,8 +1981,8 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
     get_texture_format(num_components, compress, GL_UNSIGNED_BYTE, &format, &internal_format);
 
     gl::Texture::Format fmt;
-    fmt.set_target(GL_TEXTURE_CUBE_MAP);
-    fmt.set_internal_format(internal_format);
+    fmt.target = GL_TEXTURE_CUBE_MAP;
+    fmt.internal_format = internal_format;
     ret = gl::Texture(nullptr, format, width, height, fmt);
     ret.bind();
 
@@ -2028,8 +2028,8 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
     auto data_type = the_panorama.datatype();
     auto cube_cam = gl::CubeCamera::create(.1f, 10.f);
     gl::Texture::Format color_fmt;
-    color_fmt.set_data_type(data_type);
-    color_fmt.set_internal_format(the_panorama.internal_format());
+    color_fmt.datatype = data_type;
+    color_fmt.internal_format = the_panorama.internal_format();
     auto cube_fbo = gl::create_cube_framebuffer(the_size, true, data_type);
     auto cube_shader = gl::Shader::create(cube_vert, unlit_panorama_frag, cube_layers_env_geom);
 
@@ -2052,9 +2052,9 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
         get_texture_format(3, compress, data_type, &format, &internal_format);
 
         gl::Texture::Format fmt;
-        fmt.set_target(GL_TEXTURE_CUBE_MAP);
-        fmt.set_internal_format(internal_format);
-        fmt.set_data_type(data_type);
+        fmt.target = GL_TEXTURE_CUBE_MAP;
+        fmt.internal_format = internal_format;
+        fmt.datatype = data_type;
         auto ret = gl::Texture(nullptr, format, the_size, the_size, fmt);
 
 

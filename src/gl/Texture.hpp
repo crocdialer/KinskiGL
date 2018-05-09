@@ -14,21 +14,33 @@
 
 namespace kinski{ namespace gl{
     
-    typedef unsigned int GLenum;
-    
     /** \brief Represents an OpenGL Texture. \ImplShared*/
     class KINSKI_API Texture
     {
     public:
-        struct Format;
 
         enum class Usage : uint32_t {COLOR = 1 << 0, NORMAL = 1 << 1, SPECULAR = 1 << 2, AO_ROUGHNESS_METAL = 1 << 3,
             EMISSION = 1 << 4, DISPLACEMENT = 1 << 5, SHADOW = 1 << 6, DEPTH = 1 << 7, ENVIROMENT = 1 << 8,
             ENVIROMENT_CONV_DIFF = 1 << 9, ENVIROMENT_CONV_SPEC = 1 << 10, BRDF_LUT = 1 << 11,
             NOISE = 1 << 12, MASK = 1 << 13};
 
+        struct Format
+        {
+            uint32_t target = GL_TEXTURE_2D;
+            uint32_t wrap_s = GL_REPEAT;
+            uint32_t wrap_t = GL_REPEAT;
+            uint32_t min_filter = GL_LINEAR;
+            uint32_t mag_filter = GL_LINEAR;
+            float anisotropic_filter_level = 0.f;
+            bool mipmapping = false;
+            uint32_t internal_format = GL_RGBA;
+            uint32_t datatype = GL_UNSIGNED_BYTE;
+            Format(){};
+        };
+
         //! Default initializer.
         Texture(){};
+
         /** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. **/
         Texture(int aWidth, int aHeight, Format format = Format());
         
@@ -156,82 +168,6 @@ namespace kinski{ namespace gl{
         
         //! Creates a clone of this texture which does not have ownership, but points to the same resource
         Texture weak_clone() const;
-        
-        struct Format
-        {
-            //! Default constructor, sets the target to \c GL_TEXTURE_2D, wrap to \c GL_CLAMP, disables mipmapping, the internal format to "automatic"
-            Format();
-            
-            //! Specifies the texture's target. The default is \c GL_TEXTURE_2D
-            void set_target(GLenum the_target) { m_target = the_target; }
-            
-            //! Specifies the texture's datatype. The default is GL_UNSIGNED_BYTE
-            void set_data_type(GLint the_data_type) { m_datatype = the_data_type; }
-            
-            //! Enables or disables mipmapping. Default is disabled.
-            void set_mipmapping(bool the_mip_map = true) { m_mipmapping = the_mip_map; }
-            
-            //! Enables or disables mipmapping. Default is disabled.
-            void set_anisotropic_filter(float level) { m_anisotropic_filter_level = level; }
-            
-            //! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context. 
-            void set_internal_format(GLint the_internal_format) { m_internal_format = the_internal_format; }
-            
-            
-            //! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP
-            void set_wrap(GLenum the_wrap_s, GLenum the_wrap_t)
-            {
-                set_wrap_s(the_wrap_s); set_wrap_t(the_wrap_t);
-            }
-            
-            /** \brief Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1].
-             Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE **/
-            void set_wrap_s(GLenum the_wrap_s) { m_wrap_s = the_wrap_s; }
-            
-            /** \brief Sets the verical wrapping behavior when a texture coordinate falls outside the range of [0,1].
-             Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE. **/
-            void set_wrap_t(GLenum the_wrap_t) { m_wrap_t = the_wrap_t; }
-            
-            /** \brief Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution. Default is \c GL_LINEAR
-             * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
-            void set_min_filter(GLenum the_min_filter) { m_min_filter = the_min_filter; }
-            
-            /** Sets the filtering behavior when a texture is displayed at a higher resolution than its native resolution. Default is \c GL_LINEAR
-             * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
-            void set_mag_filter(GLenum the_mag_filter) { m_mag_filter = the_mag_filter; }
-            
-            //! Returns the texture's target
-            GLenum target() const { return m_target; }
-            
-            //! Returns whether the texture has mipmapping enabled
-            bool has_mipmapping() const { return m_mipmapping; }
-            
-            //! Returns the Texture's internal format. A value of -1 implies automatic selection of the internal format based on the context.
-            GLint internal_format() const { return m_internal_format; }
-            
-            //! Returns the horizontal wrapping behavior for the texture coordinates.
-            GLenum wrap_s() const { return m_wrap_s; }
-            
-            //! Returns the vertical wrapping behavior for the texture coordinates.
-            GLenum wrap_t() const { return m_wrap_t; }
-            
-            //! Returns the texture minifying function, which is used whenever the pixel being textured maps to an area greater than one texture element.
-            GLenum min_filter() const { return m_min_filter; }
-            
-            //! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
-            GLenum mag_filter() const { return m_mag_filter; }
-
-            bool operator==(const gl::Texture::Format &other) const;
-            bool operator!=(const gl::Texture::Format &other) const;
-
-            GLenum m_target;
-            GLenum m_wrap_s, m_wrap_t;
-            GLenum m_min_filter, m_mag_filter;
-            float m_anisotropic_filter_level;
-            bool m_mipmapping;
-            GLint m_internal_format, m_datatype;
-            
-        };
         
     private:
 

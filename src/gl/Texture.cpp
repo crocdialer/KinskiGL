@@ -15,40 +15,6 @@ using namespace std;
 namespace kinski{ namespace gl{
 
 /////////////////////////////////////////////////////////////////////////////////
-
-// Texture::Format
-    
-Texture::Format::Format()
-{
-	m_target = GL_TEXTURE_2D;
-    m_datatype = GL_UNSIGNED_BYTE;
-	m_wrap_s = GL_REPEAT;//GL_REPEAT not working in ios
-	m_wrap_t = GL_REPEAT;
-	m_min_filter = GL_LINEAR;
-	m_mag_filter = GL_LINEAR;
-	m_mipmapping = false;
-	m_internal_format = -1;
-}
-
-bool Texture::Format::operator==(const gl::Texture::Format &other) const
-{
-    return m_target == other.m_target &&
-           m_datatype == other.m_datatype &&
-           m_wrap_s == other.m_wrap_s &&
-           m_wrap_t == other.m_wrap_t &&
-           m_min_filter == other.m_min_filter &&
-           m_mag_filter == other.m_mag_filter &&
-           m_internal_format == other.m_internal_format &&
-           m_mipmapping == other.m_mipmapping &&
-           m_anisotropic_filter_level == other.m_anisotropic_filter_level;
-}
-
-bool Texture::Format::operator!=(const gl::Texture::Format &other) const
-{
-    return !(*this == other);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
 // Texture::Obj
     
 struct TextureImpl
@@ -87,10 +53,9 @@ Texture(aWidth, aHeight, 1, format){}
 Texture::Texture(int aWidth, int aHeight, int aDepth, Format format):
 m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
-    if(format.m_internal_format == -1){ format.m_internal_format = GL_RGBA; }
-    m_impl->m_internal_format = format.m_internal_format;
-    m_impl->m_target = format.m_target;
-    m_impl->m_datatype = format.m_datatype;
+    m_impl->m_internal_format = format.internal_format;
+    m_impl->m_target = format.target;
+    m_impl->m_datatype = format.datatype;
     init(nullptr, GL_RGBA, format);
 }
 
@@ -101,10 +66,10 @@ Texture::Texture(const void *data, int dataFormat, int aWidth, int aHeight, int 
                  Format format)
 : m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
-    if(format.m_internal_format == -1){ format.m_internal_format = GL_RGBA; }
-    m_impl->m_internal_format = format.m_internal_format;
-    m_impl->m_target = format.m_target;
-    m_impl->m_datatype = format.m_datatype;
+    if(format.internal_format == -1){ format.internal_format = GL_RGBA; }
+    m_impl->m_internal_format = format.internal_format;
+    m_impl->m_target = format.target;
+    m_impl->m_datatype = format.datatype;
     init(data, dataFormat, format);
 }
 
@@ -125,16 +90,16 @@ m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 void Texture::init(const void *data, GLint dataFormat, const Format &format)
 {
     m_impl->m_do_not_dispose = false;
-    m_impl->m_datatype = format.m_datatype;
+    m_impl->m_datatype = format.datatype;
     
     if(!m_impl->m_texture_id)
     {
         glGenTextures(1, &m_impl->m_texture_id);
         glBindTexture(m_impl->m_target, m_impl->m_texture_id);
-        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_S, format.m_wrap_s);
-        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_T, format.m_wrap_t);
-        glTexParameteri(m_impl->m_target, GL_TEXTURE_MIN_FILTER, format.m_min_filter);
-        glTexParameteri(m_impl->m_target, GL_TEXTURE_MAG_FILTER, format.m_mag_filter);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_S, format.wrap_s);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_T, format.wrap_t);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_MIN_FILTER, format.min_filter);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_MAG_FILTER, format.mag_filter);
         KINSKI_CHECK_GL_ERRORS();
     }
     else{ glBindTexture(m_impl->m_target, m_impl->m_texture_id); }
@@ -151,7 +116,7 @@ void Texture::init(const void *data, GLint dataFormat, const Format &format)
 #if !defined(KINSKI_GLES_2)
     else if (m_impl->m_target == GL_TEXTURE_CUBE_MAP)
     {
-        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_R, format.m_wrap_t);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_R, format.wrap_t);
         
         for (GLuint i = 0; i < 6; ++i)
         {
@@ -173,7 +138,7 @@ void Texture::init(const void *data, GLint dataFormat, const Format &format)
     KINSKI_CHECK_GL_ERRORS();
 #endif
     
-    if(format.m_mipmapping){ glGenerateMipmap(m_impl->m_target); }
+    if(format.mipmapping){ glGenerateMipmap(m_impl->m_target); }
     
 #ifndef KINSKI_GLES
     if(m_impl->m_target == GL_TEXTURE_2D &&
@@ -220,7 +185,7 @@ void Texture::update(const void *data, GLenum data_type, GLenum data_format, int
         m_impl->m_width = theWidth;
         m_impl->m_height = theHeight;
         Format f;
-        f.m_datatype = data_type;
+        f.datatype = data_type;
         init(data, data_format, f);
     }
 }
