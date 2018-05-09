@@ -66,7 +66,6 @@ Texture::Texture(const void *data, int dataFormat, int aWidth, int aHeight, int 
                  Format format)
 : m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
-    if(format.internal_format == -1){ format.internal_format = GL_RGBA; }
     m_impl->m_internal_format = format.internal_format;
     m_impl->m_target = format.target;
     m_impl->m_datatype = format.datatype;
