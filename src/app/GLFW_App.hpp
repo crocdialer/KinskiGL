@@ -75,7 +75,8 @@ namespace kinski
         
         GLFW_App(int argc = 0, char *argv[] = nullptr);
         virtual ~GLFW_App();
-        
+
+        void post_draw() override;
         void set_window_size(const glm::vec2 &size) override;
         void set_window_title(const std::string &the_title) override;
         void swap_buffers() override;

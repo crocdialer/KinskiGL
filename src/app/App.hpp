@@ -70,6 +70,7 @@ namespace kinski
         virtual void setup() = 0;
         virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
+        virtual void post_draw(){};
         virtual void teardown() = 0;
         virtual double get_application_time() = 0;
         

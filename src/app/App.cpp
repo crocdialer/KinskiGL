@@ -86,6 +86,9 @@ int App::run()
         // perform fps-timing
         timing(time_stamp);
 
+        // post draw hook
+        post_draw();
+
         // Check if ESC key was pressed or window was closed or whatever
         m_running = is_running();
 

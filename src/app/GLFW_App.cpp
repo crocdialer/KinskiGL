@@ -313,6 +313,11 @@ namespace kinski
         for(auto &w : m_windows){ w->draw(); }
     }
 
+    void GLFW_App::post_draw()
+    {
+        ImGui::EndFrame();
+    }
+
     bool GLFW_App::is_running()
     {
         for(uint32_t i = 0; i < m_windows.size(); i++)
@@ -446,7 +451,7 @@ namespace kinski
                     ImGui::Render();
                     ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
                 }
-                else{ ImGui::EndFrame(); }
+//                else{ ImGui::EndFrame(); }
             });
         }
 
