@@ -57,7 +57,8 @@ namespace kinski
         Property_<float>::Ptr
         m_playback_speed = Property_<float>::create("playback speed", 1.f),
         m_volume = RangedProperty<float>::create("volume", 1.f, 0.f , 1.f),
-        m_brightness = RangedProperty<float>::create("brightness", 1.f, 0.f , 2.f);
+        m_brightness = RangedProperty<float>::create("brightness", 1.f, 0.f , 2.f),
+        m_gamma = RangedProperty<float>::create("gamma", 1.f, 0.f , 4.f);
         
         Property_<int>::Ptr
         m_broadcast_port = Property_<int>::create("discovery broadcast port", 55555);

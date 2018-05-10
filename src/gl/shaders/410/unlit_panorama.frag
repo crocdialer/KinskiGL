@@ -3,6 +3,7 @@
 #define ONE_OVER_PI	0.3183098861837907
 
 uniform sampler2D u_sampler_2D[1];
+#define COLOR 0
 
 struct Material
 {
@@ -29,7 +30,7 @@ in VertexData
 
 out vec4 fragData;
 
-// map normalized direction to panorama texture coordinate
+// map normalized direction to equirectangular texture coordinate
 vec2 panorama(vec3 ray)
 {
 	return vec2(0.5 + 0.5 * atan(ray.x, -ray.z) * ONE_OVER_PI, acos(ray.y) * ONE_OVER_PI);
@@ -37,5 +38,5 @@ vec2 panorama(vec3 ray)
 
 void main()
 {
-    fragData = texture(u_sampler_2D[0], panorama(normalize(vertex_in.eyeVec)));
+    fragData = texture(u_sampler_2D[COLOR], panorama(normalize(vertex_in.eyeVec)));
 }

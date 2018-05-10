@@ -198,13 +198,14 @@ KINSKI_API void draw_points_2D(const std::vector<vec2> &the_points, gl::Color th
                                float the_point_size = 1.f);
 KINSKI_API void draw_points(const std::vector<vec3> &the_points, const MaterialPtr &theMaterial,
                             float the_point_size = 1.f);
-KINSKI_API void draw_texture(const gl::Texture &theTexture, const vec2 &theSize,
-                             const vec2 &theTopLeft = vec2(0), const float the_brightness = 1.f);
+KINSKI_API void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft = vec2(0),
+                             const float the_brightness = 1.f, const float the_gamma = 1.f);
 KINSKI_API void draw_texture_with_mask(const gl::Texture &the_texture,
                                        const gl::Texture &the_mask,
                                        const vec2 &theSize,
                                        const vec2 &theTopLeft = vec2(0),
-                                       const float the_brightness = 1.f);
+                                       const float the_brightness = 1.f,
+                                       const float the_gamma = 1.f);
 KINSKI_API void draw_quad(const vec2 &the_size, const MaterialPtr &the_material,
                           const vec2 &the_topleft = vec2(0), bool fill = true);
 KINSKI_API void draw_quad(const vec2 &the_size, const Color &the_color,

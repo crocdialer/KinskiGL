@@ -1,7 +1,10 @@
 #version 410
 
 uniform int u_numTextures;
+uniform float u_gamma = 1.0;
+
 uniform sampler2D u_sampler_2D[1];
+#define COLOR 0
 
 struct Material
 {
@@ -32,7 +35,7 @@ out vec4 fragData;
 void main()
 {
   vec4 texColors = vertex_in.color;
-  if(u_numTextures > 0)
-    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st);
+  if(u_numTextures > 0){ texColors *= texture(u_sampler_2D[COLOR], vertex_in.texCoord.st); }
   fragData = u_material.diffuse * texColors;
+  if(u_gamma != 1.0){ fragData.rgb = pow(fragData.rgb, vec3(1.0 / u_gamma)); }
 }

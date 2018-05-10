@@ -662,7 +662,7 @@ namespace kinski { namespace gl {
 ///////////////////////////////////////////////////////////////////////////////
 
     void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft,
-                      const float the_brightness)
+                      const float the_brightness, const float the_gamma)
     {
         static gl::MaterialPtr material;
 
@@ -700,6 +700,7 @@ namespace kinski { namespace gl {
             LOG_ERROR << "drawTexture: texture target not supported";
             return;
         }
+        material->uniform("u_gamma", the_gamma);
 #endif
         // add the texture to the material
         material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
@@ -717,7 +718,8 @@ namespace kinski { namespace gl {
                                 const gl::Texture &the_mask,
                                 const vec2 &theSize,
                                 const vec2 &theTopLeft,
-                                const float the_brightness)
+                                const float the_brightness,
+                                const float the_gamma)
     {
         static gl::MaterialPtr material;
 
@@ -738,6 +740,7 @@ namespace kinski { namespace gl {
         material->add_texture(the_texture);
         material->add_texture(the_mask, Texture::Usage::MASK);
         material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
+        material->uniform("u_gamma", the_gamma);
 
         vec2 sz = theSize;
         // flip to OpenGL coords
