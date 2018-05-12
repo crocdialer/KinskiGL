@@ -289,10 +289,9 @@ namespace kinski { namespace gl {
         
         // create data
         size_t num_bytes = img->width * img->height * 2;
-        uint8_t *luminance_alpha_data = new uint8_t[num_bytes];
-        uint8_t
-        *src_ptr = img->data,
-        *out_ptr = luminance_alpha_data, *data_end = luminance_alpha_data + num_bytes;
+        auto luminance_alpha_data = std::unique_ptr<uint8_t[]>(new uint8_t[num_bytes]);
+        uint8_t *src_ptr = img->data();
+        uint8_t *out_ptr = luminance_alpha_data.get(), *data_end = luminance_alpha_data + num_bytes;
         
         for (; out_ptr < data_end; out_ptr += 2, ++src_ptr)
         {
@@ -302,11 +301,9 @@ namespace kinski { namespace gl {
         
         // create a new texture object
         gl::Texture::Format fmt;
-        fmt.set_internal_format(tex_format);
-        ret = gl::Texture(luminance_alpha_data, tex_format, img->width, img->height, fmt);
+        fmt.internal_format = tex_format;
+        ret = gl::Texture(luminance_alpha_data.get(), tex_format, img->width, img->height, fmt);
         ret.set_flipped();
-//        ret.set_mipmapping(true);
-        delete [](luminance_alpha_data);
 #else
         ret = create_texture_from_image(img, false);
         ret.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
