@@ -54,4 +54,20 @@ class EGL_App : public App
     Timer m_timer_device_scan;
 };
 
+//TODO: find a cleaner solution to crossplattform happiness
+namespace gui
+{
+//! draw a kinski::Component using ImGui
+void draw_component_ui(const ComponentConstPtr &the_component){}
+
+void draw_textures_ui(const std::vector<gl::Texture> &the_textures){}
+
+void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights){}
+
+void draw_material_ui(const gl::MaterialPtr &the_mat){}
+void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials){}
+
+void draw_mesh_ui(const gl::MeshPtr &the_mesh){}
+}
+
 }

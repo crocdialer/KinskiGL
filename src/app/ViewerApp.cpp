@@ -124,9 +124,10 @@ namespace kinski {
         outstream_gl().set_font(fonts()[0]);
 
         // ImGui Font
+#if !defined(KINSKI_GLES_2)
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF(font_path.c_str(), 14);
-
+#endif
         gl::ShaderPtr unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
         for (int i = 0; i < 8; i++)
