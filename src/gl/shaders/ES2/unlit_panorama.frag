@@ -1,7 +1,7 @@
 precision mediump float;
 precision lowp int;
 
-#define ONE_OVER_PI	0.3183098861837907
+#define ONE_OVER_PI 0.31830988618379067153776752674503
 
 uniform sampler2D u_sampler_2D[1];
 #define COLOR 0
@@ -18,8 +18,6 @@ struct Material
 };
 uniform Material u_material;
 
-varying vec4 v_texCoord;
-varying vec3 v_normal;
 varying vec3 v_eyeVec;
 
 // map normalized direction to equirectangular texture coordinate

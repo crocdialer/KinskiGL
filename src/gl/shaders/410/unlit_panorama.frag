@@ -1,6 +1,6 @@
 #version 410
 
-#define ONE_OVER_PI	0.3183098861837907
+#define ONE_OVER_PI 0.31830988618379067153776752674503
 
 uniform sampler2D u_sampler_2D[1];
 #define COLOR 0
