@@ -159,20 +159,24 @@ namespace kinski { namespace gl {
         
         auto mat = gl::Material::create();
         mat->set_culling(gl::Material::CULL_FRONT);
-        mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_CUBE));
         m_skybox = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
 
         switch(t.target())
         {
             case GL_TEXTURE_CUBE_MAP:
                 LOG_DEBUG << "adding cubical skybox";
+                mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_CUBE));
                 mat->add_texture(t, Texture::Usage::ENVIROMENT);
                 break;
             case GL_TEXTURE_2D:
                 LOG_DEBUG << "adding panorama skybox";
-//                mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_PANORAMA));
-//                mat->add_texture(t, Texture::Usage::ENVIROMENT);
+#ifdef KINSKI_GLES_2
+                mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_PANORAMA));
+                mat->add_texture(t, Texture::Usage::ENVIROMENT);
+#else
+                mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_CUBE));
                 mat->add_texture(gl::create_cube_texture_from_panorama(t, 1024, true, true), Texture::Usage::ENVIROMENT);
+#endif
                 break;
             default:
                 break;
