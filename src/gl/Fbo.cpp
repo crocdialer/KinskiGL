@@ -191,10 +191,10 @@ Fbo::Format::Format()
 {
 	target = GL_TEXTURE_2D;
 #if defined(KINSKI_GLES_2)
-	m_color_internal_format = GL_RGBA;
-	m_depth_internal_format = GL_ENUM(GL_DEPTH_COMPONENT24);
-    m_stencil_internal_format = GL_STENCIL_INDEX8;
-	m_depth_buffer_texture = false;
+    color_internal_format = GL_RGBA;
+	depth_internal_format = GL_ENUM(GL_DEPTH_COMPONENT24);
+    stencil_internal_format = GL_STENCIL_INDEX8;
+	depth_buffer_texture = false;
 #else
 	color_internal_format = GL_RGBA8;
     depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
