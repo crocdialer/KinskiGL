@@ -32,9 +32,10 @@ the basic library-structure:
     * drawing utilities
     * geometric primitives, ray-casting
     * scenegraph, forward/deferred rendering paths
-    * physically based lights and materials
-    * post-fx
-    * output warping
+    * physically based lights and materials (PBR)
+    * image based lighting using HDR cubemaps or panoramas (IBL)
+    * post-fx (FXAA, Depth-of-Field)
+    * output warping (a.k.a. projection mapping)
 
 * app
 
