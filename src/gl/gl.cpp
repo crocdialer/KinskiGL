@@ -1465,7 +1465,9 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     {
         static auto mat = gl::Material::create();
         gl::apply_material(mat, true);
+#if !defined(KINSKI_GLES_2)
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+#endif
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1901,15 +1903,18 @@ Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bo
 
 ImagePtr create_image_from_texture(const gl::Texture &the_texture)
 {
-    if(!the_texture){ return ImagePtr(); }
-#if !defined(KINSKI_GLES)
-    auto ret = Image_<uint8_t >::create(the_texture.width(), the_texture.height(), 4);
-    the_texture.bind();
-    glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data());
-    ret->flip();
-    ret->m_type = Image::Type::RGBA;
-#endif
-    return ret;
+    if(the_texture)
+    {
+        //#if !defined(KINSKI_GLES)
+        auto ret = Image_<uint8_t >::create(the_texture.width(), the_texture.height(), 4);
+        the_texture.bind();
+        glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data());
+        ret->flip();
+        ret->m_type = Image::Type::RGBA;
+        return ret;
+        //#endif
+    }
+    return nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2014,6 +2019,7 @@ gl::Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_pla
 gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, size_t the_size, bool mipmap,
                                               bool compress)
 {
+#if !defined(KINSKI_GLES_2)
     if(!the_panorama || the_panorama.target() != GL_TEXTURE_2D)
     {
         LOG_WARNING << "could not convert panorma to cubemap";
@@ -2085,6 +2091,8 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
         return ret;
     }
     return cube_tex;
+#endif
+    return Texture();
 }
 
 }}//namespace
