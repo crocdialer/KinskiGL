@@ -302,7 +302,7 @@ namespace kinski { namespace gl {
         // create a new texture object
         gl::Texture::Format fmt;
         fmt.internal_format = tex_format;
-        ret = gl::Texture(luminance_alpha_data.get(), tex_format, img->width, img->height, fmt);
+        ret = gl::Texture(luminance_alpha_data.get(), tex_format, img->width(), img->height(), fmt);
         ret.set_flipped();
 #else
         ret = create_texture_from_image(img, false);
