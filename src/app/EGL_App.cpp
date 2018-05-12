@@ -658,3 +658,20 @@ int32_t code_lookup(int32_t the_keycode)
     if(!ret){ ret = the_keycode; }
     return ret;
 }
+
+namespace gui
+{
+//! draw a kinski::Component using ImGui
+void draw_component_ui(const ComponentConstPtr &the_component){}
+
+void draw_textures_ui(const std::vector<gl::Texture> &the_textures){}
+
+void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights){}
+
+void draw_material_ui(const gl::MaterialPtr &the_mat){}
+void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials){}
+
+void draw_mesh_ui(const gl::MeshPtr &the_mesh){}
+}
+
+}
