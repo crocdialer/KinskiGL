@@ -30,7 +30,7 @@ DeferredRenderer::DeferredRenderer()
 
 void DeferredRenderer::init()
 {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
     std::string glsl_version = "#version 410 core";
 
     // default lighting
@@ -133,7 +133,7 @@ void DeferredRenderer::init()
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
 
     if(!m_mat_lighting){ init(); }
 
@@ -186,7 +186,7 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
 
 void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin)
 {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
 
     if(!m_fbo_geometry || m_fbo_geometry->size() != the_size)
     {
@@ -252,7 +252,7 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
 
 void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin)
 {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
 
     if(!m_fbo_lighting || m_fbo_lighting->size() != m_fbo_geometry->size())
     {
@@ -312,7 +312,7 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
 gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbin,
                                                 const gl::LightPtr &l)
 {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
     auto shadow_cam = gl::create_shadow_camera(l, l->radius());
     auto bin = cull(the_renderbin->scene, shadow_cam);
     std::list<RenderBin::item> opaque_items, blended_items;
@@ -394,6 +394,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
 
 void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, bool stencil_pass)
 {
+#if !defined(KINSKI_GLES_2)
     gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
     gl::set_projection(the_renderbin->camera);
 
@@ -485,12 +486,14 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             gl::draw_mesh(m_frustum_mesh);
         }
     }
+#endif
 }
     
 ///////////////////////////////////////////////////////////////////////////////
     
 gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 {
+#if !defined(KINSKI_GLES_2)
     auto task = Task::create("cubemap diffuse convolution");
     constexpr uint32_t conv_size = 32;
     constexpr GLenum data_type = GL_FLOAT;
@@ -521,12 +524,15 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
     KINSKI_CHECK_GL_ERRORS();
 
     return cube_tex;
+#endif
+    return gl::Texture();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
     
 gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 {
+#if !defined(KINSKI_GLES_2)
     auto task = Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 256;
     constexpr uint32_t num_color_components = 3;
@@ -599,12 +605,15 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
     }
     ret.set_mag_filter(GL_LINEAR);
     return ret;
+#endif
+    return gl::Texture();
 }
     
 ///////////////////////////////////////////////////////////////////////////////
 
 gl::Texture DeferredRenderer::create_brdf_lut()
 {
+#if !defined(KINSKI_GLES_2)
     auto task = Task::create("BRDF-lut baking");
     constexpr uint32_t tex_size = 512;
     gl::Fbo::Format fmt;
@@ -620,6 +629,7 @@ gl::Texture DeferredRenderer::create_brdf_lut()
         gl::draw_quad(gl::window_dimension(), mat);
     });
     return ret;
+#return gl::Texture();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
