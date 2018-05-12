@@ -288,7 +288,7 @@ namespace kinski { namespace gl {
         GLint tex_format = GL_LUMINANCE_ALPHA;
         
         // create data
-        size_t num_bytes = img->width * img->height * 2;
+        size_t num_bytes = img->width() * img->height() * 2;
         auto luminance_alpha_data = std::unique_ptr<uint8_t[]>(new uint8_t[num_bytes]);
         uint8_t *src_ptr = img->data();
         uint8_t *out_ptr = luminance_alpha_data.get(), *data_end = luminance_alpha_data + num_bytes;
