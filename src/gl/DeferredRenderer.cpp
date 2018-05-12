@@ -629,7 +629,8 @@ gl::Texture DeferredRenderer::create_brdf_lut()
         gl::draw_quad(gl::window_dimension(), mat);
     });
     return ret;
-#return gl::Texture();
+#endif
+    return gl::Texture();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

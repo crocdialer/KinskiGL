@@ -18,6 +18,7 @@ namespace kinski { namespace gl {
 
 gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, GLenum the_datatype)
 {
+#if !defined(KINSKI_GLES_2)
     uint32_t cube_sz = the_width;
     gl::Fbo::Format fbo_fmt;
     fbo_fmt.num_color_buffers = 0;
@@ -48,6 +49,8 @@ gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, G
         fbo->add_attachment(cube_tex, 0);
     }
     return fbo;
+#endif
+    return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,10 +305,11 @@ void Fbo::init()
 #if defined(KINSKI_GLES_2)
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, target()
                                  m_impl->m_color_textures[c].id(), 0);
-#endif
+#else
 			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c,
                                    m_impl->m_color_textures[c].id(), 0);
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
+#endif
 		}
 #if !defined(KINSKI_GLES_2)
         if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
