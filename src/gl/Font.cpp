@@ -202,11 +202,10 @@ namespace kinski { namespace gl {
             GLint tex_format = GL_LUMINANCE_ALPHA;
             
             // create data
-            size_t num_bytes = m_impl->bitmap->width * m_impl->bitmap->height * 2;
-            uint8_t *luminance_alpha_data = new uint8_t[num_bytes];
-            uint8_t
-            *src_ptr = m_impl->bitmap->data,
-            *out_ptr = luminance_alpha_data, *data_end = luminance_alpha_data + num_bytes;
+            size_t num_bytes = m_impl->bitmap->width() * m_impl->bitmap->height() * 2;
+            auto luminance_alpha_data = std::unique_ptr<uint8_t>(new uint8_t[num_bytes]);
+            uint8_t *src_ptr = m_impl->bitmap->data();
+            *out_ptr = luminance_alpha_data.get(), *data_end = luminance_alpha_data.get() + num_bytes;
             
             for (; out_ptr < data_end; out_ptr += 2, ++src_ptr)
             {
@@ -216,12 +215,11 @@ namespace kinski { namespace gl {
             
             // create a new texture object for our glyphs
             gl::Texture::Format fmt;
-            fmt.set_internal_format(tex_format);
-            m_impl->texture = gl::Texture(luminance_alpha_data, tex_format, m_impl->bitmap->width,
-                                         m_impl->bitmap->height, fmt);
+            fmt.internal_format = tex_format;
+            m_impl->texture = gl::Texture(luminance_alpha_data.get(), tex_format, m_impl->bitmap->width(),
+                                         m_impl->bitmap->height(), fmt);
             m_impl->texture.set_flipped();
             m_impl->texture.set_mipmapping(true);
-            delete [](luminance_alpha_data);
 #else
             m_impl->texture = create_texture_from_image(m_impl->bitmap, true);
             m_impl->texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
