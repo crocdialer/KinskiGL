@@ -91,9 +91,7 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     float D = D_GGX(nDotH, roughness);
     float Vis = Vis_schlick(nDotL, nDotV, roughness);
     vec3 Ir = light.diffuse.rgb * light.intensity;
-
     vec3 diffuse = BRDF_Lambertian(base_color.rgb, metalness);
     vec3 specular = F * D * Vis;
-    // return vec4(ambient + (diffuse + specular) * nDotL * Ir * att, 1.0);
     return vec4((diffuse + specular) * nDotL * Ir * att, 1.0);
 }

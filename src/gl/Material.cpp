@@ -46,7 +46,6 @@ namespace kinski { namespace gl {
     m_cull_value(CULL_BACK),
     m_shadow_properties(SHADOW_CAST | SHADOW_RECEIVE),
     m_diffuse(Color(1)),
-    m_ambient(Color(1)),
     m_emission(gl::COLOR_BLACK),
     m_metalness(0.f),
     m_roughness(.8f),
@@ -84,12 +83,6 @@ namespace kinski { namespace gl {
     void Material::set_diffuse(const Color &theColor)
     {
         m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
-        m_dirty_uniform_buffer = true;
-    }
-    
-    void Material::set_ambient(const Color &theColor)
-    {
-        m_ambient = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_dirty_uniform_buffer = true;
     }
     
@@ -222,7 +215,6 @@ namespace kinski { namespace gl {
         struct material_struct_std140
         {
             vec4 diffuse;
-            vec4 ambient;
             vec4 emission;
             vec4 point_vals;
             float metalness;
@@ -237,7 +229,6 @@ namespace kinski { namespace gl {
         {
             material_struct_std140 m;
             m.diffuse = m_diffuse;
-            m.ambient = m_ambient;
             m.emission = m_emission;
             m.point_vals[0] = m_point_size;
             m.point_vals[1] = m_point_attenuation.constant;
@@ -259,7 +250,6 @@ namespace kinski { namespace gl {
         if(m_dirty_uniform_buffer)
         {
             m_uniforms["u_material.diffuse"] = m_diffuse;
-            m_uniforms["u_material.ambient"] = m_ambient;
             m_uniforms["u_material.emmission"] = m_emission;
             m_uniforms["u_metalness"] = m_metalness;
             m_uniforms["u_roughness"] = m_roughness;

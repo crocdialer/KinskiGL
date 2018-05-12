@@ -7,13 +7,14 @@ uniform vec3 u_lightDir;
 struct Material
 {
     vec4 diffuse;
-    vec4 ambient;
     vec4 emission;
     vec4 point_vals;// (size, constant_att, linear_att, quad_att)
     float metalness;
     float roughness;
+    float occlusion;
     int shadow_properties;
-}; 
+    int texture_properties;
+};
 uniform Material u_material;
 
 varying vec3 v_normal;

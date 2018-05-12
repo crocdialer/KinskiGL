@@ -313,7 +313,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &c))
     {
-        theMaterial->set_ambient(aicolor_convert(c));
+        // got rid of constant ambient
     }
     
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &c))
