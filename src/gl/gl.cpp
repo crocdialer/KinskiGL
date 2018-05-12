@@ -94,11 +94,10 @@ namespace kinski { namespace gl {
 
     uint32_t Context::create_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader)
     {
+#ifndef KINSKI_NO_VAO
         auto key = vao_map_key_t(the_geom.get(), the_shader.get());
         vao_map_t& vao_map = m_impl->m_vao_maps[m_impl->m_current_context_id];
         auto it = vao_map.find(key);
-
-#ifndef KINSKI_NO_VAO
 
         // delete old vao
         if(it != vao_map.end()){ GL_SUFFIX(glDeleteVertexArrays)(1, &it->second); }
