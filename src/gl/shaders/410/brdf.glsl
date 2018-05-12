@@ -73,7 +73,7 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
         float dist2 = dot(lightDir, lightDir);
         float v = dist2 / (light.radius * light.radius);
         v = clamp(1.f - v * v, 0.f, 1.f);
-        att *= light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation);
+        att *= v * v / (1.f + dist2 * light.quadraticAttenuation);
 
         if(light.type > 1)
         {
@@ -90,7 +90,7 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     vec3 F = F_schlick(f0, lDotH);
     float D = D_GGX(nDotH, roughness);
     float Vis = Vis_schlick(nDotL, nDotV, roughness);
-    vec3 Ir = light.diffuse.rgb;
+    vec3 Ir = light.diffuse.rgb * light.intensity;
 
     vec3 diffuse = BRDF_Lambertian(base_color.rgb, metalness);
     vec3 specular = F * D * Vis;
