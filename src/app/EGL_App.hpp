@@ -29,6 +29,8 @@ class EGL_App : public App
     void set_cursor_position(float x, float y) override;
     gl::vec2 cursor_position() const override;
 
+    void teardown() override{};
+
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
     gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
 
