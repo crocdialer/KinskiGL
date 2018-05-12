@@ -303,7 +303,7 @@ void Fbo::init()
 		for(size_t c = 0; c < m_impl->m_color_textures.size(); ++c)
         {
 #if defined(KINSKI_GLES_2)
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, target()
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, target(),
                                  m_impl->m_color_textures[c].id(), 0);
 #else
 			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c,
