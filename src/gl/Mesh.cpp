@@ -65,7 +65,7 @@ m_boneWeightsLocationName("a_boneWeights")
 
 Mesh::~Mesh()
 {
-
+    for(auto &mat : materials()){ gl::context()->clear_vao(geometry(), mat->shader()); }
 }
 
 void Mesh::create_vertex_attribs(bool recreate)

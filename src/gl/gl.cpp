@@ -111,6 +111,13 @@ namespace kinski { namespace gl {
         return 0;
     }
 
+    uint32_t Context::clear_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader)
+    {
+        auto key = vao_map_key_t(the_geom.get(), the_shader.get());
+        vao_map_t& vao_map = m_impl->m_vao_maps[m_impl->m_current_context_id];
+        vao_map.erase(key);
+    }
+
     uint32_t Context::get_fbo(const gl::Fbo* the_fbo, uint32_t the_index)
     {
         auto key = fbo_map_key_t(the_fbo, the_index);
