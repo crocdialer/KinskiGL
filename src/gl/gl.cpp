@@ -1903,17 +1903,18 @@ Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bo
 
 ImagePtr create_image_from_texture(const gl::Texture &the_texture)
 {
+#if !defined(KINSKI_GLES)
     if(the_texture)
     {
-        //#if !defined(KINSKI_GLES)
+
         auto ret = Image_<uint8_t >::create(the_texture.width(), the_texture.height(), 4);
         the_texture.bind();
         glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data());
         ret->flip();
         ret->m_type = Image::Type::RGBA;
         return ret;
-        //#endif
     }
+#endif
     return nullptr;
 }
 
