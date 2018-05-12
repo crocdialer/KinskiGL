@@ -1655,6 +1655,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     frag_src = unlit_frag;
                     break;
 
+                case ShaderType::UNLIT_PANORAMA:
+                    vert_src = unlit_cube_vert;
+                    frag_src = unlit_panorama_frag;
+                    break;
+                    
                 case ShaderType::GOURAUD:
                     vert_src = gouraud_vert;
                     frag_src = gouraud_frag;
@@ -1686,11 +1691,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 case ShaderType::UNLIT_CUBE:
                     vert_src = unlit_cube_vert;
                     frag_src = unlit_cube_frag;
-                    break;
-
-                case ShaderType::UNLIT_PANORAMA:
-                    vert_src = unlit_cube_vert;
-                    frag_src = unlit_panorama_frag;
                     break;
 
                 case ShaderType::RESOLVE:
