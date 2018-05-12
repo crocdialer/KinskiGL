@@ -205,7 +205,7 @@ namespace kinski { namespace gl {
             size_t num_bytes = m_impl->bitmap->width() * m_impl->bitmap->height() * 2;
             auto luminance_alpha_data = std::unique_ptr<uint8_t>(new uint8_t[num_bytes]);
             uint8_t *src_ptr = static_cast<uint8_t*>(m_impl->bitmap->data());
-            *out_ptr = luminance_alpha_data.get(), *data_end = luminance_alpha_data.get() + num_bytes;
+            uint8_t *out_ptr = luminance_alpha_data.get(), *data_end = luminance_alpha_data.get() + num_bytes;
             
             for (; out_ptr < data_end; out_ptr += 2, ++src_ptr)
             {
