@@ -370,7 +370,9 @@ void Texture::set_mipmapping(bool b)
         if(b && !m_impl->m_mip_map)
         {
             bind();
+#if !defined(KINSKI_GLES_2)
             if(m_impl->m_target == GL_TEXTURE_CUBE_MAP){ glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); }
+#endif
             glGenerateMipmap(m_impl->m_target);
             set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
             KINSKI_CHECK_GL_ERRORS();
@@ -398,7 +400,7 @@ bool Texture::has_alpha() const
     
 	switch(m_impl->m_internal_format)
     {
-#if ! defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES)
 		case GL_RGBA8:
 		case GL_RGBA16:
 		case GL_RGBA32F:
