@@ -109,6 +109,7 @@ public:
 
     uint32_t get_fbo(const gl::Fbo* the_fbo, uint32_t the_index);
     uint32_t create_fbo(const gl::Fbo* the_fbo, uint32_t the_index);
+    void clear_fbo(const gl::Fbo* the_fbo, uint32_t the_index);
     void clear_assets_for_context(void* the_context_id);
 
 private:

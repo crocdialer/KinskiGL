@@ -143,6 +143,18 @@ namespace kinski { namespace gl {
         return fbo_id;
     }
 
+    void Context::clear_fbo(const gl::Fbo* the_fbo, uint32_t the_index)
+    {
+        auto key = fbo_map_key_t(the_fbo, the_index);
+        fbo_map_t &fbo_map = m_impl->m_fbo_maps[m_impl->m_current_context_id];
+        auto it = fbo_map.find(key);
+
+        // delete fbo
+        if(it != fbo_map.end()){ glDeleteFramebuffers(1, &it->second); }
+
+        fbo_map.erase(key);
+    }
+
     void Context::clear_assets_for_context(void* the_context_id)
     {
         m_impl->m_vao_maps.erase(the_context_id);

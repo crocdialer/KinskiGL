@@ -224,11 +224,8 @@ Fbo::Format::Format()
 
 Fbo::~Fbo()
 {
-    uint32_t fbo_id = gl::context()->get_fbo(this, 0);
-    uint32_t resolve_fbo_id = gl::context()->get_fbo(this, 1);
-
-    if(fbo_id){ glDeleteFramebuffers(1, &fbo_id); }
-    if(resolve_fbo_id){ glDeleteFramebuffers(1, &resolve_fbo_id); }
+    gl::context()->clear_fbo(this, 0);
+    gl::context()->clear_fbo(this, 1);
 }
 
 FboPtr Fbo::create(uint32_t width, uint32_t height, Format format)

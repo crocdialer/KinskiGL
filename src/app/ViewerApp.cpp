@@ -260,9 +260,9 @@ namespace kinski {
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
                                                                  glm::radians(-mouseDiff.x), 0)));
 
+                m_drag_buffer.push_back(glm::vec2(e.getX(), e.getY()) - m_dragPos);
+                m_dragPos = glm::vec2(e.getX(), e.getY());
             }
-            m_drag_buffer.push_back(glm::vec2(e.getX(), e.getY()) - m_dragPos);
-            m_dragPos = glm::vec2(e.getX(), e.getY());
         }
         else if(e.isRight())
         {
