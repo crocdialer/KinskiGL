@@ -105,7 +105,7 @@ public:
 
     uint32_t get_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
     uint32_t create_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
-    uint32_t clear_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
+    void clear_vao(const gl::GeometryPtr &the_geom, const gl::ShaderPtr &the_shader);
 
     uint32_t get_fbo(const gl::Fbo* the_fbo, uint32_t the_index);
     uint32_t create_fbo(const gl::Fbo* the_fbo, uint32_t the_index);
