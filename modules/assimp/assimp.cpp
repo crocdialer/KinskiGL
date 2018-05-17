@@ -345,8 +345,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         theMaterial->set_two_sided(two_sided);
 
 
-    auto enqueue_tex_image = [the_scene, &theMaterial, the_img_map](const std::string the_path,
-                                                                    gl::Texture::Usage the_type)
+    auto create_tex_image = [the_scene, the_img_map](const std::string the_path) -> ImagePtr
     {
         ImagePtr img;
 
@@ -371,82 +370,92 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
             else{ img = kinski::create_image_from_file(the_path); }
         }
         if(the_img_map){ (*the_img_map)[the_path] = img; }
-        theMaterial->enqueue_texture(the_path, img, (uint32_t)the_type);
+        return img;
     };
     
-    bool has_ao_map = false;
+    std::string ao_map_path;
     
     // DIFFUSE
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE), 0, &path_buf))
     {
         LOG_TRACE << "adding color map: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::COLOR);
+        theMaterial->enqueue_texture(path_buf.data, create_tex_image(path_buf.data),
+                                     (uint32_t)gl::Texture::Usage::COLOR);
     }
     
     // EMISSION
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_EMISSIVE), 0, &path_buf))
     {
         LOG_TRACE << "adding emission map: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::EMISSION);
+        theMaterial->enqueue_texture(path_buf.data, create_tex_image(path_buf.data),
+                                     (uint32_t)gl::Texture::Usage::EMISSION);
     }
 
     // ambient occlusion or lightmap
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_LIGHTMAP), 0, &path_buf))
     {
-        LOG_WARNING << "ignoring dedicated ambient occlusion map(use AO/METAL/ROUGH instead): '" << path_buf.data << "'";
-        has_ao_map = true;
+        LOG_TRACE << "adding ambient occlusion map: '" << path_buf.data << "'";
+        ao_map_path = path_buf.data;
     }
 
     // SHINYNESS
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SPECULAR), 0, &path_buf))
     {
         LOG_TRACE << "adding spec/roughness map: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::SPECULAR);
+        theMaterial->enqueue_texture(path_buf.data, create_tex_image(path_buf.data),
+                                     (uint32_t)gl::Texture::Usage::SPECULAR);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &path_buf))
     {
         LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::NORMAL);
+        theMaterial->enqueue_texture(path_buf.data, create_tex_image(path_buf.data),
+                                     (uint32_t)gl::Texture::Usage::NORMAL);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DISPLACEMENT), 0, &path_buf))
     {
         LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::NORMAL);
+        theMaterial->enqueue_texture(path_buf.data, create_tex_image(path_buf.data),
+                                     (uint32_t)gl::Texture::Usage::NORMAL);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_HEIGHT), 0, &path_buf))
     {
         LOG_TRACE << "adding normalmap: '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::NORMAL);
+        theMaterial->enqueue_texture(path_buf.data, create_tex_image(path_buf.data),
+                                     (uint32_t)gl::Texture::Usage::NORMAL);
     }
 
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_UNKNOWN), 0, &path_buf))
     {
         LOG_TRACE << "unknown texture usage (assuming AO/ROUGHNESS/METAL ): '" << path_buf.data << "'";
-        enqueue_tex_image(path_buf.data, gl::Texture::Usage::AO_ROUGHNESS_METAL);
-    }
-    
-    //TODO: remove tmp-fix for AO juggle, if more elegant solution is found
-    auto tex_type = gl::Texture::Usage::AO_ROUGHNESS_METAL;
-    if(!has_ao_map && theMaterial->has_texture(tex_type))
-    {
-        // get queued image
-        ImagePtr img;
-        for(auto &p : theMaterial->queued_textures())
+        auto ao_rough_metal_img = create_tex_image(path_buf.data);
+        constexpr size_t ao_offset = 0;
+        uint8_t *dst = (uint8_t*)ao_rough_metal_img->data(), *dst_end = dst + ao_rough_metal_img->num_bytes();
+
+        // there was no texture data for AO -> generate default data
+        if(ao_map_path.empty())
         {
-            if(p.second.key == (uint32_t)tex_type){ img = p.second.image; break; }
+            for(;dst < dst_end; dst += ao_rough_metal_img->num_components()){ dst[ao_offset] = 255; }
         }
-        
-        // overwrite AO channel with white
-        if(img)
+        // there was texture data for AO in a separate map -> combine
+        else if(ao_map_path != path_buf.data)
         {
-            constexpr size_t ao_offset = 0;
-            uint8_t *ptr = (uint8_t*)img->data(), *end = ptr + img->num_bytes();
-            
-            for(;ptr < end; ptr += img->num_components()){ ptr[ao_offset] = 255; }
+            auto ao_img = create_tex_image(ao_map_path)->resize(ao_rough_metal_img->width(),
+                                                                ao_rough_metal_img->height(),
+                                                                ao_rough_metal_img->num_components());
+            uint8_t *src = (uint8_t*)ao_img->data();
+
+            for(;dst < dst_end;)
+            {
+                dst[ao_offset] = src[ao_offset];
+                dst += ao_rough_metal_img->num_components();
+                src += ao_img->num_components();
+            }
         }
+        theMaterial->enqueue_texture(path_buf.data, ao_rough_metal_img,
+                                     (uint32_t)gl::Texture::Usage::AO_ROUGHNESS_METAL);
     }
     return theMaterial;
 }
@@ -561,9 +570,9 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         // extract model name from filename
         mesh->set_name(fs::get_filename_part(found_path));
 
-        LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
-        geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->root_bone()) << " bones";
-        LOG_DEBUG<<"bounds: " <<to_string(mesh->aabb().min)<<" - "<< to_string(mesh->aabb().max);
+        LOG_DEBUG<<"loaded model: " << geom->vertices().size()<<" vertices - " <<
+        geom->faces().size()<<" faces - " << mesh->get_num_bones(mesh->root_bone()) << " bones";
+        LOG_DEBUG<<"bounds: " << to_string(mesh->aabb().min) << " - " << to_string(mesh->aabb().max);
 
         // load animations
         if(theScene && mesh)
