@@ -932,8 +932,9 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         if(the_mesh->geometry()->has_bones()){ mat->uniform("u_bones", the_mesh->bone_matrices()); }
     }
     if(the_mesh->geometry()->has_dirty_buffers()){ the_mesh->geometry()->create_gl_buffers(); }
-    
-    gl::apply_material(the_mesh->material(), false, overide_shader);
+
+    std::map<ImagePtr, gl::Texture> img_tex_map;
+    gl::apply_material(the_mesh->material(), false, overide_shader, &img_tex_map);
     KINSKI_CHECK_GL_ERRORS();
 
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
@@ -960,7 +961,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 if(!entry_list.empty())
                 {
                     if(!overide_shader){ the_mesh->bind_vertex_array(i); }
-                    apply_material(the_mesh->materials()[i], false, overide_shader);
+                    apply_material(the_mesh->materials()[i], false, overide_shader, &img_tex_map);
                 }
 
                 for (auto entry_index : entry_list)
@@ -1244,7 +1245,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPtr &override_shader)
+    void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPtr &override_shader,
+                        std::map<ImagePtr, gl::Texture> *the_img_tex_cache)
     {
         KINSKI_CHECK_GL_ERRORS();
         static MaterialWeakPtr weak_last;
@@ -1274,7 +1276,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 {
                     auto t = gl::create_texture_from_file(pair.first, true, use_compression, anisotropic_lvl);
                     the_mat->add_texture(t, pair.second.key);
-//                    pair.second.status = gl::Material::AssetLoadStatus::DONE;
 
                     // copy iterator before incrementing
                     auto delete_it = it++;
@@ -1291,10 +1292,25 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             }
             else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
             {
-                auto t = gl::create_texture_from_image(pair.second.image, true, use_compression, anisotropic_lvl);
+                gl::Texture t;
+
+                if(the_img_tex_cache)
+                {
+                    auto img_tex_it = the_img_tex_cache->find(pair.second.image);
+                    if(img_tex_it != the_img_tex_cache->end())
+                    {
+                        t = img_tex_it->second;
+                        LOG_TRACE << "using cached texture: " << pair.first;
+                    }
+                }
+
+                if(!t)
+                {
+                    LOG_TRACE << "creating texture: " << pair.first;
+                    t = gl::create_texture_from_image(pair.second.image, true, use_compression, anisotropic_lvl);
+                    if(the_img_tex_cache){ (*the_img_tex_cache)[pair.second.image] = t; }
+                }
                 the_mat->add_texture(t, pair.second.key);
-//                pair.second.image = nullptr;
-//                pair.second.status = gl::Material::AssetLoadStatus::DONE;
 
                 // copy iterator before incrementing
                 auto delete_it = it++;

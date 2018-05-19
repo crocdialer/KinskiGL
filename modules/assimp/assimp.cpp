@@ -339,11 +339,14 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     theMaterial->set_roughness(roughness);
     
     if(AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_ENABLE_WIREFRAME, &wireframe))
+    {
         theMaterial->set_wireframe(wireframe);
-    
-    if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
-        theMaterial->set_two_sided(two_sided);
+    }
 
+    if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
+    {
+        theMaterial->set_two_sided(two_sided);
+    }
 
     auto create_tex_image = [the_scene, the_img_map](const std::string the_path) -> ImagePtr
     {
@@ -368,8 +371,8 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
                 }
             }
             else{ img = kinski::create_image_from_file(the_path); }
+            if(the_img_map){ (*the_img_map)[the_path] = img; }
         }
-        if(the_img_map){ (*the_img_map)[the_path] = img; }
         return img;
     };
     

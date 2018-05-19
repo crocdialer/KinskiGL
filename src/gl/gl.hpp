@@ -235,7 +235,8 @@ KINSKI_API gl::Texture render_to_texture(const FboPtr &the_fbo, std::function<vo
 /*********************************** lazy state changing **********************************/
 
 KINSKI_API void apply_material(const MaterialPtr &the_mat, bool force_apply = false,
-                               const ShaderPtr &override_shader = gl::ShaderPtr());
+                               const ShaderPtr &override_shader = gl::ShaderPtr(),
+                               std::map<ImagePtr, gl::Texture> *the_img_tex_cache = nullptr);
 
 /*!
  * resets the OpenGL state to default values
