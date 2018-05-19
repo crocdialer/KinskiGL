@@ -19,7 +19,7 @@ using std::chrono::duration_cast;
 using std::chrono::steady_clock;
 
 // 1 double per second
-typedef std::chrono::duration<double> duration_t;
+using duration_t = std::chrono::duration<double>;
 
 namespace kinski
 {

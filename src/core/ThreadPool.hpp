@@ -15,6 +15,8 @@
 #pragma once
 
 #include <atomic>
+#include <map>
+#include <mutex>
 #include <chrono>
 #include "core/core.hpp"
 
@@ -23,7 +25,7 @@ namespace kinski
 
 DEFINE_CLASS_PTR(Task);
 
-class Task
+class Task : public std::enable_shared_from_this<Task>
 {
 public:
     static TaskPtr create(const std::string &the_desc = "",
@@ -32,38 +34,42 @@ public:
         auto task = TaskPtr(new Task());
         if(the_functor){ task->add_work(the_functor); }
         task->set_description(the_desc);
+        std::unique_lock<std::mutex> scoped_lock(s_mutex);
+        s_tasks[task->id()] = task;
         return task;
     }
 
-    static uint32_t num_tasks()
-    { return s_num_tasks; };
+    static std::vector<TaskPtr> current_tasks();
+
+    static uint32_t num_tasks(){ return s_tasks.size(); };
 
     ~Task()
     {
         auto task_str = m_description.empty() ? "task #" + to_string(m_id) : m_description;
         auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now() - m_start_time).count();
+
+        std::unique_lock<std::mutex> scoped_lock(s_mutex);
+        s_tasks.erase(m_id);
         LOG_DEBUG << "'" << task_str << "' completed (" << millis << " ms)";
-        s_num_tasks--;
     }
 
-    uint32_t id() const
-    { return m_id; }
-
-    void set_description(const std::string &the_desc){ m_description = the_desc; }
-    std::string description() const { return m_description; }
-
-    void add_work(std::function<void()> the_work){ m_functors.push_back(the_work); }
+    inline uint64_t id() const { return m_id; }
+    inline void set_description(const std::string &the_desc){ m_description = the_desc; }
+    inline const std::string& description() const { return m_description; }
+    double duration() const;
+    inline void add_work(std::function<void()> the_work){ m_functors.push_back(the_work); }
 
 private:
     Task(): m_id(s_id_counter++), m_start_time(std::chrono::steady_clock::now())
     {
-        s_num_tasks++;
+
     }
 
-    static std::atomic<uint32_t> s_num_tasks;
-    static std::atomic<uint32_t> s_id_counter;
-    uint32_t m_id;
+    static std::mutex s_mutex;
+    static std::map<uint64_t, TaskWeakPtr> s_tasks;
+    static std::atomic<uint64_t> s_id_counter;
+    uint64_t m_id;
     std::chrono::steady_clock::time_point m_start_time;
     std::string m_description;
     std::vector<std::function<void()>> m_functors;

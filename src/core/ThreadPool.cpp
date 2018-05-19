@@ -19,8 +19,35 @@
 
 namespace kinski
 {
-std::atomic<uint32_t> Task::s_num_tasks(0);
-std::atomic<uint32_t> Task::s_id_counter(0);
+
+///////////////////////////////////////////////////////////////////////////////
+
+std::atomic<uint64_t> Task::s_id_counter(0);
+std::mutex Task::s_mutex;
+std::map<uint64_t, TaskWeakPtr> Task::s_tasks;
+
+using std::chrono::duration_cast;
+using std::chrono::steady_clock;
+
+// 1 double per second
+using duration_t = std::chrono::duration<double>;
+
+double Task::duration() const
+{
+    return duration_cast<duration_t>(steady_clock::now() - m_start_time).count();
+}
+
+std::vector<TaskPtr> Task::current_tasks()
+{
+    std::vector<TaskPtr> ret(s_tasks.size());
+    std::unique_lock<std::mutex> scoped_lock(s_mutex);
+    size_t i = 0;
+
+    for(const auto &p : s_tasks){ ret[i++] = p.second.lock(); }
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 using io_work_ptr = std::unique_ptr<boost::asio::io_service::work>;
 

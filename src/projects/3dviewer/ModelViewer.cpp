@@ -234,6 +234,10 @@ void ModelViewer::draw()
     if(is_loading())
     {
         draw_load_indicator(gl::vec2(gl::window_dimension().x - 100, 80), 50.f);
+        auto tasks = Task::current_tasks();
+        std::stringstream ss;
+        for(auto &t : tasks){ ss << t->description() << " (" << to_string(t->duration(), 2) << " s)\n"; }
+        gl::draw_text_2D(ss.str(), fonts()[0], gl::COLOR_WHITE, gl::vec2(10, 80));
     }
 }
 

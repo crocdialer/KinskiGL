@@ -444,7 +444,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         {
             auto ao_img = create_tex_image(ao_map_path)->resize(ao_rough_metal_img->width(),
                                                                 ao_rough_metal_img->height(),
-                                                                ao_rough_metal_img->num_components());
+                                                                1);
             uint8_t *src = (uint8_t*)ao_img->data();
 
             for(;dst < dst_end;)
