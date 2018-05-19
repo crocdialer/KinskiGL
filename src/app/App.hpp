@@ -56,8 +56,34 @@ namespace kinski
         DrawFunction m_draw_function;
         CloseFunction m_close_function;
     };
-    
-    class KINSKI_API App : public Component
+
+    class MouseDelegate
+    {
+    public:
+        virtual void mouse_press(const MouseEvent &e) = 0;
+        virtual void mouse_release(const MouseEvent &e) = 0;
+        virtual void mouse_move(const MouseEvent &e) = 0;
+        virtual void mouse_drag(const MouseEvent &e) = 0;
+        virtual void mouse_wheel(const MouseEvent &e) = 0;
+        virtual void file_drop(const MouseEvent &e, const std::vector<std::string> &files) = 0;
+    };
+
+    class TouchDelegate
+    {
+    public:
+        virtual void touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches) = 0;
+        virtual void touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches) = 0;
+        virtual void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches) = 0;
+    };
+
+    class KeyDelegate
+    {
+    public:
+        virtual void key_press(const KeyEvent &e) = 0;
+        virtual void key_release(const KeyEvent &e) = 0;
+    };
+
+    class KINSKI_API App : public Component, MouseDelegate, KeyDelegate, TouchDelegate
     {
     public:
         
@@ -79,21 +105,20 @@ namespace kinski
         virtual void set_window_title(const std::string &the_name){};
         virtual void resize(int w, int h){};
         
-        virtual void mouse_press(const MouseEvent &e){};
-        virtual void mouse_release(const MouseEvent &e){};
-        virtual void mouse_move(const MouseEvent &e){};
-        virtual void mouse_drag(const MouseEvent &e){};
-        virtual void mouse_wheel(const MouseEvent &e){};
+        void mouse_press(const MouseEvent &e) override {};
+        void mouse_release(const MouseEvent &e) override {};
+        void mouse_move(const MouseEvent &e) override {};
+        void mouse_drag(const MouseEvent &e) override {};
+        void mouse_wheel(const MouseEvent &e) override {};
+        void file_drop(const MouseEvent &e, const std::vector<std::string> &files) override {};
+
+        void touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches) override {};
+        void touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches) override {};
+        void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches) override {};
         
-        virtual void touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
-        virtual void touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
-        virtual void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
-        
-        virtual void key_press(const KeyEvent &e){};
-        virtual void key_release(const KeyEvent &e){};
-        
-        virtual void file_drop(const MouseEvent &e, const std::vector<std::string> &files){};
-        
+        void key_press(const KeyEvent &e) override {};
+        void key_release(const KeyEvent &e) override {};
+
         virtual void add_window(WindowPtr the_window){};
         
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
