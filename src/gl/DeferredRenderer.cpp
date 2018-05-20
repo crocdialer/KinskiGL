@@ -67,7 +67,7 @@ void DeferredRenderer::init()
     
     // lighting from emissive lighting
     m_mat_lighting_emissive = gl::Material::create();
-    m_mat_lighting_emissive->set_depth_test(false);
+    m_mat_lighting_emissive->set_depth_test(true);
     m_mat_lighting_emissive->set_depth_write(false);
     m_mat_lighting_emissive->set_blending(true);
     m_mat_lighting_emissive->set_blend_equation(GL_FUNC_ADD);
@@ -172,9 +172,6 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     m_mat_resolve->uniform("u_use_fxaa", m_use_fxaa ? 1 : 0);
     m_mat_resolve->uniform("u_luma_thresh", .4f);
     gl::draw_quad(gl::window_dimension(), m_mat_resolve);
-    
-    // draw emission texture
-    gl::draw_quad(gl::window_dimension(), m_mat_lighting_emissive);
     
     // return number of rendered objects
     return render_bin->items.size();
@@ -304,6 +301,10 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
     m_fbo_lighting->enable_draw_buffers(true);
     render_light_volumes(the_renderbin, false);
+
+    // emmision pass
+//    m_mat_lighting_emissive->add_texture(m_fbo_geometry->depth_texture(), Texture::Usage::DEPTH);
+    gl::draw_quad(gl::window_dimension(), m_mat_lighting_emissive);
 #endif
 }
 

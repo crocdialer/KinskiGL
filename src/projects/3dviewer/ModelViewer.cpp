@@ -101,6 +101,14 @@ void ModelViewer::update(float timeDelta)
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
         if(selected_mesh()){ gui::draw_mesh_ui(selected_mesh()); }
         else if(m_mesh){ gui::draw_mesh_ui(m_mesh); }
+
+        // draw tasks
+//        auto tasks = Task::current_tasks();
+//        std::stringstream ss;
+//        for(auto &t : tasks){ ss << t->description() << " (" << to_string(t->duration(), 2) << " s)\n"; }
+//        ImGui::Begin("Tasks");
+//        ImGui::Text("%s", ss.str().c_str());
+//        ImGui::End();
     }
 
     update_shader();
@@ -234,10 +242,16 @@ void ModelViewer::draw()
     if(is_loading())
     {
         draw_load_indicator(gl::vec2(gl::window_dimension().x - 100, 80), 50.f);
-        auto tasks = Task::current_tasks();
-        std::stringstream ss;
-        for(auto &t : tasks){ ss << t->description() << " (" << to_string(t->duration(), 2) << " s)\n"; }
-        gl::draw_text_2D(ss.str(), fonts()[0], gl::COLOR_WHITE, gl::vec2(10, 80));
+
+        if(display_tweakbar())
+        {
+//            auto tasks = Task::current_tasks();
+//            std::stringstream ss;
+//            for(auto &t : tasks){ ss << t->description() << " (" << to_string(t->duration(), 2) << " s)\n"; }
+//            ImGui::Begin("Tasks");
+//            ImGui::Text("%s", ss.str().c_str());
+//            ImGui::End();
+        }
     }
 }
 
