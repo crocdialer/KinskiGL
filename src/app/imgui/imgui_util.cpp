@@ -273,6 +273,20 @@ void draw_material_ui(const gl::MaterialPtr &the_mat)
         the_mat->set_occlusion(occlusion);
     }
 
+    // two-sided
+    bool two_sided = the_mat->two_sided();
+    if(ImGui::Checkbox("two-sided", &two_sided))
+    {
+        the_mat->set_two_sided(two_sided);
+    }
+
+    // blending
+    bool blending = the_mat->blending();
+    if(ImGui::Checkbox("blending", &blending))
+    {
+        the_mat->set_blending(blending);
+    }
+
     // textures
     if(ImGui::TreeNode(("textures (" + to_string(the_mat->textures().size()) + ")").c_str()))
     {
