@@ -139,7 +139,7 @@ void EmptySample::teardown()
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::update_property(const Property::ConstPtr &theProperty)
+void EmptySample::update_property(const Property::ConstPtr &the_property)
 {
     ViewerApp::update_property(theProperty);
 }

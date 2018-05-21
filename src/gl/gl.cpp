@@ -1728,6 +1728,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     frag_src = unlit_cube_frag;
                     break;
 
+                case ShaderType::UNLIT_DISPLACE:
+                    vert_src = unlit_displace_vert;
+                    frag_src = unlit_frag;
+                    break;
+
                 case ShaderType::RESOLVE:
                     vert_src = unlit_vert;
                     frag_src = resolve_frag;

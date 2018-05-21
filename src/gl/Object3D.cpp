@@ -57,9 +57,7 @@ namespace kinski { namespace gl {
     void Object3D::set_rotation(float pitch, float yaw, float roll)
     {
         glm::vec3 pos_tmp(position()), scale_tmp(scale());
-        m_transform = glm::mat4_cast(glm::quat(glm::vec3(glm::radians(pitch),
-                                                         glm::radians(yaw),
-                                                         glm::radians(roll))));
+        m_transform = glm::mat4_cast(glm::quat(glm::vec3(pitch, yaw, roll)));
         set_position(pos_tmp);
         set_scale(scale_tmp);
     }

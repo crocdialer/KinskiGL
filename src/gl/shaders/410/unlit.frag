@@ -3,7 +3,7 @@
 uniform int u_numTextures;
 uniform float u_gamma = 1.0;
 
-uniform sampler2D u_sampler_2D[1];
+uniform sampler2D u_sampler_2D[2];
 #define COLOR 0
 
 struct Material
