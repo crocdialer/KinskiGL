@@ -323,4 +323,46 @@ void draw_mesh_ui(const gl::MeshPtr &the_mesh)
     ImGui::End();
 }
 
+void process_joystick_input(const std::vector<JoystickState> &the_joystick_states)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    // Gamepad navigation mapping [BETA]
+    memset(io.NavInputs, 0, sizeof(io.NavInputs));
+
+    if (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad)
+    {
+        auto &mapping = JoystickState::mapping();
+
+        for(const auto &js : the_joystick_states)
+        {
+            auto analog_left = js.analog_left();
+            auto dpad = js.dpad();
+
+            io.NavInputs[ImGuiNavInput_Activate] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_A]];
+            io.NavInputs[ImGuiNavInput_Cancel] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_B]];
+            io.NavInputs[ImGuiNavInput_Menu] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_X]];
+            io.NavInputs[ImGuiNavInput_Input] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_Y]];
+
+            io.NavInputs[ImGuiNavInput_FocusPrev] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_BUMPER_LEFT]];
+            io.NavInputs[ImGuiNavInput_FocusNext] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_BUMPER_RIGHT]];
+            io.NavInputs[ImGuiNavInput_TweakSlow] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_BUMPER_LEFT]];
+            io.NavInputs[ImGuiNavInput_TweakFast] = js.buttons()[mapping[JoystickState::Mapping::BUTTON_BUMPER_RIGHT]];
+
+            io.NavInputs[ImGuiNavInput_LStickLeft] = analog_left.x < 0;
+            io.NavInputs[ImGuiNavInput_LStickRight] = analog_left.x > 0;
+            io.NavInputs[ImGuiNavInput_LStickUp] = analog_left.y > 0;
+            io.NavInputs[ImGuiNavInput_LStickDown] = analog_left.y < 0;
+
+            io.NavInputs[ImGuiNavInput_DpadLeft] = dpad.x < 0;
+            io.NavInputs[ImGuiNavInput_DpadRight] = dpad.x > 0;
+            io.NavInputs[ImGuiNavInput_DpadUp] = dpad.y < 0;
+            io.NavInputs[ImGuiNavInput_DpadDown] = dpad.y > 0;
+
+        }
+        if(!the_joystick_states.empty()){ io.BackendFlags |= ImGuiBackendFlags_HasGamepad; }
+        else{ io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad; }
+    }
+}
+
 }}

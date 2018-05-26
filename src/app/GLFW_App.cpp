@@ -305,6 +305,7 @@ namespace kinski
     void GLFW_App::poll_events()
     {
         glfwPollEvents();
+        gui::process_joystick_input(get_joystick_states());
         ImGui_ImplGlfwGL3_NewFrame();
     }
 
@@ -451,7 +452,6 @@ namespace kinski
                     ImGui::Render();
                     ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
                 }
-//                else{ ImGui::EndFrame(); }
             });
         }
 

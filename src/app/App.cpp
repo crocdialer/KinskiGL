@@ -140,6 +140,29 @@ bool App::is_loading() const
 
 /////////////////////////// Joystick ///////////////////////////////////////
 
+JoystickState::ButtonMap JoystickState::s_button_map =
+{
+    {Mapping::ANALOG_LEFT_H, 0},
+    {Mapping::ANALOG_LEFT_V, 1},
+    {Mapping::ANALOG_RIGHT_H, 2},
+    {Mapping::ANALOG_RIGHT_V, 3},
+    {Mapping::TRIGGER_LEFT, 4},
+    {Mapping::TRIGGER_RIGHT, 5},
+    {Mapping::DPAD_H, 6},
+    {Mapping::DPAD_V, 7},
+
+    {Mapping::BUTTON_A, 0},
+    {Mapping::BUTTON_B, 1},
+    {Mapping::BUTTON_X, 3},
+    {Mapping::BUTTON_Y, 4},
+    {Mapping::BUTTON_MENU, 11},
+    {Mapping::BUTTON_BACK, 11},
+    {Mapping::BUTTON_BUMPER_LEFT, 6},
+    {Mapping::BUTTON_BUMPER_RIGHT, 7},
+    {Mapping::BUTTON_STICK_LEFT, 13},
+    {Mapping::BUTTON_STICK_RIGHT, 14}
+};
+
 JoystickState::JoystickState(const std::string &n,
                              const std::vector<uint8_t>& b,
                              const std::vector<float>& a):
@@ -154,28 +177,32 @@ const std::string& JoystickState::name() const { return m_name; };
 const std::vector<uint8_t>& JoystickState::buttons() const { return m_buttons; };
 const std::vector<float>& JoystickState::axis() const { return m_axis; };
 
-const gl::vec2 JoystickState::left() const
+const gl::vec2 JoystickState::analog_left() const
 {
-    return gl::vec2(fabs(m_axis[0]) > m_dead_zone ? m_axis[0] : 0.f,
-                    fabs(m_axis[1]) > m_dead_zone ? m_axis[1] : 0.f);
+    uint32_t index_h = s_button_map[Mapping::ANALOG_LEFT_H], index_v = s_button_map[Mapping::ANALOG_LEFT_V];
+    return gl::vec2(fabs(m_axis[index_h]) > m_dead_zone ? m_axis[index_h] : 0.f,
+                    fabs(m_axis[index_v]) > m_dead_zone ? m_axis[index_v] : 0.f);
 }
 
-const gl::vec2 JoystickState::right() const
+const gl::vec2 JoystickState::analog_right() const
 {
-    return gl::vec2(fabs(m_axis[4]) > m_dead_zone ? m_axis[2] : 0.f,
-                    fabs(m_axis[5]) > m_dead_zone ? m_axis[3] : 0.f);
+    uint32_t index_h = s_button_map[Mapping::ANALOG_RIGHT_H], index_v = s_button_map[Mapping::ANALOG_RIGHT_V];
+    return gl::vec2(fabs(m_axis[index_h]) > m_dead_zone ? m_axis[index_h] : 0.f,
+                    fabs(m_axis[index_v]) > m_dead_zone ? m_axis[index_v] : 0.f);
 }
 
 const gl::vec2 JoystickState::trigger() const
 {
-    return gl::vec2(fabs(m_axis[4]) > m_dead_zone ? m_axis[4] : 0.f,
-                    fabs(m_axis[5]) > m_dead_zone ? m_axis[5] : 0.f);
+    uint32_t index_h = s_button_map[Mapping::TRIGGER_LEFT], index_v = s_button_map[Mapping::TRIGGER_RIGHT];
+    return gl::vec2(fabs(m_axis[index_h]) > m_dead_zone ? m_axis[index_h] : 0.f,
+                    fabs(m_axis[index_v]) > m_dead_zone ? m_axis[index_v] : 0.f);
 }
 
-const gl::vec2 JoystickState::cross() const
+const gl::vec2 JoystickState::dpad() const
 {
-    return gl::vec2(fabs(m_axis[6]) > m_dead_zone ? m_axis[6] : 0.f,
-                    fabs(m_axis[7]) > m_dead_zone ? m_axis[7] : 0.f);
+    uint32_t index_h = s_button_map[Mapping::DPAD_H], index_v = s_button_map[Mapping::DPAD_V];
+    return gl::vec2(fabs(m_axis[index_h]) > m_dead_zone ? m_axis[index_h] : 0.f,
+                    fabs(m_axis[index_v]) > m_dead_zone ? m_axis[index_v] : 0.f);
 }
 
 }

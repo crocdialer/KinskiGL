@@ -3,7 +3,7 @@ KinskiGL
 
 ![Preview](http://crocdialer.com/wp-content/uploads/2018/05/08.jpg)
 
-kinskiGL is a set of portable C++ libraries useful for cross-platform OpenGL applications.
+kinskiGL is a set of portable C++ libraries useful for dpad-platform OpenGL applications.
 
 currently known to compile and work for these platforms:
 

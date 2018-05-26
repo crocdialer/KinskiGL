@@ -193,10 +193,10 @@ namespace kinski {
         {
             float multiplier = .08f;
 
-            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.left().x, gl::Y_AXIS));
-            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.left().y, gl::X_AXIS));
+            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.analog_left().x, gl::Y_AXIS));
+            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.analog_left().y, gl::X_AXIS));
 
-            *m_look_at += 40.f * timeDelta * (camera()->side() * j.right().x - camera()->up() * j.right().y);
+            *m_look_at += 40.f * timeDelta * (camera()->side() * j.analog_right().x - camera()->up() * j.analog_right().y);
             *m_distance += 40.f * timeDelta * (j.buttons()[6] - j.buttons()[7]);
         }
 

@@ -7,7 +7,11 @@
 
 #include "core/Component.hpp"
 #include "gl/gl.hpp"
+#include "app/App.hpp"
 #include "imgui.h"
+
+// forward declared to avoid inclusion of App.h
+class JoystickState;
 
 namespace kinski{ namespace gui{
 
@@ -26,6 +30,8 @@ void draw_material_ui(const gl::MaterialPtr &the_mat);
 void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials);
 
 void draw_mesh_ui(const gl::MeshPtr &the_mesh);
+
+void process_joystick_input(const std::vector<JoystickState> &the_joystick_states);
 
 }}// namespaces
 

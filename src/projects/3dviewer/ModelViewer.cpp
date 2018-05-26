@@ -785,8 +785,8 @@ void ModelViewer::process_joystick(float the_time_delta)
             
             if(!m_mesh->animations().empty())
             {
-                *m_animation_index += 2.f * the_time_delta * j.cross().x;
-                *m_animation_speed -= .5f * the_time_delta * j.cross().y;
+                *m_animation_index += 2.f * the_time_delta * j.dpad().x;
+                *m_animation_speed -= .5f * the_time_delta * j.dpad().y;
             }
         }
     }

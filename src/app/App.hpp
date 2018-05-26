@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include "core/file_functions.hpp"
 #include "core/Component.hpp"
 #include "core/ThreadPool.hpp"
@@ -339,6 +340,24 @@ namespace kinski
     class JoystickState
     {
     public:
+        enum class Mapping : uint32_t
+        {
+            ANALOG_LEFT_H, ANALOG_LEFT_V, ANALOG_RIGHT_H, ANALOG_RIGHT_V,
+            DPAD_H, DPAD_V, TRIGGER_LEFT, TRIGGER_RIGHT,
+            BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y, BUTTON_MENU, BUTTON_BACK,
+            BUTTON_BUMPER_LEFT, BUTTON_BUMPER_RIGHT, BUTTON_STICK_LEFT, BUTTON_STICK_RIGHT
+        };
+
+        struct MapHash
+        {
+            inline size_t operator()(const Mapping &the_enum) const
+            {
+                std::hash<uint32_t> hasher;
+                return hasher(static_cast<uint32_t>(the_enum));
+            }
+        };
+        using ButtonMap = std::unordered_map<Mapping, uint32_t, MapHash>;
+
         JoystickState(const std::string &n,
                       const std::vector<uint8_t>& b,
                       const std::vector<float>& a);
@@ -347,19 +366,22 @@ namespace kinski
         const std::vector<uint8_t>& buttons() const;
         const std::vector<float>& axis() const;
 
-        const gl::vec2 left() const;
+        const gl::vec2 analog_left() const;
 
-        const gl::vec2 right() const;
+        const gl::vec2 analog_right() const;
 
         const gl::vec2 trigger() const;
 
-        const gl::vec2 cross() const;
+        const gl::vec2 dpad() const;
+
+        static ButtonMap& mapping() { return s_button_map; }
         
     private:
         float m_dead_zone = 0.03f;
         std::string m_name;
         std::vector<uint8_t> m_buttons;
         std::vector<float> m_axis;
+        static ButtonMap s_button_map;
     };
     
     struct Touch
