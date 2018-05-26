@@ -70,6 +70,9 @@ void draw_material_ui(const gl::MaterialPtr &the_mat);
 void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials);
 
 void draw_mesh_ui(const gl::MeshPtr &the_mesh);
+
+void process_joystick_input(const std::vector<JoystickState> &the_joystick_states);
+
 }
 
 }
