@@ -1,4 +1,5 @@
 #version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 #define MAX_NUM_LIGHTS 8
 #define PI 3.1415926535897932384626433832795

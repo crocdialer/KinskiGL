@@ -1,4 +1,5 @@
-#version 410
+#version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 uniform float u_gamma = 1.0;
 uniform sampler2DRect u_sampler_2Drect[1];

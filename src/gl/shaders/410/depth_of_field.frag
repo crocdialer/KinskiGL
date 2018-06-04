@@ -1,4 +1,5 @@
 #version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 /*
 DoF with bokeh GLSL shader v2.4

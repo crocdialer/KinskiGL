@@ -1,4 +1,6 @@
 #version 410
+#extension GL_ARB_separate_shader_objects : enable
+
 
 uniform int u_numTextures;
 uniform float u_gamma = 1.0;

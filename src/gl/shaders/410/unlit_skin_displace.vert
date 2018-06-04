@@ -1,4 +1,5 @@
-#version 410
+#version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 #define DIFFUSE 0
 #define DISPLACE 1

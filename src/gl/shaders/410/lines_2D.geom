@@ -1,4 +1,5 @@
 #version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 layout(lines) in;
 layout (triangle_strip, max_vertices = 4) out; 

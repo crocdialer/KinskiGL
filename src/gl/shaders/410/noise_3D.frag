@@ -9,6 +9,7 @@
 //               https://github.com/ashima/webgl-noise
 //
 #version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 uniform vec2 u_scale = vec2(1.0);
 uniform float u_seed = 0.0;

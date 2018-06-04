@@ -1,4 +1,5 @@
-#version 410
+#version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 uniform samplerCube u_sampler_cube[1];
 uniform float u_gamma = 1.0;

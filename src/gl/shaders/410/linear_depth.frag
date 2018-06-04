@@ -1,4 +1,5 @@
 #version 410 core
+#extension GL_ARB_separate_shader_objects : enable
 
 uniform vec2 u_clip_planes;
 
