@@ -117,9 +117,10 @@ function(STRINGIFY_SHADERS FOLDER_NAME)
   FILE(GLOB SHADER_FILES  "${FOLDER_NAME}/*.vert"
                           "${FOLDER_NAME}/*.geom"
                           "${FOLDER_NAME}/*.frag"
-                          "${FOLDER_NAME}/*.tcs"
-                          "${FOLDER_NAME}/*.tes"
-                          "${FOLDER_NAME}/*.glsl")
+                          "${FOLDER_NAME}/*.tesc"
+                          "${FOLDER_NAME}/*.tese"
+                          "${FOLDER_NAME}/*.glsl"
+                          "${FOLDER_NAME}/*.comp")
 
   foreach(SHADER_FILE ${SHADER_FILES})
 

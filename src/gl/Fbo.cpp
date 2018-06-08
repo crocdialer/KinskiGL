@@ -58,16 +58,17 @@ gl::FboPtr create_cube_framebuffer(uint32_t the_width, bool with_color_buffer, G
 ImagePtr create_image_from_framebuffer(gl::FboPtr the_fbo)
 {
     gl::SaveFramebufferBinding sfb;
-    int w = gl::window_dimension().x, h = gl::window_dimension().y, num_comp = 3;
-    GLenum format = GL_RGB;
+    int w = gl::window_dimension().x, h = gl::window_dimension().y, num_comp = 4;
+    GLenum format = GL_RGBA;
     
     if(the_fbo)
     {
         the_fbo->bind();
         w = the_fbo->width();
         h = the_fbo->height();
-        num_comp = 4;
-        format = GL_RGBA;
+        the_fbo->format().color_internal_format;
+//        num_comp = 4;
+//        format = GL_RGBA;
     }
     auto ret = Image_<uint8_t >::create(w, h, num_comp);
     ret->m_type = Image::Type::RGBA;
@@ -449,16 +450,6 @@ m_impl(new FboImpl(width, height))
 	m_impl->m_format = format;
 	init();
 }
-
-//Fbo::Fbo(int width, int height, bool alpha, bool color, bool depth):
-//m_impl(new FboImpl(width, height))
-//{
-//	Format format;
-//	m_impl->m_format.m_color_internal_format = (alpha) ? GL_ENUM(GL_RGBA8) : GL_ENUM(GL_RGB8);
-//	m_impl->m_format.m_depth_buffer = depth;
-//	m_impl->m_format.m_num_color_buffers = color ? 1 : 0;
-//	init();
-//}
 
 GLuint Fbo::id() const
 {
