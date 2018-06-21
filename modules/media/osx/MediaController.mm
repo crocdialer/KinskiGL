@@ -462,8 +462,8 @@ namespace kinski{ namespace media{
 
             // aquire gpu-memory for our frames
             gl::Texture::Format fmt;
-            fmt.set_target(GL_TEXTURE_2D_ARRAY);
-            fmt.set_internal_format(compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA);
+            fmt.target = GL_TEXTURE_2D_ARRAY;
+            fmt.internal_format = compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
             tex = gl::Texture(width, height, num_frames, fmt);
             tex.set_flipped();
 
