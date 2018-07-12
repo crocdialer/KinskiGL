@@ -16,11 +16,17 @@ namespace kinski{
 
 //////////////////////////////////////// Freenect /////////////////////////////////////////////////
 
+FreenectPtr Freenect::create()
+{
+    return FreenectPtr(new Freenect());
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 Freenect::Freenect():
 m_stop(false)
 {
-    if(freenect_init(&m_ctx, NULL) < 0)
-        throw std::runtime_error("Cannot initialize freenect library");
+    if(freenect_init(&m_ctx, NULL) < 0){ throw std::runtime_error("Cannot initialize freenect library"); }
 
     // We claim both the motor and camera devices, since this class exposes both.
     // It does not support audio, so we do not claim it.
@@ -56,7 +62,7 @@ void Freenect::set_log_level(freenect_loglevel lvl)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<FreenectDevice> Freenect::create_device(int the_index)
+KinectDevicePtr Freenect::create_device(int the_index)
 {
     auto dev = std::make_shared<KinectDevice>(m_ctx, the_index);
     m_devices[the_index] = dev;

@@ -146,7 +146,8 @@ namespace kinski {
         Property_<glm::vec2>::Ptr m_window_size;
         Property_<bool>::Ptr m_fullscreen;
         Property_<bool>::Ptr m_v_sync;
-        
+
+        bool m_dirty_cam = true;
         RangedProperty<float>::Ptr m_distance;
         Property_<glm::mat3>::Ptr m_rotation;
         Property_<float>::Ptr m_camera_fov;
@@ -162,7 +163,7 @@ namespace kinski {
         // mouse rotation control
         glm::vec2 m_clickPos, m_dragPos, m_inertia;
         float m_rotation_damping;
-        bool  m_mouse_down;
+        bool m_mouse_down;
         glm::mat3 m_lastTransform;
         CircularBuffer<gl::vec2> m_drag_buffer;
         

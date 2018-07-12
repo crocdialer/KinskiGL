@@ -24,149 +24,155 @@
 
 namespace kinski
 {
-    class FreenectTiltState
+
+DEFINE_CLASS_PTR(Freenect);
+DEFINE_CLASS_PTR(KinectDevice);
+
+class FreenectTiltState
+{
+public:
+
+    FreenectTiltState(freenect_raw_tilt_state *the_state): m_state(the_state)
+    {}
+
+    void get_accelerometers(double* x, double* y, double* z)
     {
-    public:
-
-        FreenectTiltState(freenect_raw_tilt_state *the_state): m_state(the_state)
-        {}
-
-        void get_accelerometers(double* x, double* y, double* z)
-        {
-            freenect_get_mks_accel(m_state, x, y, z);
-        }
-        double get_tilt_angle()
-        {
-            return freenect_get_tilt_degs(m_state);
-        }
-
-        freenect_tilt_status_code code() const {return m_state->tilt_status; }
-
-    private:
-        freenect_raw_tilt_state *m_state;
-    };
-    
-    class FreenectDevice
+        freenect_get_mks_accel(m_state, x, y, z);
+    }
+    double get_tilt_angle()
     {
-    public:
-        FreenectDevice(freenect_context *_ctx, int the_index);
+        return freenect_get_tilt_degs(m_state);
+    }
 
-        virtual ~FreenectDevice();
+    freenect_tilt_status_code code() const {return m_state->tilt_status; }
 
-        void start_video();
+private:
+    freenect_raw_tilt_state *m_state;
+};
 
-        void stop_video();
+class FreenectDevice
+{
+public:
+    FreenectDevice(freenect_context *_ctx, int the_index);
 
-        void start_depth();
+    virtual ~FreenectDevice();
 
-        void stop_depth();
+    void start_video();
 
-        void set_tilt_angle(double the_angle);
+    void stop_video();
 
-        void set_led(freenect_led_options the_option);
+    void start_depth();
 
-        void update_tilt_state();
+    void stop_depth();
 
-        FreenectTiltState tilt_state() const;
+    void set_tilt_angle(double the_angle);
 
-        void set_video_format(freenect_video_format requested_format);
+    void set_led(freenect_led_options the_option);
 
-        freenect_video_format video_format();
+    void update_tilt_state();
 
-        void set_depth_format(freenect_depth_format requested_format);
+    FreenectTiltState tilt_state() const;
 
-        freenect_depth_format getDepthFormat();
+    void set_video_format(freenect_video_format requested_format);
 
-        size_t num_bytes_depth();
+    freenect_video_format video_format();
 
-        size_t num_bytes_video();
+    void set_depth_format(freenect_depth_format requested_format);
 
-        // internal video callback
-        virtual void video_cb(void *video, uint32_t timestamp) = 0;
+    freenect_depth_format getDepthFormat();
 
-        // internal
-        virtual void depth_cb(void *depth, uint32_t timestamp) = 0;
+    size_t num_bytes_depth();
 
-    private:
-        freenect_device *m_dev;
-        freenect_video_format m_video_format;
-        freenect_depth_format m_depth_format;
+    size_t num_bytes_video();
 
-        static void freenect_depth_callback(freenect_device *dev, void *depth,
-                                            uint32_t timestamp)
-        {
-            FreenectDevice* device = static_cast<FreenectDevice*>(freenect_get_user(dev));
-            device->depth_cb(depth, timestamp);
-        }
+    // internal video callback
+    virtual void video_cb(void *video, uint32_t timestamp) = 0;
 
-        static void freenect_video_callback(freenect_device *dev, void *video,
-                                            uint32_t timestamp)
-        {
-            FreenectDevice* device = static_cast<FreenectDevice*>(freenect_get_user(dev));
-            device->video_cb(video, timestamp);
-        }
-    };
-    
-    DEFINE_CLASS_PTR(Freenect);
-    
-    class Freenect
+    // internal
+    virtual void depth_cb(void *depth, uint32_t timestamp) = 0;
+
+private:
+    freenect_device *m_dev;
+    freenect_video_format m_video_format;
+    freenect_depth_format m_depth_format;
+
+    static void freenect_depth_callback(freenect_device *dev, void *depth,
+                                        uint32_t timestamp)
     {
-    public:
-        using device_map_t = std::map<int, std::shared_ptr<FreenectDevice>>;
+        FreenectDevice* device = static_cast<FreenectDevice*>(freenect_get_user(dev));
+        device->depth_cb(depth, timestamp);
+    }
 
-        Freenect();
-
-        virtual ~Freenect();
-        
-        void set_log_level(freenect_loglevel lvl);
-
-        std::shared_ptr<FreenectDevice> create_device(int the_index);
-
-        void remove_device(int the_index);
-
-        size_t num_devices();
-
-        // Do not call directly, thread runs here
-        void run();
-
-    private:
-
-        freenect_context *m_ctx;
-        volatile bool m_stop;
-        std::thread m_thread;
-        device_map_t m_devices;
-    };
-    
-    class KinectDevice : public FreenectDevice
+    static void freenect_video_callback(freenect_device *dev, void *video,
+                                        uint32_t timestamp)
     {
-    private:
-        
-        std::vector<uint16_t> m_gamma;
+        FreenectDevice* device = static_cast<FreenectDevice*>(freenect_get_user(dev));
+        device->video_cb(video, timestamp);
+    }
+};
 
-        uint8_t *m_buffer_rgb = nullptr, *m_buffer_depth = nullptr;
+class Freenect
+{
+public:
+    using device_map_t = std::map<int, std::shared_ptr<FreenectDevice>>;
 
-        std::mutex m_rgb_mutex;
-        std::mutex m_depth_mutex;
-        
-        bool m_new_rgb_frame;
-        bool m_new_depth_frame;
-        
-    public:
-        
-        static const gl::ivec2 KINECT_RESOLUTION;
-        
-        KinectDevice(freenect_context *_ctx, int _index);
-        virtual ~KinectDevice();
-        
-        // do not call directly
-        void video_cb(void *the_data, uint32_t timestamp);
-        
-        // do not call directly
-        void depth_cb(void *the_data, uint32_t timestamp);
+    static FreenectPtr create();
 
-        bool copy_frame_rgb(std::vector<uint8_t> &the_buffer);
-        bool copy_frame_depth(std::vector<uint8_t> &the_buffer);
-    };
+    virtual ~Freenect();
+
+    void set_log_level(freenect_loglevel lvl);
+
+    KinectDevicePtr create_device(int the_index);
+
+    void remove_device(int the_index);
+
+    size_t num_devices();
+
+    // Do not call directly, thread runs here
+    void run();
+
+private:
+
+    Freenect();
+    freenect_context *m_ctx = nullptr;
+    volatile bool m_stop = true;
+    std::thread m_thread;
+    device_map_t m_devices;
+};
+
+class KinectDevice : public FreenectDevice
+{
+private:
+
+    std::vector<uint16_t> m_gamma;
+
+    uint8_t *m_buffer_rgb = nullptr, *m_buffer_depth = nullptr;
+
+    std::mutex m_rgb_mutex;
+    std::mutex m_depth_mutex;
+
+    bool m_new_rgb_frame;
+    bool m_new_depth_frame;
+
+public:
+
+    static const gl::ivec2 KINECT_RESOLUTION;
+
+    KinectDevice(freenect_context *_ctx, int _index);
+    virtual ~KinectDevice();
+
+    // do not call directly
+    void video_cb(void *the_data, uint32_t timestamp);
+
+    // do not call directly
+    void depth_cb(void *the_data, uint32_t timestamp);
+
+    //! copy rgb bytes into buffer, allocate space if necessary
+    bool copy_frame_rgb(std::vector<uint8_t> &the_buffer);
+
+    //! copy depth bytes into buffer, allocate space if necessary
+    bool copy_frame_depth(std::vector<uint8_t> &the_buffer);
+};
     
 }//namespace
 #endif // __KINECT_DEVICE_INCLUDED_

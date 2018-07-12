@@ -200,6 +200,19 @@ namespace kinski {
             *m_distance += 40.f * timeDelta * (j.buttons()[6] - j.buttons()[7]);
         }
 
+        // update camera transform
+        if(m_dirty_cam)
+        {
+            glm::vec3 look_at = *m_look_at;
+            if(m_selected_mesh && m_center_selected)
+                look_at = gl::OBB(m_selected_mesh->aabb(), m_selected_mesh->transform()).center;
+
+            glm::mat4 tmp = glm::mat4(m_rotation->value());
+            tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
+            m_camera->transform() = tmp;
+            m_dirty_cam = false;
+        }
+
         // update animations
         for(auto &anim : m_animations)
         {
@@ -405,13 +418,7 @@ namespace kinski {
         else if(theProperty == m_distance || theProperty == m_rotation ||
                 theProperty == m_look_at)
         {
-            glm::vec3 look_at = *m_look_at;
-            if(m_selected_mesh && m_center_selected)
-                look_at = gl::OBB(m_selected_mesh->aabb(), m_selected_mesh->transform()).center;
-
-            glm::mat4 tmp = glm::mat4(m_rotation->value());
-            tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
-            m_camera->transform() = tmp;
+            m_dirty_cam = true;
         }
     }
 
