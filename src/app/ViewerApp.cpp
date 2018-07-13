@@ -174,14 +174,14 @@ namespace kinski {
         m_inertia *= m_rotation_damping;
 
         // rotation from inertia
-        if(!m_mouse_down && glm::length2(m_inertia) > 0.0025)
+        if(!m_mouse_down && (glm::length2(m_inertia) > 0.0025))
         {
             *m_rotation = glm::mat3_cast(glm::quat(*m_rotation) *
                                          glm::quat(glm::vec3(glm::radians(-m_inertia.y),
                                                              glm::radians(-m_inertia.x), 0)));
         }
         // rotation from fixed rotationspeed
-        else if(!m_mouse_down || display_tweakbar())
+        else if(std::abs(m_rotation_speed->value()) > 0.f && (!m_mouse_down || display_tweakbar()))
         {
             *m_rotation = glm::mat3( glm::rotate(glm::mat4(m_rotation->value()),
                                                  *m_rotation_speed * timeDelta,
@@ -330,15 +330,8 @@ namespace kinski {
                 break;
 
             case Key::_R:
-                try
-                {
-                    m_inertia = glm::vec2(0);
-                    m_selected_mesh.reset();
-                    load_settings();
-                }catch(Exception &e)
-                {
-                    LOG_WARNING << e.what();
-                }
+                try{ load_settings(); }
+                catch(Exception &e){ LOG_WARNING << e.what(); }
                 break;
 
             default:
@@ -484,7 +477,10 @@ namespace kinski {
     bool ViewerApp::load_settings(const std::string &the_path)
     {
         auto task = Task::create();
-        
+
+        m_inertia = glm::vec2(0);
+        m_selected_mesh.reset();
+
         std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
         path_prefix = fs::get_directory_part(path_prefix);
         LOG_DEBUG << "load settings from: " << path_prefix;
