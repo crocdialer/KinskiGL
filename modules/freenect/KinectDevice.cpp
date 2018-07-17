@@ -111,7 +111,7 @@ FreenectDevice::FreenectDevice(freenect_context *_ctx, int the_index)
     if(freenect_open_device(_ctx, &m_dev, the_index) < 0){ throw std::runtime_error("Cannot open Kinect"); }
     freenect_set_user(m_dev, this);
     freenect_set_video_mode(m_dev, freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB));
-    freenect_set_depth_mode(m_dev, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_11BIT));
+    freenect_set_depth_mode(m_dev, freenect_find_depth_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_DEPTH_MM));
     freenect_set_depth_callback(m_dev, freenect_depth_callback);
     freenect_set_video_callback(m_dev, freenect_video_callback);
 }

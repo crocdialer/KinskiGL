@@ -234,7 +234,8 @@ bool MediaController::is_loaded() const
 
 void MediaController::unload()
 {
-    m_impl.reset(new MediaControllerImpl);
+    //m_impl.reset(new MediaControllerImpl);
+    m_impl->m_gst_util.reset_pipeline();
 }
 
 /////////////////////////////////////////////////////////////////
