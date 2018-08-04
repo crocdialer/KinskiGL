@@ -83,7 +83,7 @@ namespace kinski
         glfwSetWindowPos(m_handle, the_pos.x, the_pos.y);
     }
 
-    std::string GLFW_Window::title(const std::string &the_name) const
+    std::string GLFW_Window::title() const
     {
         return m_title;
     }
@@ -425,6 +425,7 @@ namespace kinski
         glfwSetScrollCallback(w, &GLFW_App::s_mouse_wheel);
         glfwSetKeyCallback(w, &GLFW_App::s_key_func);
         glfwSetCharCallback(w, &GLFW_App::s_char_func);
+        glfwSetWindowCloseCallback(w, &GLFW_App::s_window_close);
 
         main_queue().submit_with_delay([w]()
         {
@@ -497,6 +498,22 @@ namespace kinski
             if(w->handle() == window){ w->draw(); }
         }
         app->swap_buffers();
+    }
+
+    void GLFW_App::s_window_close(GLFWwindow* window)
+    {
+        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        auto it = app->windows().begin();
+
+        for(;it != app->windows().end(); ++it)
+        {
+            if((*it)->handle() == window)
+            {
+                LOG_DEBUG << "window closed: " << (*it)->title();
+//                it = app->m_windows.erase(it);
+                return;
+            }
+        }
     }
 
     void GLFW_App::s_resize(GLFWwindow* window, int w, int h)

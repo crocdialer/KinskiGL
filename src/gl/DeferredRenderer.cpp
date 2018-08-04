@@ -218,6 +218,9 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     
     auto select_shader = [this](const gl::MeshPtr &m) -> gl::ShaderPtr
     {
+        auto override_it = m_override_shader_map.find(m.get());
+        if(override_it != m_override_shader_map.end()){ return override_it->second; }
+
         bool has_albedo = m->material()->has_texture(Texture::Usage::COLOR);
         bool has_normal_map = m->material()->has_texture(Texture::Usage::NORMAL);
         bool has_spec_map = m->material()->has_texture(Texture::Usage::SPECULAR);
@@ -239,8 +242,7 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
         gl::set_projection(the_renderbin->camera);
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, item.transform);
-        gl::ShaderPtr shader = select_shader(item.mesh);
-        gl::draw_mesh(item.mesh, shader);
+        gl::draw_mesh(item.mesh, select_shader(item.mesh));
     }
 #endif
 }
@@ -649,5 +651,17 @@ void DeferredRenderer::set_use_fxaa(bool b)
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+
+void DeferredRenderer::override_geometry_stage(gl::MeshPtr the_mesh, gl::ShaderPtr the_shader)
+{
+    m_override_shader_map[the_mesh.get()] = the_shader;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void DeferredRenderer::clear_shader_overrides()
+{
+
+}
 
 }}

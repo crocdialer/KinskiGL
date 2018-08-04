@@ -44,7 +44,7 @@ namespace kinski
         gl::ivec2 position() const override;
         void set_position(const gl::ivec2 &the_pos) override;
         
-        std::string title(const std::string &the_name) const override;
+        std::string title() const override;
         void set_title(const std::string &the_name) override;
         
         uint32_t monitor_index() const override;
@@ -120,6 +120,7 @@ namespace kinski
         // GLFW static callbacks
         static void s_error_cb(int error_code, const char* error_msg);
         static void s_window_refresh(GLFWwindow* window);
+        static void s_window_close(GLFWwindow* window);
         static void s_resize(GLFWwindow* window, int w, int h);
         static void s_mouse_move(GLFWwindow *window, double x, double y);
         static void s_mouse_button(GLFWwindow *window, int button, int action, int modifier_mask);

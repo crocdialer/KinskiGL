@@ -46,7 +46,7 @@ namespace kinski
         virtual void set_size(const gl::ivec2 &the_sz) = 0;
         virtual gl::ivec2 position() const = 0;
         virtual void set_position(const gl::ivec2 &the_pos) = 0;
-        virtual std::string title(const std::string &the_name) const = 0;
+        virtual std::string title() const = 0;
         virtual void set_title(const std::string &the_name) = 0;
         virtual uint32_t monitor_index() const = 0;
         

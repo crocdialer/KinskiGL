@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include <unordered_map>
 #include "SceneRenderer.hpp"
 
 namespace kinski{ namespace gl {
@@ -39,6 +40,10 @@ public:
     gl::FboPtr g_buffer(){ return m_fbo_geometry; }
 
     gl::Texture final_texture();
+
+    void override_geometry_stage(gl::MeshPtr the_mesh, gl::ShaderPtr the_shader);
+    void clear_shader_overrides();
+
 private:
 
     DeferredRenderer();
@@ -56,8 +61,9 @@ private:
         PROP_SPEC = 1 << 3, PROP_AO_METAL_ROUGH = 1 << 4, PROP_EMMISION = 1 << 5};
 
     gl::vec2 m_g_buffer_resolution;
-    std::map<uint32_t , gl::ShaderPtr> m_shader_map;
-    
+    std::unordered_map<uint32_t, gl::ShaderPtr> m_shader_map;
+    std::unordered_map<gl::Mesh*, gl::ShaderPtr> m_override_shader_map;
+
     gl::ShaderPtr m_shader_shadow, m_shader_shadow_skin, m_shader_shadow_omni, m_shader_shadow_omni_skin;
     gl::FboPtr m_fbo_geometry, m_fbo_lighting, m_fbo_shadow, m_fbo_shadow_cube;
 
