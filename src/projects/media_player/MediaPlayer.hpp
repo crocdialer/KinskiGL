@@ -72,8 +72,12 @@ namespace kinski
         void send_sync_cmd();
         void send_network_cmd(const std::string &the_cmd);
         void ping_delay(const std::string &the_ip);
+
         void create_playlist(const std::string &the_base_dir);
-        
+        void playlist_next();
+        void playlist_prev();
+        void playlist_track(size_t the_index);
+
     public:
 
         MediaPlayer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};

@@ -241,21 +241,11 @@ void MediaPlayer::key_press(const KeyEvent &e)
                 break;
             
             case Key::_PAGE_UP:
-                if(!m_playlist.empty())
-                {
-                    m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
-                    *m_media_path = m_playlist[m_current_playlist_index];
-                }
+                playlist_next();
                 break;
                 
             case Key::_PAGE_DOWN:
-                if(!m_playlist.empty())
-                {
-                    int next_index = m_current_playlist_index - 1;
-                    next_index += next_index < 0 ? m_playlist.size() : 0;
-                    m_current_playlist_index = next_index;
-                    *m_media_path = m_playlist[m_current_playlist_index];
-                }
+                playlist_prev();
                 break;
             default:
                 break;
@@ -707,6 +697,41 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
 
 /////////////////////////////////////////////////////////////////
 
+void MediaPlayer::playlist_next()
+{
+    if(!m_playlist.empty())
+    {
+        m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
+        *m_media_path = m_playlist[m_current_playlist_index];
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::playlist_prev()
+{
+    if(!m_playlist.empty())
+    {
+        int next_index = m_current_playlist_index - 1;
+        next_index += next_index < 0 ? m_playlist.size() : 0;
+        m_current_playlist_index = next_index;
+        *m_media_path = m_playlist[m_current_playlist_index];
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::playlist_track(size_t the_index)
+{
+    if(!m_playlist.empty())
+    {
+        m_current_playlist_index = clamp<size_t>(the_index, 0, m_playlist.size() - 1);
+        *m_media_path = m_playlist[m_current_playlist_index];
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+
 void MediaPlayer::setup_rpc_interface()
 {
     remote_control().add_command("play");
@@ -855,5 +880,23 @@ void MediaPlayer::setup_rpc_interface()
                                                       const std::vector<std::string> &rpc_args)
     {
         con->write(to_string(m_media->is_playing()));
+    });
+
+    remote_control().add_command("next", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        playlist_next();
+    });
+
+    remote_control().add_command("prev", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        playlist_prev();
+    });
+
+    remote_control().add_command("track", [this](net::tcp_connection_ptr con,
+                                                 const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ playlist_track(string_to<size_t>(rpc_args[0])); }
     });
 }
