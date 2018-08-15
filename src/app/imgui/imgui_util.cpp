@@ -50,6 +50,28 @@ void draw_property_ui(const Property_<int>::Ptr &the_property)
     }
 }
 
+void draw_property_ui(const Property_<uint32_t >::Ptr &the_property)
+{
+    std::string prop_name = the_property->name();
+    int val = *the_property;
+
+    if(auto ranged_prop = std::dynamic_pointer_cast<RangedProperty<uint32_t>>(the_property))
+    {
+        if(ImGui::SliderInt(prop_name.c_str(), &val, ranged_prop->range().first,
+                            ranged_prop->range().second))
+        {
+            *the_property = val;
+        }
+    }
+    else
+    {
+        if(ImGui::InputInt(prop_name.c_str(), &val, 1, 10, ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            *the_property = val;
+        }
+    }
+}
+
 // float
 void draw_property_ui(const Property_<float>::Ptr &the_property)
 {
@@ -186,6 +208,11 @@ void draw_component_ui(const ComponentConstPtr &the_component)
         else if(p->is_of_type<int>())
         {
             auto cast_prop = std::dynamic_pointer_cast<Property_<int>>(p);
+            draw_property_ui(cast_prop);
+        }
+        else if(p->is_of_type<uint32_t>())
+        {
+            auto cast_prop = std::dynamic_pointer_cast<Property_<uint32_t>>(p);
             draw_property_ui(cast_prop);
         }
         else if(p->is_of_type<float>())

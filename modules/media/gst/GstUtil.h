@@ -16,8 +16,6 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
 #include <gst/video/video.h>
-
-//#if GST_CHECK_VERSION(1, 4, 5)
 #include <gst/gl/gstglconfig.h>
 
 #if defined(KINSKI_ARM)
@@ -30,9 +28,10 @@
 #undef GST_GL_HAVE_GLEGLIMAGEOES
 #endif
 
-#define GST_USE_UNSTABLE_API
+//#define GST_USE_UNSTABLE_API
 #include <gst/gl/gstglcontext.h>
 #include <gst/gl/gstgldisplay.h>
+#include <gst/gl/gstglmemory.h>
 
 #if defined(KINSKI_ARM)
 #include <gst/gl/egl/gstgldisplay_egl.h>

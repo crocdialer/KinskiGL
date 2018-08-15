@@ -405,10 +405,9 @@ GstBusSyncReply GstUtil::check_bus_messages_sync(GstBus* bus, GstMessage* messag
             {
                 context = gst_context_new("gst.gl.app_context", TRUE);
                 GstStructure *s = gst_context_writable_structure(context);
-                gst_structure_set(s, "context", GST_GL_TYPE_CONTEXT, self->m_gl_context, nullptr);
+                gst_structure_set(s, "context", GST_TYPE_GL_CONTEXT, self->m_gl_context, nullptr);
                 gst_element_set_context(GST_ELEMENT(message->src), context);
             }
-
             if(context){ gst_context_unref(context); }
             break;
         }
