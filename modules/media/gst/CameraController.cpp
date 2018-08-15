@@ -59,11 +59,12 @@ void CameraController::start_capture()
 
         std::string pipeline_str =
                 "v4l2src device=/dev/video%d ! "
-                "video/x-raw, format=RGB, width=%d, height=%d, framerate=%d/1 !"
+//                "video/x-raw, format=RGB, width=%d, height=%d, framerate=%d/1 !"
+                "video/x-raw, width=%d, height=%d !"
                 "decodebin !"
-//                "videoconvert !"
+                "videoconvert !"
                 "appsink name=%s enable-last-sample=0 caps=\"video/x-raw,format=RGB\"";
-        pipeline_str = format(pipeline_str, m_impl->m_device_id, w, h, framerate, app_sink_name);
+        pipeline_str = format(pipeline_str, m_impl->m_device_id, w, h, app_sink_name);
         GError *error = nullptr;
 
         // construct a pipeline
