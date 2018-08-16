@@ -54,7 +54,8 @@ void CameraController::start_capture()
 {
     if(m_impl)
     {
-        int w = 1280, h = 720, framerate = 60;
+        int w = 1280, h = 720;
+//        int framerate = 60;
         const char* app_sink_name = "kinski_appsink";
 
         std::string pipeline_str =
