@@ -50,9 +50,9 @@ void query_device(ConnectionPtr the_device, io_service_t &io, device_cb_t the_de
     the_device->write(QUERY_ID_CMD + string("\n"));
 }
     
-void scan_for_serials(io_service_t &io, device_cb_t the_device_cb)
+void scan_for_serials(io_service_t &io, device_cb_t the_device_cb, uint32_t the_baudrate)
 {
-    io.post([&io, the_device_cb]
+    io.post([&io, the_device_cb, the_baudrate]
     {
         auto connected_devices = Serial::connected_devices();
         
@@ -60,11 +60,11 @@ void scan_for_serials(io_service_t &io, device_cb_t the_device_cb)
         {
             if(connected_devices.find(dev) == connected_devices.end())
             {
-                io.post([&io, the_device_cb, dev]
+                io.post([&io, the_device_cb, dev, the_baudrate]
                 {
                     auto serial = Serial::create(io);
                     
-                    if(serial->open(dev, 115200)){ query_device(serial, io, the_device_cb); }
+                    if(serial->open(dev, the_baudrate)){ query_device(serial, io, the_device_cb); }
                 });
             }
         }
