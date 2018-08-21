@@ -233,7 +233,8 @@ namespace json{
     
 void add_to_json_object(const std::list<ComponentPtr> &theComponentList,
                         Json::Value &json_val,
-                        const PropertyIO &theIO = PropertyIO());
+                        const PropertyIO &theIO = PropertyIO(),
+                        bool ignore_non_tweakable = false);
     
 bool is_valid(const std::string &the_string)
 {
@@ -244,44 +245,52 @@ bool is_valid(const std::string &the_string)
     
 void add_to_json_object(const std::list<ComponentPtr> &theComponentList,
                         Json::Value &json_val,
-                        const PropertyIO &theIO)
+                        const PropertyIO &theIO,
+                        bool ignore_non_tweakable)
 {
-    int myIndex = 0;
-    int myVIndex = 0;
+    int index = 0;
+    int value_index = 0;
     
-    for (const auto &theComponent : theComponentList)
+    for(const auto &theComponent : theComponentList)
     {
-        json_val[myIndex][PropertyIO::PROPERTY_NAME] = theComponent->name();
+        json_val[index][PropertyIO::PROPERTY_NAME] = theComponent->name();
         
-        for ( const auto &property : theComponent->get_property_list() )
+        for(const auto &property : theComponent->get_property_list())
         {
-            json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->name();
+            // skip non-tweakable properties, if requested
+            if(!property->tweakable() && ignore_non_tweakable){ continue; }
+
+            json_val[index][PropertyIO::PROPERTIES][value_index][PropertyIO::PROPERTY_NAME] = property->name();
             
             // delegate reading to PropertyIO object
-            if(! theIO.read_property(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))
+            if(! theIO.read_property(property, json_val[index][PropertyIO::PROPERTIES][value_index]))
             {
-                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_TYPE] =
+                json_val[index][PropertyIO::PROPERTIES][value_index][PropertyIO::PROPERTY_TYPE] =
                 PropertyIO::PROPERTY_TYPE_UNKNOWN;
             }
-            myVIndex++;
+            value_index++;
         }
-        myIndex++;
-        myVIndex = 0;
+        index++;
+        value_index = 0;
     }
 }
     
-std::string serialize(const ComponentPtr &theComponent, const PropertyIO &theIO)
+std::string serialize(const ComponentPtr &theComponent,
+                      const PropertyIO &theIO,
+                      bool ignore_non_tweakable)
 {
     Json::Value myRoot;
-    add_to_json_object({theComponent}, myRoot, theIO);
+    add_to_json_object({theComponent}, myRoot, theIO, ignore_non_tweakable);
     Json::StyledWriter myWriter;
     return myWriter.write(myRoot);
 }
     
-std::string serialize(const std::list<ComponentPtr> &theComponentList, const PropertyIO &theIO)
+std::string serialize(const std::list<ComponentPtr> &theComponentList,
+                      const PropertyIO &theIO,
+                      bool ignore_non_tweakable)
 {
     Json::Value myRoot;
-    add_to_json_object(theComponentList, myRoot, theIO);
+    add_to_json_object(theComponentList, myRoot, theIO, ignore_non_tweakable);
     Json::StyledWriter myWriter;
     return myWriter.write(myRoot);
 }
@@ -335,7 +344,8 @@ void save_state(const ComponentPtr &theComponent,
     fs::write_file(theFileName, state);
 }
     
-void save_state(const std::list<ComponentPtr> &theComponentList, const std::string &theFileName,
+void save_state(const std::list<ComponentPtr> &theComponentList,
+                const std::string &theFileName,
                 const PropertyIO &theIO)
 {
     Json::Value myRoot;

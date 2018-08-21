@@ -35,7 +35,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
     add_command("request_state", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL(), true));
     });
     
     add_command("load_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
@@ -44,9 +44,9 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         {
             comp->call_function("load_settings");
         }
-        
+
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL(), true));
     });
     
     add_command("save_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
@@ -55,9 +55,9 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         {
             comp->call_function("save_settings");
         }
-        
+
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL(), true));
     });
     
     add_command("log_stream", [](net::tcp_connection_ptr con,
@@ -111,9 +111,9 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
                 return;
             }
         }
-        
+
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL(), true));
     });
     
     m_udp_server.start_listen(udp_port);

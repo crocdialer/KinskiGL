@@ -81,14 +81,16 @@ namespace kinski
          * Supported Property types are determined by theIO object
          */
         KINSKI_API std::string serialize(const ComponentPtr &theComponent,
-                                         const PropertyIO &theIO = PropertyIO());
+                                         const PropertyIO &theIO = PropertyIO(),
+                                         bool ignore_non_tweakable = false);
         
         /*!
          * Serialize a component to a string in json format.
          * Supported Property types are determined by theIO object
          */
         KINSKI_API std::string serialize(const std::list<ComponentPtr> &theComponentList,
-                                         const PropertyIO &theIO = PropertyIO());
+                                         const PropertyIO &theIO = PropertyIO(),
+                                         bool ignore_non_tweakable = false);
         
         /*!
          * Read a component´s state from a string in json-format
