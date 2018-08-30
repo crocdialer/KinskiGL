@@ -7,6 +7,8 @@ namespace kinski{ namespace media{
 
 struct CameraControllerImpl
 {
+    capture_mode_t m_capture_mode = {1280, 720, 60, 1};
+
     GstUtil m_gst_util;
 
     // memory map that holds the incoming frame.
@@ -54,18 +56,18 @@ void CameraController::start_capture()
 {
     if(m_impl)
     {
-        int w = 1280, h = 720;
-//        int framerate = 60;
+        uint32_t w = m_impl->m_capture_mode.width, h = m_impl->m_capture_mode.height;
+        uint32_t fps_nom = m_impl->m_capture_mode.framerate_nom, fps_denom = m_impl->m_capture_mode.framerate_denom;
         const char* app_sink_name = "kinski_appsink";
 
         std::string pipeline_str =
                 "v4l2src device=/dev/video%d ! "
-//                "video/x-raw, format=RGB, width=%d, height=%d, framerate=%d/1 !"
-                "video/x-raw, width=%d, height=%d !"
+                "image/jpeg, width=%d, height=%d, framerate=%d/%d !"
+//                "video/x-raw, width=%d, height=%d !"
                 "decodebin !"
                 "videoconvert !"
                 "appsink name=%s enable-last-sample=0 caps=\"video/x-raw,format=RGB\"";
-        pipeline_str = format(pipeline_str, m_impl->m_device_id, w, h, app_sink_name);
+        pipeline_str = format(pipeline_str, m_impl->m_device_id, w, h, fps_nom, fps_denom, app_sink_name);
         GError *error = nullptr;
 
         // construct a pipeline
@@ -197,6 +199,12 @@ bool CameraController::is_capturing() const
 {
     if(m_impl){ return m_impl->m_gst_util.is_playing(); }
     return false;
+}
+
+void CameraController::set_capture_mode(const capture_mode_t &the_mode)
+{
+    m_impl->m_capture_mode = the_mode;
+    if(is_capturing()){ start_capture(); }
 }
 
 }} // namespaces

@@ -65,4 +65,10 @@ namespace kinski{ namespace media{
     {
         return false;
     }
+
+    void CameraController::set_capture_mode(const capture_mode_t &the_mode)
+    {
+
+    }
+
 }} // namespaces

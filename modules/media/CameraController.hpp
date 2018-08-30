@@ -9,7 +9,15 @@
 namespace kinski{ namespace media{
 
     DEFINE_CLASS_PTR(CameraController);
-    
+
+    struct capture_mode_t
+    {
+        uint32_t width;
+        uint32_t height;
+        uint32_t framerate_nom;
+        uint32_t framerate_denom;
+    };
+
     class CameraController
     {
         
@@ -25,7 +33,8 @@ namespace kinski{ namespace media{
         bool is_capturing() const;
         
         int device_id() const;
-        
+
+        void set_capture_mode(const capture_mode_t &the_mode);
         /*!
          * upload the current frame to a std::vector<uint8_t> object,
          * if provided the width and height are written to the according pointers.
