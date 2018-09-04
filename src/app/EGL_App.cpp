@@ -296,12 +296,12 @@ void read_keyboard(kinski::App* the_app, int the_file_descriptor)
                 if(evp->value == 0)
                 {
                     gui::key_release(e);
-                    if(!ImGui::GetIO().WantCaptureKeyboard){ app->key_release(e); }
+                    if(!ImGui::GetIO().WantCaptureKeyboard){ the_app->key_release(e); }
                 }
                 else if(evp->value == 1 || evp->value == 2)
                 {
                     gui::key_press(e);
-                    if(!ImGui::GetIO().WantCaptureKeyboard){ app->key_press(e); }
+                    if(!ImGui::GetIO().WantCaptureKeyboard){ the_app->key_press(e); }
                 }
 
                 // right place here !?
