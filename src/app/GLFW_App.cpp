@@ -236,7 +236,7 @@ namespace kinski
         // ImGui
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-//        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
         io.ClipboardUserData = main_window->handle();
         io.GetClipboardTextFn = &GLFW_App::get_clipboard_text;

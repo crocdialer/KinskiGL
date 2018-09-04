@@ -152,6 +152,10 @@ void EGL_App::init()
     current_mouse_pos = gl::window_dimension() / 2.f;
 
     // init imgui
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
     gui::init(this);
 
     // user setup hook
