@@ -188,7 +188,7 @@ bool create_device_objects()
     // create a new texture object for our glyphs
     gl::Texture::Format fmt;
     fmt.internal_format = tex_format;
-    auto font_texture = gl::Texture(luminance_alpha_data.get(), tex_format, width, height, fmt);
+    g_font_texture = gl::Texture(luminance_alpha_data.get(), tex_format, width, height, fmt);
 #else
     auto font_img = kinski::Image_<uint8_t>::create(pixels, width, height, num_components, true);
     g_font_texture = kinski::gl::create_texture_from_image(font_img, false, false);
