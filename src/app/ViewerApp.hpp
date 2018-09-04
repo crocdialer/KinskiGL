@@ -67,8 +67,8 @@ namespace kinski {
         
         const gl::MeshPtr& selected_mesh() const { return m_selected_mesh; };
         void set_selected_mesh(gl::MeshPtr m){ m_selected_mesh = m; };
-        const std::vector<gl::MaterialPtr>& materials() const { return m_materials; };
-        std::vector<gl::MaterialPtr>& materials(){ return m_materials; };
+//        const std::vector<gl::MaterialPtr>& materials() const { return m_materials; };
+//        std::vector<gl::MaterialPtr>& materials(){ return m_materials; };
         
         std::vector<gl::LightPtr>& lights() { return m_lights; };
         const std::vector<gl::LightPtr>& lights() const { return m_lights; };

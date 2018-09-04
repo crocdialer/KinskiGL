@@ -124,10 +124,8 @@ namespace kinski {
         outstream_gl().set_font(fonts()[0]);
 
         // ImGui Font
-#if !defined(KINSKI_GLES_2)
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF(font_path.c_str(), 14);
-#endif
         gl::ShaderPtr unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
         for (int i = 0; i < 8; i++)
@@ -136,10 +134,6 @@ namespace kinski {
             auto light = gl::Light::create(gl::Light::POINT);
             light->set_enabled(false);
             lights().push_back(light);
-
-            // materials
-            auto material = gl::Material::create(unlit_shader);
-            materials().push_back(material);
         }
         // viewer provides a directional light
         lights().front()->position() = glm::vec3(1);
@@ -423,7 +417,7 @@ namespace kinski {
         
         LOG_DEBUG << "save settings to: " << path_prefix;
         
-        std::list<ComponentPtr> light_components, material_components, warp_components;
+        std::list<ComponentPtr> light_components, warp_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
             auto tmp = LightComponent::create();
@@ -431,14 +425,6 @@ namespace kinski {
             tmp->set_lights(lights());
             tmp->set_index(i);
             light_components.push_back(tmp);
-        }
-        for (uint32_t i = 0; i < materials().size(); i++)
-        {
-            MaterialComponentPtr tmp(new MaterialComponent());
-            tmp->set_name("material_" + to_string(i));
-            tmp->set_materials(materials());
-            tmp->set_index(i);
-            material_components.push_back(tmp);
         }
         for (uint32_t i = 0; i < 10; i++)
         {
@@ -449,8 +435,7 @@ namespace kinski {
             warp_components.push_back(wc);
         }
         
-        background_queue().submit([this, path_prefix, light_components, material_components,
-                                   warp_components, task]()
+        background_queue().submit([this, path_prefix, light_components, warp_components, task]()
         {
             
             try
@@ -460,9 +445,6 @@ namespace kinski {
                                                PropertyIO_GL());
                 json::save_state(light_components,
                                                fs::join_paths(path_prefix ,"light_config.json"),
-                                               PropertyIO_GL());
-                json::save_state(material_components,
-                                               fs::join_paths(path_prefix ,"material_config.json"),
                                                PropertyIO_GL());
                 json::save_state(warp_components,
                                                fs::join_paths(path_prefix , "warp_config.json"),
@@ -485,7 +467,7 @@ namespace kinski {
         path_prefix = fs::get_directory_part(path_prefix);
         LOG_DEBUG << "load settings from: " << path_prefix;
         
-        std::list<ComponentPtr> light_components, material_components, warp_components;
+        std::list<ComponentPtr> light_components, warp_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
             auto tmp = LightComponent::create();
@@ -494,15 +476,6 @@ namespace kinski {
             tmp->set_index(i);
             tmp->observe_properties();
             light_components.push_back(tmp);
-        }
-        for (uint32_t i = 0; i < materials().size(); i++)
-        {
-            MaterialComponentPtr tmp(new MaterialComponent());
-            tmp->set_name("material_" + to_string(i));
-            tmp->set_materials(materials(), false);
-            tmp->set_index(i);
-            tmp->observe_properties();
-            material_components.push_back(tmp);
         }
         for (uint32_t i = 0; i < 10; i++)
         {
@@ -518,9 +491,6 @@ namespace kinski {
             json::load_state(shared_from_this(), fs::join_paths(path_prefix , "config.json"),
                              PropertyIO_GL());
             json::load_state(light_components, fs::join_paths(path_prefix , "light_config.json"),
-                             PropertyIO_GL());
-            json::load_state(material_components,
-                             fs::join_paths(path_prefix , "material_config.json"),
                              PropertyIO_GL());
             json::load_state(warp_components,
                              fs::join_paths(path_prefix, "warp_config.json"),
