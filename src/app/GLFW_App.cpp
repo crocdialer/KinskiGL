@@ -353,13 +353,13 @@ namespace kinski
 
     const MouseEvent GLFW_App::mouse_state() const
     {
-        uint32_t initiator, keyModifiers, bothMods;
-        s_get_modifiers(m_windows.front()->handle(), initiator, keyModifiers);
-        bothMods = initiator | keyModifiers;
+        uint32_t initiator, key_modifiers, mods;
+        s_get_modifiers(m_windows.front()->handle(), initiator, key_modifiers);
+        mods = initiator | key_modifiers;
 
         double posX, posY;
         glfwGetCursorPos(m_windows.front()->handle(), &posX, &posY);
-        MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
+        MouseEvent e(initiator, (int)posX, (int)posY, mods, glm::ivec2(0));
 
         return e;
     }
@@ -564,7 +564,6 @@ namespace kinski
 
         // ImGUI
         if(action == GLFW_PRESS){ gui::mouse_press(e); }
-//        else if(action == GLFW_RELEASE){ gui::mouse_release(e); }
 
         if(!ImGui::GetIO().WantCaptureMouse)
         {

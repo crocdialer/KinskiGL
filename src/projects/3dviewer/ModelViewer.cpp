@@ -399,7 +399,7 @@ void ModelViewer::touch_move(const MouseEvent &e, const std::set<const Touch*> &
 void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> &files)
 {
     std::vector<gl::Texture> dropped_textures;
-    auto obj = dynamic_pointer_cast<gl::Mesh>(scene()->pick(gl::calculate_ray(camera(), e.getPos())));
+    auto obj = dynamic_pointer_cast<gl::Mesh>(scene()->pick(gl::calculate_ray(camera(), e.position())));
 
     for(const string &f : files)
     {

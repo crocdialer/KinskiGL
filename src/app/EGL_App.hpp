@@ -12,6 +12,7 @@
 #include "core/Timer.hpp"
 #include "App.hpp"
 #include "OutstreamGL.hpp"
+#include "imgui/imgui_util.h"
 
 namespace kinski
 {
@@ -29,7 +30,9 @@ class EGL_App : public App
     void set_cursor_position(float x, float y) override;
     gl::vec2 cursor_position() const override;
 
-    void teardown() override{};
+    const MouseEvent mouse_state() const override;
+
+    void teardown() override;
 
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
     gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
@@ -55,24 +58,5 @@ class EGL_App : public App
 
     Timer m_timer_device_scan;
 };
-
-//TODO: find a cleaner solution to crossplattform happiness
-namespace gui
-{
-//! draw a kinski::Component using ImGui
-void draw_component_ui(const ComponentConstPtr &the_component);
-
-void draw_textures_ui(const std::vector<gl::Texture> &the_textures);
-
-void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights);
-
-void draw_material_ui(const gl::MaterialPtr &the_mat);
-void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials);
-
-void draw_mesh_ui(const gl::MeshPtr &the_mesh);
-
-void process_joystick_input(const std::vector<JoystickState> &the_joystick_states);
-
-}
 
 }

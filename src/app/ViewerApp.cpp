@@ -224,20 +224,20 @@ namespace kinski {
 
     void ViewerApp::mouse_press(const MouseEvent &e)
     {
-        m_clickPos = glm::vec2(e.getX(), e.getY());
+        m_clickPos = glm::vec2(e.get_x(), e.get_y());
         m_lastTransform = *m_rotation;
         m_look_at_tmp = *m_look_at;
         m_mouse_down = true;
         
         // forward event
-        if(*m_use_warping && e.isAltDown()){ m_warp_component->mouse_press(e); }
+        if(*m_use_warping && e.is_alt_down()){ m_warp_component->mouse_press(e); }
         
         if(e.is_left() || e.is_touch())
         {
             m_drag_buffer.clear();
             
             gl::Object3DPtr picked_obj = m_scene->pick(gl::calculate_ray(m_camera,
-                                                                         glm::vec2(e.getX(), e.getY())),
+                                                                         glm::vec2(e.get_x(), e.get_y())),
                                                        m_precise_selection);
             if(picked_obj)
             {
@@ -262,19 +262,19 @@ namespace kinski {
     
     void ViewerApp::mouse_drag(const MouseEvent &e)
     {
-        glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
+        glm::vec2 mouseDiff = glm::vec2(e.get_x(), e.get_y()) - m_clickPos;
 
         if(e.is_left() || e.is_touch())
         {
-            if(e.isAltDown() && *m_use_warping){ m_warp_component->mouse_drag(e); }
+            if(e.is_alt_down() && *m_use_warping){ m_warp_component->mouse_drag(e); }
             else
             {
                 *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
                                                                  glm::radians(-mouseDiff.x), 0)));
 
-                m_drag_buffer.push_back(glm::vec2(e.getX(), e.getY()) - m_dragPos);
-                m_dragPos = glm::vec2(e.getX(), e.getY());
+                m_drag_buffer.push_back(glm::vec2(e.get_x(), e.get_y()) - m_dragPos);
+                m_dragPos = glm::vec2(e.get_x(), e.get_y());
             }
         }
         else if(e.is_right())
@@ -293,7 +293,7 @@ namespace kinski {
 
     void ViewerApp::mouse_wheel(const MouseEvent &e)
     {
-        *m_distance -= e.getWheelIncrement().y;
+        *m_distance -= e.wheel_increment().y;
     }
 
     void ViewerApp::key_press(const KeyEvent &e)

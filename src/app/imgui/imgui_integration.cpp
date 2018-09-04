@@ -127,8 +127,8 @@ void mouse_press(const MouseEvent &e)
 void mouse_wheel(const MouseEvent &e)
 {
     ImGuiIO &io = ImGui::GetIO();
-    io.MouseWheelH += e.getWheelIncrement().x;
-    io.MouseWheel += e.getWheelIncrement().y;
+    io.MouseWheelH += e.wheel_increment().x;
+    io.MouseWheel += e.wheel_increment().y;
 }
 
 void key_press(const KeyEvent &e)
@@ -340,16 +340,14 @@ void new_frame()
     }
 //    else{ io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX); }
 
+    // If a mouse press event came, always pass it as "mouse held this frame"
+    // so we don't miss click-release events that are shorter than 1 frame.
     auto mouse_state = g_app->mouse_state();
-    io.MouseDown[0] = g_mouse_pressed[0] || mouse_state.is_left();
-    io.MouseDown[1] = g_mouse_pressed[1] || mouse_state.is_middle();
-    io.MouseDown[2] = g_mouse_pressed[2] || mouse_state.is_right();
+    io.MouseDown[0] = g_mouse_pressed[0] || mouse_state.is_left_down();
+    io.MouseDown[1] = g_mouse_pressed[1] || mouse_state.is_middle_down();
+    io.MouseDown[2] = g_mouse_pressed[2] || mouse_state.is_right_down();
 
-    for(int i = 0; i < 3; i++)
-    {
-        // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-        g_mouse_pressed[i] = false;
-    }
+    for(int i = 0; i < 3; i++){ g_mouse_pressed[i] = false; }
 
     // Start the frame. This call will update the io.WantCaptureMouse, io.WantCaptureKeyboard flag that you can use to dispatch inputs (or not) to your application.
     ImGui::NewFrame();

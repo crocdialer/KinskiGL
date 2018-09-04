@@ -419,7 +419,7 @@ void WarpComponent::key_release(const KeyEvent &e)
 
 void WarpComponent::mouse_press(const MouseEvent &e)
 {
-    m_click_pos = m_mouse_pos = glm::vec2(e.getX(), e.getY());
+    m_click_pos = m_mouse_pos = glm::vec2(e.get_x(), e.get_y());
 
     if(e.is_left() || e.is_touch())
     {
@@ -435,7 +435,7 @@ void WarpComponent::mouse_press(const MouseEvent &e)
 
             if(glm::length(c - coord) < 15 * glm::length(px_length))
             {
-                if(!e.isControlDown())
+                if(!e.is_control_down())
                 {
                     quad_warp().selected_indices().clear();
                     m_active_control_points.clear();
@@ -458,12 +458,12 @@ void WarpComponent::mouse_press(const MouseEvent &e)
 
 void WarpComponent::mouse_move(const MouseEvent &e)
 {
-    m_mouse_pos = glm::vec2(e.getX(), e.getY());
+    m_mouse_pos = glm::vec2(e.get_x(), e.get_y());
 }
 
 void WarpComponent::mouse_drag(const MouseEvent &e)
 {
-    m_mouse_pos = glm::vec2(e.getX(), e.getY());
+    m_mouse_pos = glm::vec2(e.get_x(), e.get_y());
     glm::vec2 mouseDiff = m_mouse_pos - m_click_pos;
 
     auto inc = mouseDiff / gl::window_dimension();

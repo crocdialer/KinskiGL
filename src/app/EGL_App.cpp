@@ -6,6 +6,7 @@
 #include "esUtil.h"
 #undef countof
 #include "core/file_functions.hpp"
+#include "app/imgui/imgui_integration.h"
 #include "EGL_App.hpp"
 
 using namespace std;
@@ -19,24 +20,6 @@ int32_t code_lookup(int32_t the_keycode);
 
 namespace kinski
 {
-
-namespace gui
-{
-//! draw a kinski::Component using ImGui
-void draw_component_ui(const ComponentConstPtr &the_component){}
-
-void draw_textures_ui(const std::vector<gl::Texture> &the_textures){}
-
-void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights){}
-
-void draw_material_ui(const gl::MaterialPtr &the_mat){}
-void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials){}
-
-void draw_mesh_ui(const gl::MeshPtr &the_mesh){}
-
-void process_joystick_input(const std::vector<JoystickState> &the_joystick_states){}
-
-}
 
 namespace
 {
@@ -168,6 +151,9 @@ void EGL_App::init()
     // center cursor
     current_mouse_pos = gl::window_dimension() / 2.f;
 
+    // init imgui
+    gui::init(this);
+
     // user setup hook
     setup();
 }
@@ -189,6 +175,10 @@ void EGL_App::draw_internal()
     {
         // console output
         outstream_gl().draw();
+
+        // render and draw ImGui
+        ImGui::Render();
+        gui::render_draw_data(ImGui::GetDrawData());
     }
 
     if(cursor_visible() && (m_mouse_fd || m_touch_fd))
@@ -198,7 +188,6 @@ void EGL_App::draw_internal()
 }
 void EGL_App::swap_buffers()
 {
-    // eglSwapBuffers(m_context->eglDisplay, m_context->eglSurface);
     esSwapBuffer(m_context.get());
 }
 
@@ -220,6 +209,18 @@ gl::vec2 EGL_App::cursor_position() const
     return current_mouse_pos;
 }
 
+const MouseEvent EGL_App::mouse_state() const
+{
+    MouseEvent e(0, current_mouse_pos.x, current_mouse_pos.y, button_modifiers | key_modifiers,
+                 glm::ivec2(0.f));
+    return e;
+}
+
+void EGL_App::teardown()
+{
+    gui::shutdown();
+}
+
 void EGL_App::set_lcd_backlight(bool b) const
 {
     const auto bl_path = "/sys/class/backlight/rpi_backlight/bl_power";
@@ -238,6 +239,9 @@ void EGL_App::poll_events()
     read_mouse_and_touch(this, m_mouse_fd);
     read_mouse_and_touch(this, m_touch_fd);
     read_keyboard(this, m_keyboard_fd);
+
+    gui::process_joystick_input(get_joystick_states());
+    gui::new_frame();
 }
 
 void read_keyboard(kinski::App* the_app, int the_file_descriptor)
@@ -289,9 +293,16 @@ void read_keyboard(kinski::App* the_app, int the_file_descriptor)
                 uint32_t key_code = code_lookup(evp->code);
                 KeyEvent e(key_code, key_code, key_modifiers);
 
-                if(evp->value == 0){ the_app->key_release(e); }
-                else if(evp->value == 1){ the_app->key_press(e); }
-                else if(evp->value == 2){ the_app->key_press(e); }
+                if(evp->value == 0)
+                {
+                    gui::key_release(e);
+                    if(!ImGui::GetIO().WantCaptureKeyboard){ app->key_release(e); }
+                }
+                else if(evp->value == 1 || evp->value == 2)
+                {
+                    gui::key_press(e);
+                    if(!ImGui::GetIO().WantCaptureKeyboard){ app->key_press(e); }
+                }
 
                 // right place here !?
                 if(key_code == Key::_ESCAPE){ the_app->set_running(false); }
@@ -414,20 +425,30 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
 
             uint32_t bothMods = key_modifiers | button_modifiers;
             MouseEvent e(button_modifiers, current_mouse_pos.x,
-            current_mouse_pos.y, bothMods, glm::ivec2(0, evp->value), current_touch_index,
-                current_touches[current_touch_index].m_id);
+                         current_mouse_pos.y, bothMods, glm::ivec2(0, evp->value), current_touch_index,
+                         current_touches[current_touch_index].m_id);
 
             // press /release
             if(evp->type == 1)
             {
-                if(evp->value){ the_app->mouse_press(e); }
-                else{ the_app->mouse_release(e); }
+                if(evp->value){ gui::mouse_press(e); }
+
+                if(!ImGui::GetIO().WantCaptureMouse)
+                {
+                    if(evp->value){ the_app->mouse_press(e); }
+                    else{ the_app->mouse_release(e); }
+                }
             }
             else if(evp->type == 2 || evp->type == 3)
             {
-                if(evp->code == REL_WHEEL){ the_app->mouse_wheel(e); }
-                else if(button_modifiers){ the_app->mouse_drag(e); }
-                else{ the_app->mouse_move(e);}
+                if(evp->code == REL_WHEEL){ gui::mouse_wheel(e); }
+
+                if(!ImGui::GetIO().WantCaptureMouse)
+                {
+                    if(evp->code == REL_WHEEL){ the_app->mouse_wheel(e); }
+                    else if(button_modifiers){ the_app->mouse_drag(e); }
+                    else{ the_app->mouse_move(e); }
+                }
             }
 
             if(e.is_touch() || touch_id_changed)
