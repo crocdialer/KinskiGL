@@ -259,7 +259,7 @@ void draw_textures_ui(const std::vector<gl::Texture> &the_textures)
         {
             constexpr float w = 150;
             ImVec2 sz(w, w / t.aspect_ratio());
-            ImGui::Image(reinterpret_cast<ImTextureID>(t.id()), sz);
+            ImGui::Image((ImTextureID)(&t), sz);
         }
     }
 }

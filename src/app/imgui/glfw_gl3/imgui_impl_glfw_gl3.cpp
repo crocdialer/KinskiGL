@@ -67,6 +67,7 @@ static GLFWcursor*  g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
 //static unsigned int g_VboHandle = 0, g_ElementsHandle = 0;
 
 static kinski::gl::MeshPtr g_mesh;
+static kinski::gl::Texture g_font_texture;
 static kinski::gl::Buffer g_vertex_buffer;
 static kinski::gl::Buffer g_index_buffer;
 
@@ -97,26 +98,9 @@ void ImGui_ImplGlfwGL3_RenderDrawData(ImDrawData* draw_data)
         entry.num_indices = cmd_list->IdxBuffer.Size;
         entry.primitive_type = GL_TRIANGLES;
 
-        // upload vertex data
-        auto &verts = g_mesh->geometry()->vertices();
-        auto &colors = g_mesh->geometry()->colors();
-        auto &tex_coords = g_mesh->geometry()->tex_coords();
-        auto &indices = g_mesh->geometry()->indices();
-        verts.resize(cmd_list->VtxBuffer.Size);
-        colors.resize(cmd_list->VtxBuffer.Size);
-        tex_coords.resize(cmd_list->VtxBuffer.Size);
-
-        for(int i = 0; i < cmd_list->VtxBuffer.Size; ++i)
-        {
-            uint8_t *c = reinterpret_cast<uint8_t*>(&cmd_list->VtxBuffer.Data[i].col);
-            verts[i] = glm::vec3(cmd_list->VtxBuffer[i].pos.x, cmd_list->VtxBuffer[i].pos.y, 0.f);
-            colors[i] = glm::vec4(c[0], c[1], c[2], c[3]) / 255.f;
-            tex_coords[i] = glm::vec2(cmd_list->VtxBuffer[i].uv.x, cmd_list->VtxBuffer[i].uv.y);
-        }
-        indices.assign(cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Data + cmd_list->IdxBuffer.Size);
-
         // upload index data
-//        g_index_buffer.set_data(cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
+        g_vertex_buffer.set_data(cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
+        g_index_buffer.set_data(cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
 
         for(int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
@@ -124,6 +108,8 @@ void ImGui_ImplGlfwGL3_RenderDrawData(ImDrawData* draw_data)
             if(pcmd->UserCallback){ pcmd->UserCallback(cmd_list, pcmd); }
             else
             {
+                auto &tex = *reinterpret_cast<kinski::gl::Texture*>(pcmd->TextureId);
+                g_mesh->material()->add_texture(tex);
                 auto rect = kinski::Area_<uint32_t>(pcmd->ClipRect.x, fb_height - pcmd->ClipRect.w,
                                                     pcmd->ClipRect.z, fb_height - pcmd->ClipRect.y);
                 g_mesh->material()->set_scissor_rect(rect);
@@ -183,9 +169,9 @@ void ImGui_ImplGlfw_CharCallback(GLFWwindow*, unsigned int c)
 bool ImGui_ImplGlfwGL3_CreateDeviceObjects()
 {
     // buffer objects
-//    g_vertex_buffer = kinski::gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);
-//    g_vertex_buffer.set_stride(sizeof(ImDrawVert));
-//    g_index_buffer = kinski::gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW);
+    g_vertex_buffer = kinski::gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);
+    g_vertex_buffer.set_stride(sizeof(ImDrawVert));
+    g_index_buffer = kinski::gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW);
 
     // font texture
     ImGuiIO& io = ImGui::GetIO();
@@ -215,57 +201,58 @@ bool ImGui_ImplGlfwGL3_CreateDeviceObjects()
     auto font_texture = gl::Texture(luminance_alpha_data.get(), tex_format, width, height, fmt);
 #else
     auto font_img = kinski::Image_<uint8_t>::create(pixels, width, height, num_components, true);
-    auto font_texture = kinski::gl::create_texture_from_image(font_img, false, false);
-    font_texture.set_flipped(false);
-    font_texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
+    g_font_texture = kinski::gl::create_texture_from_image(font_img, false, false);
+    g_font_texture.set_flipped(false);
+    g_font_texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
 #endif
+
+    io.Fonts->TexID = &g_font_texture;
 
     // create mesh instance
     g_mesh = kinski::gl::Mesh::create();
 
     // add texture
     auto &mat = g_mesh->material();
-    mat->add_texture(font_texture, kinski::gl::Texture::Usage::COLOR);
+    mat->add_texture(g_font_texture, kinski::gl::Texture::Usage::COLOR);
     mat->set_depth_test(false);
     mat->set_depth_write(false);
     mat->set_blending(true);
     mat->set_culling(kinski::gl::Material::CULL_NONE);
 
     // vertex attrib -> position
-//    kinski::gl::Mesh::VertexAttrib position_attrib;
-//    position_attrib.type = GL_FLOAT;
-//    position_attrib.size = 2;
-//    position_attrib.name = "a_vertex";
-//    position_attrib.buffer = g_vertex_buffer;
-//    position_attrib.stride = sizeof(ImDrawVert);
-//    position_attrib.offset = offsetof(ImDrawVert, pos);
-//    position_attrib.normalize = false;
-//
-//    // vertex attrib -> color
-//    kinski::gl::Mesh::VertexAttrib color_attrib;
-//    color_attrib.type = GL_UNSIGNED_BYTE;
-//    color_attrib.size = 4;
-//    color_attrib.name = "a_color";
-//    color_attrib.buffer = g_vertex_buffer;
-//    color_attrib.stride = sizeof(ImDrawVert);
-//    color_attrib.offset = offsetof(ImDrawVert, col);
-//    position_attrib.normalize = true;
-//
-//    // vertex attrib -> texcoords
-//    kinski::gl::Mesh::VertexAttrib tex_coord_attrib;
-//    tex_coord_attrib.type = GL_FLOAT;
-//    tex_coord_attrib.size = 2;
-//    tex_coord_attrib.name = "a_texCoord";
-//    tex_coord_attrib.buffer = g_vertex_buffer;
-//    tex_coord_attrib.stride = sizeof(ImDrawVert);
-//    tex_coord_attrib.offset = offsetof(ImDrawVert, uv);
-//    tex_coord_attrib.normalize = false;
-//
-//    g_mesh->add_vertex_attrib(position_attrib);
-//    g_mesh->add_vertex_attrib(color_attrib);
-//    g_mesh->add_vertex_attrib(tex_coord_attrib);
-//
-//    g_mesh->set_index_buffer(g_index_buffer);
+    kinski::gl::Mesh::VertexAttrib position_attrib;
+    position_attrib.type = GL_FLOAT;
+    position_attrib.size = 2;
+    position_attrib.name = "a_vertex";
+    position_attrib.buffer = g_vertex_buffer;
+    position_attrib.stride = sizeof(ImDrawVert);
+    position_attrib.offset = offsetof(ImDrawVert, pos);
+    position_attrib.normalize = false;
+
+    // vertex attrib -> color
+    kinski::gl::Mesh::VertexAttrib color_attrib;
+    color_attrib.type = GL_UNSIGNED_BYTE;
+    color_attrib.size = 4;
+    color_attrib.name = "a_color";
+    color_attrib.buffer = g_vertex_buffer;
+    color_attrib.stride = sizeof(ImDrawVert);
+    color_attrib.offset = offsetof(ImDrawVert, col);
+    color_attrib.normalize = true;
+
+    // vertex attrib -> texcoords
+    kinski::gl::Mesh::VertexAttrib tex_coord_attrib;
+    tex_coord_attrib.type = GL_FLOAT;
+    tex_coord_attrib.size = 2;
+    tex_coord_attrib.name = "a_texCoord";
+    tex_coord_attrib.buffer = g_vertex_buffer;
+    tex_coord_attrib.stride = sizeof(ImDrawVert);
+    tex_coord_attrib.offset = offsetof(ImDrawVert, uv);
+    tex_coord_attrib.normalize = false;
+
+    g_mesh->add_vertex_attrib(position_attrib);
+    g_mesh->add_vertex_attrib(color_attrib);
+    g_mesh->add_vertex_attrib(tex_coord_attrib);
+    g_mesh->set_index_buffer(g_index_buffer);
     return true;
 }
 
@@ -274,6 +261,7 @@ void ImGui_ImplGlfwGL3_InvalidateDeviceObjects()
     g_mesh.reset();
     g_vertex_buffer.reset();
     g_index_buffer.reset();
+    g_font_texture.reset();
 }
 
 //static void ImGui_ImplGlfw_InstallCallbacks(GLFWwindow* window)

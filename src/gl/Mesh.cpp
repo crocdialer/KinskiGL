@@ -177,7 +177,7 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
             glEnableVertexAttribArray(location);
             KINSKI_CHECK_GL_ERRORS();
             
-            if(vertex_attrib.type == GL_FLOAT)
+            if(vertex_attrib.type == GL_FLOAT || vertex_attrib.type == GL_UNSIGNED_BYTE)
             {
                 glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,
                                       vertex_attrib.normalize, vertex_attrib.buffer.stride(),
