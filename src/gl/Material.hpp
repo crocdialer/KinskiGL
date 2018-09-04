@@ -115,6 +115,9 @@ namespace kinski { namespace gl {
 
         void set_stencil_test(bool b = true) { m_stencil_test = b;};
 
+        const Area_<uint32_t> scissor_rect() const { return m_scissor_rect; };
+        void set_scissor_rect(const Area_<uint32_t> &the_rect) { m_scissor_rect = the_rect; };
+
         //! bitmask with values from CULL_FRONT, CULL_BACK
         uint32_t culling() const { return m_cull_value; }
         void set_culling(uint32_t the_value);
@@ -158,10 +161,13 @@ namespace kinski { namespace gl {
         bool m_dirty_uniform_buffer;
         
         GLenum m_polygon_mode;
+
+        // pipeline settings
         bool m_wireframe;
         bool m_depth_test;
         bool m_depth_write;
         bool m_stencil_test;
+        Area_<uint32_t> m_scissor_rect;
         bool m_blending;
         GLenum m_blend_src, m_blend_dst, m_blend_equation;
 

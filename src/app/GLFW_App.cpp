@@ -10,7 +10,7 @@
 #include "gl/gl.hpp"
 #include "gl/Material.hpp"
 #include "GLFW_App.hpp"
-#include "imgui/imgui_impl_glfw_gl3.h"
+#include "app/imgui/glfw_gl3/imgui_impl_glfw_gl3.h"
 
 #if defined(KINSKI_LINUX)
 #include <GL/glx.h>

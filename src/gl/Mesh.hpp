@@ -74,9 +74,11 @@ namespace kinski { namespace gl {
         struct VertexAttrib
         {
             std::string name;
+            int32_t location = -1;
             gl::Buffer buffer;
             size_t size = 3;
             size_t offset = 0;
+            size_t stride = 0;
             GLenum type = GL_FLOAT;
             bool normalize = false;
         };
@@ -101,6 +103,9 @@ namespace kinski { namespace gl {
         
         //! add a custom VertexAttrib
         void add_vertex_attrib(const VertexAttrib& v);
+
+        void set_index_buffer(const gl::Buffer &the_buffer){ m_index_buffer = the_buffer; };
+        gl::Buffer index_buffer() const { return m_index_buffer; };
         
         void bind_vertex_pointers(int material_index = 0);
         void bind_vertex_pointers(const gl::ShaderPtr &the_shader);
@@ -159,7 +164,10 @@ namespace kinski { namespace gl {
         GeometryPtr m_geometry;
         std::vector<Entry> m_entries;
         std::vector<MaterialPtr> m_materials;
-        
+
+        //! optional index buffer, can be used to override the index buffer from m_geometry
+        gl::Buffer m_index_buffer;
+
         // skeletal animations stuff
         BonePtr m_rootBone;
         uint32_t m_animation_index;

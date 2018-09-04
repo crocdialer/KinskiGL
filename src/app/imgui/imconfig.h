@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include "gl/gl.hpp"
+
 //---- Define assertion handler. Defaults to calling assert().
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
 
@@ -60,7 +62,7 @@
 */
 
 //---- Use 32-bit vertex indices (default is 16-bit) to allow meshes with more than 64K vertices. Render function needs to support it.
-//#define ImDrawIdx unsigned int
+#define ImDrawIdx kinski::gl::index_t
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in your own headers files.
 /*

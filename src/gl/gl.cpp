@@ -917,7 +917,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 {
     KINSKI_CHECK_GL_ERRORS();
-    if(!the_mesh || the_mesh->geometry()->vertices().empty()) return;
+    if(!the_mesh) return;
 
     const glm::mat4 &modelView = g_modelViewMatrixStack.top();
     mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
@@ -940,7 +940,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
     KINSKI_CHECK_GL_ERRORS();
     
-    if(the_mesh->geometry()->has_indices())
+    if(the_mesh->geometry()->has_indices() || the_mesh->index_buffer())
     {
         if(!the_mesh->entries().empty())
         {
@@ -949,9 +949,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             for (uint32_t i = 0; i < the_mesh->entries().size(); ++i)
             {
                 uint32_t mat_index = the_mesh->entries()[i].material_index;
-                
-                if(mat_index < the_mesh->materials().size())
-                    mat_entries[mat_index].push_back(i);
+                if(mat_index < the_mesh->materials().size()){ mat_entries[mat_index].push_back(i); }
             }
             
             for (uint32_t i = 0; i < the_mesh->materials().size(); ++i)
@@ -977,7 +975,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     glDrawElementsBaseVertex(primitive_type,
                                              e.num_indices,
                                              the_mesh->geometry()->index_type(),
-                                             BUFFER_OFFSET(e.base_index *the_mesh->geometry()->index_size()),
+                                             BUFFER_OFFSET(e.base_index * the_mesh->geometry()->index_size()),
                                              e.base_vertex);
 #else
                     glDrawElements(primitive_type,
@@ -1384,6 +1382,20 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             if(the_mat->stencil_test()){ glEnable(GL_STENCIL_TEST); }
             else{ glDisable(GL_STENCIL_TEST); }
 
+        }
+        KINSKI_CHECK_GL_ERRORS();
+
+        // scissor test
+        if(!last_mat || (last_mat->scissor_rect() != the_mat->scissor_rect()))
+        {
+            auto rect = the_mat->scissor_rect();
+
+            if(the_mat->scissor_rect() == Area_<uint32_t>()){ glDisable(GL_SCISSOR_TEST); }
+            else
+            {
+                glEnable(GL_SCISSOR_TEST);
+                glScissor(rect.x0, rect.y0, rect.width(), rect.height());
+            }
         }
         KINSKI_CHECK_GL_ERRORS();
 

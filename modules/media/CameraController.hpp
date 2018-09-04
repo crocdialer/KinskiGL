@@ -35,6 +35,7 @@ namespace kinski{ namespace media{
         int device_id() const;
 
         void set_capture_mode(const capture_mode_t &the_mode);
+
         /*!
          * upload the current frame to a std::vector<uint8_t> object,
          * if provided the width and height are written to the according pointers.

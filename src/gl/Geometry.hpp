@@ -14,12 +14,6 @@
 #include "Buffer.hpp"
 
 namespace kinski{ namespace gl{
-    
-#ifdef KINSKI_GLES
-using index_t = uint16_t;
-#else
-using index_t = uint32_t;
-#endif
 
 struct KINSKI_API Face3
 {

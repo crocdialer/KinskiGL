@@ -164,7 +164,11 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
     for(auto &p : m_vertex_attribs)
     {
         const auto &vertex_attrib = p.second;
-        GLint location = the_shader->attrib_location(vertex_attrib.name);
+
+        // determine glsl location for attrib
+        int32_t location = -1;
+        if(vertex_attrib.location >= 0){ location = vertex_attrib.location; }
+        else{ location = the_shader->attrib_location(vertex_attrib.name); }
         KINSKI_CHECK_GL_ERRORS();
         
         if(location >= 0)
@@ -191,8 +195,9 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
         }
     }
     
-    // bin index buffer
-    if(m_geometry->has_indices()){ m_geometry->index_buffer().bind(); }
+    // bind index buffer
+    if(m_index_buffer){ m_index_buffer.bind(); }
+    else if(m_geometry->has_indices()){ m_geometry->index_buffer().bind(); }
 }
 
 void Mesh::bind_vertex_pointers(int material_index)
@@ -347,7 +352,7 @@ gl::OBB Mesh::obb() const
 
 GLuint Mesh::create_vertex_array(const gl::ShaderPtr &the_shader)
 {
-    if(m_geometry->vertices().empty()) return 0;
+//    if(m_geometry->vertices().empty()) return 0;
 
     GLuint vao_id = 0;
 

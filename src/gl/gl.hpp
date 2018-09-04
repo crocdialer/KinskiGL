@@ -156,6 +156,13 @@ private:
 
 //! helper macro for buffer offsets
 #define BUFFER_OFFSET(i) ((char *)nullptr + (i))
+
+//! 16bit indices on ES2
+#ifdef KINSKI_GLES
+using index_t = uint16_t;
+#else
+using index_t = uint32_t;
+#endif
     
 KINSKI_API const vec2& window_dimension();
 KINSKI_API void set_window_dimension(const vec2 &theDim, const vec2 &the_offset = vec2(0));
