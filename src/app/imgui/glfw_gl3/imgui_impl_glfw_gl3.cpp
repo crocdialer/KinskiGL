@@ -79,40 +79,12 @@ void ImGui_ImplGlfwGL3_RenderDrawData(ImDrawData* draw_data)
     ImGuiIO& io = ImGui::GetIO();
     int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
     int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
-    if (fb_width == 0 || fb_height == 0)
-        return;
+    if(fb_width == 0 || fb_height == 0){ return; }
     draw_data->ScaleClipRects(io.DisplayFramebufferScale);
-
-
-//    const float ortho_projection[4][4] =
-//    {
-//        { 2.0f/io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
-//        { 0.0f,                  2.0f/-io.DisplaySize.y, 0.0f, 0.0f },
-//        { 0.0f,                  0.0f,                  -1.0f, 0.0f },
-//        {-1.0f,                  1.0f,                   0.0f, 1.0f },
-//    };
-//    glUseProgram(g_ShaderHandle);
-//    glUniform1i(g_AttribLocationTex, 0);
-//    glUniformMatrix4fv(g_AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
-//    glBindSampler(0, 0); // Rely on combined texture/sampler state.
-//
-//    // Recreate the VAO every time
-//    // (This is to easily allow multiple GL contexts. VAO are not shared among GL contexts, and we don't track creation/deletion of windows so we don't have an obvious key to use to cache them.)
-//    GLuint vao_handle = 0;
-//    glGenVertexArrays(1, &vao_handle);
-//    glBindVertexArray(vao_handle);
-//    glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
-//    glEnableVertexAttribArray(g_AttribLocationPosition);
-//    glEnableVertexAttribArray(g_AttribLocationUV);
-//    glEnableVertexAttribArray(g_AttribLocationColor);
-//    glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, pos));
-//    glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, uv));
-//    glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, col));
 
     kinski::gl::ScopedMatrixPush push_modelview(kinski::gl::MODEL_VIEW_MATRIX), push_proj(kinski::gl::PROJECTION_MATRIX);
     kinski::gl::load_identity(kinski::gl::MODEL_VIEW_MATRIX);
     kinski::gl::load_matrix(kinski::gl::PROJECTION_MATRIX, glm::ortho(0.f, io.DisplaySize.x, io.DisplaySize.y, 0.f));
-//    kinski::gl::load_matrix(kinski::gl::PROJECTION_MATRIX, glm::make_mat4((const float*)ortho_projection));
 
     // Draw
     for(int n = 0; n < draw_data->CmdListsCount; n++)
@@ -222,10 +194,31 @@ bool ImGui_ImplGlfwGL3_CreateDeviceObjects()
 //    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height, &num_components);
     io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height, &num_components);
 
+#if defined(KINSKI_ARM)
+    GLint tex_format = GL_LUMINANCE_ALPHA;
+
+    // create data
+    size_t num_bytes = width * height * 2;
+    auto luminance_alpha_data = std::unique_ptr<uint8_t>(new uint8_t[num_bytes]);
+    uint8_t *src_ptr = static_cast<uint8_t*>(pixels);
+    uint8_t *out_ptr = luminance_alpha_data.get(), *data_end = luminance_alpha_data.get() + num_bytes;
+
+    for (; out_ptr < data_end; out_ptr += 2, ++src_ptr)
+    {
+        out_ptr[0] = 255;
+        out_ptr[1] = *src_ptr;
+    }
+
+    // create a new texture object for our glyphs
+    gl::Texture::Format fmt;
+    fmt.internal_format = tex_format;
+    auto font_texture = gl::Texture(luminance_alpha_data.get(), tex_format, width, height, fmt);
+#else
     auto font_img = kinski::Image_<uint8_t>::create(pixels, width, height, num_components, true);
-    kinski::gl::Texture font_texture = kinski::gl::create_texture_from_image(font_img, false, false);
+    auto font_texture = kinski::gl::create_texture_from_image(font_img, false, false);
     font_texture.set_flipped(false);
     font_texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
+#endif
 
     // create mesh instance
     g_mesh = kinski::gl::Mesh::create();
@@ -294,13 +287,6 @@ void ImGui_ImplGlfwGL3_InvalidateDeviceObjects()
 bool ImGui_ImplGlfwGL3_Init(GLFWwindow* window, bool install_callbacks, const char* glsl_version)
 {
     g_Window = window;
-
-    // Store GL version string so we can refer to it later in case we recreate shaders.
-//    if (glsl_version == NULL)
-//        glsl_version = "#version 150";
-//    IM_ASSERT((int)strlen(glsl_version) + 2 < IM_ARRAYSIZE(g_GlslVersion));
-//    strcpy(g_GlslVersion, glsl_version);
-//    strcat(g_GlslVersion, "\n");
 
     // Setup back-end capabilities flags
     ImGuiIO& io = ImGui::GetIO();
