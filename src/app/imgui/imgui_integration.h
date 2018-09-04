@@ -12,6 +12,7 @@
 // https://github.com/ocornut/imgui
 
 #include "app/App.hpp"
+#include "imgui.h"
 
 namespace kinski{ namespace gui {
 
