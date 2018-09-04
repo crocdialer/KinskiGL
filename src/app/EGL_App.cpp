@@ -300,12 +300,14 @@ void read_keyboard(kinski::App* the_app, int the_file_descriptor)
                 if(evp->value == 0)
                 {
                     gui::key_release(e);
-                    if(!ImGui::GetIO().WantCaptureKeyboard){ the_app->key_release(e); }
+//                    if(!ImGui::GetIO().WantCaptureKeyboard)
+                    { the_app->key_release(e); }
                 }
                 else if(evp->value == 1 || evp->value == 2)
                 {
                     gui::key_press(e);
-                    if(!ImGui::GetIO().WantCaptureKeyboard){ the_app->key_press(e); }
+//                    if(!ImGui::GetIO().WantCaptureKeyboard)
+                    { the_app->key_press(e); }
                 }
 
                 // right place here !?
@@ -437,7 +439,7 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
             {
                 if(evp->value){ gui::mouse_press(e); }
 
-                if(!ImGui::GetIO().WantCaptureMouse)
+//                if(!ImGui::GetIO().WantCaptureMouse)
                 {
                     if(evp->value){ the_app->mouse_press(e); }
                     else{ the_app->mouse_release(e); }
@@ -447,7 +449,7 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
             {
                 if(evp->code == REL_WHEEL){ gui::mouse_wheel(e); }
 
-                if(!ImGui::GetIO().WantCaptureMouse)
+//                if(!ImGui::GetIO().WantCaptureMouse)
                 {
                     if(evp->code == REL_WHEEL){ the_app->mouse_wheel(e); }
                     else if(button_modifiers){ the_app->mouse_drag(e); }
