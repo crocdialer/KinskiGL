@@ -190,6 +190,12 @@ void EGL_App::draw_internal()
          gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED, 5.f);
     }
 }
+
+void EGL_App::post_draw()
+{
+    ImGui::EndFrame();
+}
+
 void EGL_App::swap_buffers()
 {
     esSwapBuffer(m_context.get());

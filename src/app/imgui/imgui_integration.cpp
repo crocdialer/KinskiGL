@@ -301,8 +301,7 @@ void shutdown()
 
 void new_frame()
 {
-    if(!g_mesh)
-    { create_device_objects(); }
+    if(!g_mesh){ create_device_objects(); }
 
     ImGuiIO &io = ImGui::GetIO();
 
@@ -321,12 +320,11 @@ void new_frame()
 //    if(glfwGetWindowAttrib(g_Window, GLFW_FOCUSED))
     {
         // Set OS mouse position if requested (only used when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
-        if(io.WantSetMousePos)
-        { g_app->set_cursor_position(io.MousePos.x, io.MousePos.y); }
-        else
+//        if(io.WantSetMousePos) { g_app->set_cursor_position(io.MousePos.x, io.MousePos.y); }
+//        else
         { io.MousePos = kinski::gui::im_vec_cast(g_app->cursor_position()); }
     }
-//    else{ io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX); }
+    if(!g_app->display_gui()){ io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX); }
 
     // If a mouse press event came, always pass it as "mouse held this frame"
     // so we don't miss click-release events that are shorter than 1 frame.

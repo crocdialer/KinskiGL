@@ -27,6 +27,8 @@ class EGL_App : public App
     void set_window_size(const glm::vec2 &size) override;
     double get_application_time() override;
 
+    void post_draw() override;
+
     void set_cursor_position(float x, float y) override;
     gl::vec2 cursor_position() const override;
 
