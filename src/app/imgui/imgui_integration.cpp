@@ -56,9 +56,6 @@ static kinski::gl::Texture g_font_texture;
 static kinski::gl::Buffer g_vertex_buffer;
 static kinski::gl::Buffer g_index_buffer;
 
-// OpenGL3 Render function.
-// (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
-// Note that this implementation is little overcomplicated because we are saving/setting up/restoring every OpenGL state explicitly, in order to be able to run within any OpenGL engine that doesn't do so. 
 void render_draw_data(ImDrawData *draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
@@ -92,8 +89,7 @@ void render_draw_data(ImDrawData *draw_data)
         for(int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
             const ImDrawCmd *pcmd = &cmd_list->CmdBuffer[cmd_i];
-            if(pcmd->UserCallback)
-            { pcmd->UserCallback(cmd_list, pcmd); }
+            if(pcmd->UserCallback){ pcmd->UserCallback(cmd_list, pcmd); }
             else
             {
                 auto &tex = *reinterpret_cast<kinski::gl::Texture *>(pcmd->TextureId);
@@ -116,14 +112,6 @@ void mouse_press(const MouseEvent &e)
     else if(e.is_right()){ g_mouse_pressed[2] = true; }
 }
 
-//void mouse_release(const MouseEvent &e)
-//{
-//    ImGuiIO &io = ImGui::GetIO();
-//    if(e.isLeft()){ io.MouseDown[0] = false; }
-//    else if(e.isMiddle()){ io.MouseDown[1] = false; }
-//    else if(e.isRight()){ io.MouseDown[2] = false; }
-//}
-
 void mouse_wheel(const MouseEvent &e)
 {
     ImGuiIO &io = ImGui::GetIO();
@@ -134,7 +122,7 @@ void mouse_wheel(const MouseEvent &e)
 void key_press(const KeyEvent &e)
 {
     ImGuiIO &io = ImGui::GetIO();
-    io.KeysDown[e.getCode()] = true;
+    io.KeysDown[e.code()] = true;
     io.KeyCtrl = io.KeysDown[Key::_LEFT_CONTROL] || io.KeysDown[Key::_RIGHT_CONTROL];
     io.KeyShift = io.KeysDown[Key::_LEFT_SHIFT] || io.KeysDown[Key::_RIGHT_SHIFT];
     io.KeyAlt = io.KeysDown[Key::_LEFT_ALT] || io.KeysDown[Key::_RIGHT_ALT];
@@ -144,7 +132,7 @@ void key_press(const KeyEvent &e)
 void key_release(const KeyEvent &e)
 {
     ImGuiIO &io = ImGui::GetIO();
-    io.KeysDown[e.getCode()] = false;
+    io.KeysDown[e.code()] = false;
     io.KeyCtrl = io.KeysDown[Key::_LEFT_CONTROL] || io.KeysDown[Key::_RIGHT_CONTROL];
     io.KeyShift = io.KeysDown[Key::_LEFT_SHIFT] || io.KeysDown[Key::_RIGHT_SHIFT];
     io.KeyAlt = io.KeysDown[Key::_LEFT_ALT] || io.KeysDown[Key::_RIGHT_ALT];

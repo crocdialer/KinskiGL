@@ -236,7 +236,7 @@ namespace kinski
         // ImGui
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+//        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
         io.ClipboardUserData = main_window->handle();
         io.GetClipboardTextFn = &GLFW_App::get_clipboard_text;
@@ -455,7 +455,7 @@ namespace kinski
                 draw();
 
                 // draw tweakbar
-                if(display_tweakbar())
+                if(display_gui())
                 {
                     // console output
                     outstream_gl().draw();
@@ -698,9 +698,9 @@ namespace kinski
         glfwSetClipboardString((GLFWwindow*)user_data, text);
     }
 
-    void GLFW_App::set_display_tweakbar(bool b)
+    void GLFW_App::set_display_gui(bool b)
     {
-        App::set_display_tweakbar(b);
+        App::set_display_gui(b);
         
         if(!b)
         {

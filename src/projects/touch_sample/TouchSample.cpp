@@ -48,7 +48,7 @@ void TouchSample::update(float timeDelta)
     ViewerApp::update(timeDelta);
 
     // construct ImGui window for this frame
-    if(display_tweakbar())
+    if(display_gui())
     {
         gui::draw_component_ui(shared_from_this());
     }
@@ -79,7 +79,7 @@ void TouchSample::draw()
     // draw info text
     gl::draw_text_2D(name(), fonts()[FONT_LARGE], gl::COLOR_WHITE, gl::vec2(20));
     
-    if(display_tweakbar()){ draw_textures(textures()); }
+    if(display_gui()){ draw_textures(textures()); }
 }
 
 /////////////////////////////////////////////////////////////////

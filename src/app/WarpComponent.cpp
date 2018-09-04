@@ -293,13 +293,13 @@ void WarpComponent::render_output(int the_index, const gl::Texture &the_tex,
 
 void WarpComponent::key_press(const KeyEvent &e)
 {
-    m_show_cursor = e.isAltDown();
+    m_show_cursor = e.is_alt_down();
 
     auto c = quad_warp().center();
     gl::vec2 inc = 1.f / gl::window_dimension();
     gl::ivec2 num_subs = quad_warp().num_subdivisions();
 
-    switch(e.getCode())
+    switch(e.code())
     {
         case Key::_LEFT:
             for(auto cp : m_active_control_points)
@@ -370,9 +370,9 @@ void WarpComponent::key_press(const KeyEvent &e)
         case Key::_7:
         case Key::_8:
         case Key::_9:
-            if(e.isAltDown())
+            if(e.is_alt_down())
             {
-                set_index(e.getCode() - Key::_1);
+                set_index(e.code() - Key::_1);
             }
             break;
 
@@ -414,7 +414,7 @@ void WarpComponent::key_press(const KeyEvent &e)
 
 void WarpComponent::key_release(const KeyEvent &e)
 {
-    m_show_cursor = e.isAltDown();
+    m_show_cursor = e.is_alt_down();
 }
 
 void WarpComponent::mouse_press(const MouseEvent &e)

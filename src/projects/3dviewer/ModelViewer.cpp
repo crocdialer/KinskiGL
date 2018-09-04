@@ -94,7 +94,7 @@ void ModelViewer::update(float timeDelta)
     ViewerApp::update(timeDelta);
 
     // construct ImGui window for this frame
-    if(display_tweakbar())
+    if(display_gui())
     {
         gui::draw_component_ui(shared_from_this());
         gui::draw_component_ui(m_light_component);
@@ -220,7 +220,7 @@ void ModelViewer::draw()
     }
 
     // draw texture map(s)
-    if(display_tweakbar())
+    if(display_gui())
     {
         std::vector<gl::Texture> display_textures;
 
@@ -243,7 +243,7 @@ void ModelViewer::draw()
     {
         draw_load_indicator(gl::vec2(gl::window_dimension().x - 100, 80), 50.f);
 
-        if(display_tweakbar())
+        if(display_gui())
         {
 //            auto tasks = Task::current_tasks();
 //            std::stringstream ss;

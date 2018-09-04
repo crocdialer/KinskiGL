@@ -94,7 +94,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void set_display_tweakbar(bool b) override;
+        void set_display_gui(bool b) override;
         
         int get_num_monitors() const;
         const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};

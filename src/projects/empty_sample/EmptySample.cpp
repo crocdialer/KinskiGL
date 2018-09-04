@@ -30,7 +30,7 @@ void EmptySample::update(float timeDelta)
     ViewerApp::update(timeDelta);
 
     // construct ImGui window for this frame
-    if(display_tweakbar())
+    if(display_gui())
     {
         gui::draw_component_ui(shared_from_this());
     }

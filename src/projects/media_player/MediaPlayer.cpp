@@ -107,7 +107,7 @@ void MediaPlayer::setup()
 void MediaPlayer::update(float timeDelta)
 {
     // construct ImGui window for this frame
-    if(display_tweakbar())
+    if(display_gui())
     {
         gui::draw_component_ui(shared_from_this());
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
@@ -178,7 +178,7 @@ void MediaPlayer::draw()
     {
         gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
     }
-    if(display_tweakbar())
+    if(display_gui())
     {
         // media title
         gl::draw_text_2D(m_media->is_loaded() ? fs::get_filename_part(m_media->path()) : *m_media_path,
@@ -207,9 +207,9 @@ void MediaPlayer::key_press(const KeyEvent &e)
 {
     ViewerApp::key_press(e);
     
-    if(!e.isAltDown())
+    if(!e.is_alt_down())
     {
-        switch (e.getCode())
+        switch (e.code())
         {
             case Key::_C:
                 if(m_camera_control->is_capturing())
@@ -224,12 +224,12 @@ void MediaPlayer::key_press(const KeyEvent &e)
                 break;
                 
             case Key::_LEFT:
-                m_media->seek_to_time(m_media->current_time() - (e.isShiftDown() ? 30 : 5));
+                m_media->seek_to_time(m_media->current_time() - (e.is_shift_down() ? 30 : 5));
                 m_needs_redraw = true;
                 break;
                 
             case Key::_RIGHT:
-                m_media->seek_to_time(m_media->current_time() + (e.isShiftDown() ? 30 : 5));
+                m_media->seek_to_time(m_media->current_time() + (e.is_shift_down() ? 30 : 5));
                 m_needs_redraw = true;
                 break;
             case Key::_UP:

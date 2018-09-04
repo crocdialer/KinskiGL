@@ -128,8 +128,8 @@ namespace kinski
         inline bool running() const { return m_running; };
         inline void set_running(bool b){ m_running = b; }
         
-        virtual void set_display_tweakbar(bool b) {m_displayTweakBar = b;};
-        inline bool display_tweakbar() const {return m_displayTweakBar;};
+        virtual void set_display_gui(bool b) {m_display_gui = b;};
+        inline bool display_gui() const {return m_display_gui;};
         
         inline float max_fps() const {return m_max_fps;};
         inline void set_max_fps(float fps){m_max_fps = fps;};
@@ -195,7 +195,7 @@ namespace kinski
         
         bool m_running;
         bool m_fullscreen;
-        bool m_displayTweakBar;
+        bool m_display_gui;
         bool m_cursorVisible;
         float m_max_fps;
         
@@ -304,22 +304,22 @@ namespace kinski
         m_modifiers(the_modifiers){}
         
         //! Returns the key code associated with the event, which maps into the enum listed below
-        int getCode() const { return m_code; }
+        int code() const { return m_code; }
         
         //! Returns the ASCII character associated with the event.
-        uint8_t	getChar() const { return m_char; }
+        uint8_t	character() const { return m_char; }
         
         //! Returns whether the Shift key was pressed during the event.
-        bool isShiftDown() const { return m_modifiers & SHIFT_DOWN; }
+        bool is_shift_down() const { return m_modifiers & SHIFT_DOWN; }
         
         //! Returns whether the Alt (or Option) key was pressed during the event.
-        bool isAltDown() const { return m_modifiers & ALT_DOWN; }
+        bool is_alt_down() const { return m_modifiers & ALT_DOWN; }
         
         //! Returns whether the Control key was pressed during the event.
-        bool isControlDown() const { return m_modifiers & CTRL_DOWN; }
+        bool is_control_down() const { return m_modifiers & CTRL_DOWN; }
         
         //! Returns whether the meta key was pressed during the event. Maps to the Windows key on Windows and the Command key on Mac OS X.
-        bool isMetaDown() const { return m_modifiers & META_DOWN; }
+        bool is_meta_down() const { return m_modifiers & META_DOWN; }
         
         //! Maps a platform-native key-code to the key code enum
         static int translate_native_keycode(int the_code);
