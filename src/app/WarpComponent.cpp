@@ -421,7 +421,7 @@ void WarpComponent::mouse_press(const MouseEvent &e)
 {
     m_click_pos = m_mouse_pos = glm::vec2(e.getX(), e.getY());
 
-    if(e.isLeft() || e.is_touch())
+    if(e.is_left() || e.is_touch())
     {
         auto coord = m_click_pos / gl::window_dimension();
         coord.y = 1.f - coord.y;
@@ -449,7 +449,7 @@ void WarpComponent::mouse_press(const MouseEvent &e)
             }
         }
     }
-    else if(e.isRight())
+    else if(e.is_right())
     {
         m_active_control_points.clear();
         quad_warp().selected_indices().clear();

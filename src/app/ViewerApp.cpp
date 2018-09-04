@@ -232,7 +232,7 @@ namespace kinski {
         // forward event
         if(*m_use_warping && e.isAltDown()){ m_warp_component->mouse_press(e); }
         
-        if(e.isLeft() || e.is_touch())
+        if(e.is_left() || e.is_touch())
         {
             m_drag_buffer.clear();
             
@@ -249,7 +249,7 @@ namespace kinski {
             }
         }
 
-        if(e.isRight())
+        if(e.is_right())
         {
             m_selected_mesh.reset();
         }
@@ -264,7 +264,7 @@ namespace kinski {
     {
         glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
 
-        if(e.isLeft() || e.is_touch())
+        if(e.is_left() || e.is_touch())
         {
             if(e.isAltDown() && *m_use_warping){ m_warp_component->mouse_drag(e); }
             else
@@ -277,7 +277,7 @@ namespace kinski {
                 m_dragPos = glm::vec2(e.getX(), e.getY());
             }
         }
-        else if(e.isRight())
+        else if(e.is_right())
         {
             mouseDiff /= gl::window_dimension();
             mouseDiff *= *m_distance;

@@ -79,7 +79,9 @@ namespace kinski
         void swap_buffers() override;
         double get_application_time() override;
         void teardown() override;
-        
+
+        const MouseEvent mouse_state() const override;
+
         void set_fullscreen(bool b, int monitor_index) override;
         void set_cursor_visible(bool b = true) override;
         void set_cursor_position(float x, float y) override;
@@ -130,6 +132,9 @@ namespace kinski
         static void s_file_drop_func(GLFWwindow* window, int num_files, const char **paths);
         static void s_monitor_func(GLFWmonitor* the_monitor, int);
         static void s_joystick_cb(int joy, int event);
+
+        static const char* get_clipboard_text(void* user_data);
+        static void set_clipboard_text(void* user_data, const char* text);
 
         // return the current key and mouse button modifier mask
         static void s_get_modifiers(GLFWwindow *window, uint32_t &buttonModifiers,

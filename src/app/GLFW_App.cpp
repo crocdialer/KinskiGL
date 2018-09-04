@@ -10,7 +10,7 @@
 #include "gl/gl.hpp"
 #include "gl/Material.hpp"
 #include "GLFW_App.hpp"
-#include "app/imgui/glfw_gl3/imgui_impl_glfw_gl3.h"
+#include "app/imgui/imgui_integration.h"
 
 #if defined(KINSKI_LINUX)
 #include <GL/glx.h>
@@ -238,12 +238,10 @@ namespace kinski
         ImGuiIO& io = ImGui::GetIO();
 //        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-        ImGui_ImplGlfwGL3_Init(main_window->handle(), false, "#version 410");
-        ImGuiStyle& im_style = ImGui::GetStyle();
-        im_style.Colors[ImGuiCol_TitleBgActive] = gui::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
-        im_style.Colors[ImGuiCol_FrameBg] = gui::im_vec_cast(gl::COLOR_WHITE.rgb * 0.07f);
-        im_style.Colors[ImGuiCol_FrameBgHovered] = im_style.Colors[ImGuiCol_FrameBgActive] =
-                gui::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
+        io.ClipboardUserData = main_window->handle();
+        io.GetClipboardTextFn = &GLFW_App::get_clipboard_text;
+        io.SetClipboardTextFn = &GLFW_App::set_clipboard_text;
+        gui::init(this);
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
         glfwSetJoystickCallback(&GLFW_App::s_joystick_cb);
@@ -306,7 +304,7 @@ namespace kinski
     {
         glfwPollEvents();
         gui::process_joystick_input(get_joystick_states());
-        ImGui_ImplGlfwGL3_NewFrame();
+        gui::new_frame();
     }
 
     void GLFW_App::draw_internal()
@@ -350,7 +348,20 @@ namespace kinski
 
     void GLFW_App::teardown()
     {
-        ImGui_ImplGlfwGL3_Shutdown();
+        gui::shutdown();
+    }
+
+    const MouseEvent GLFW_App::mouse_state() const
+    {
+        uint32_t initiator, keyModifiers, bothMods;
+        s_get_modifiers(m_windows.front()->handle(), initiator, keyModifiers);
+        bothMods = initiator | keyModifiers;
+
+        double posX, posY;
+        glfwGetCursorPos(m_windows.front()->handle(), &posX, &posY);
+        MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
+
+        return e;
     }
 
     void GLFW_App::set_fullscreen(bool b, int monitor_index)
@@ -391,7 +402,7 @@ namespace kinski
             add_window(window);
             set_window_size(new_res);
 
-            ImGui_ImplGlfwGL3_Init(window->handle(), false, "#version 410");
+//            gui::init(this);
 
             gl::reset_state();
             set_cursor_visible(cursor_visible());
@@ -451,7 +462,7 @@ namespace kinski
 
                     // render and draw ImGui
                     ImGui::Render();
-                    ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+                    gui::render_draw_data(ImGui::GetDrawData());
                 }
             });
         }
@@ -543,86 +554,72 @@ namespace kinski
 
     void GLFW_App::s_mouse_button(GLFWwindow *window, int button, int action, int modifier_mask)
     {
+        uint32_t initiator, keyModifiers, bothMods;
+        s_get_modifiers(window, initiator, keyModifiers);
+        bothMods = initiator | keyModifiers;
+
+        double posX, posY;
+        glfwGetCursorPos(window, &posX, &posY);
+        MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
+
         // ImGUI
-        ImGui_ImplGlfw_MouseButtonCallback(window,button, action, modifier_mask);
+        if(action == GLFW_PRESS){ gui::mouse_press(e); }
+//        else if(action == GLFW_RELEASE){ gui::mouse_release(e); }
 
         if(!ImGui::GetIO().WantCaptureMouse)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-
-            uint32_t initiator, keyModifiers, bothMods;
-            s_get_modifiers(window, initiator, keyModifiers);
-            bothMods = initiator | keyModifiers;
-
-            double posX, posY;
-            glfwGetCursorPos(window, &posX, &posY);
-            MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
-
-            switch(action)
-            {
-                case GLFW_PRESS:
-                    app->mouse_press(e);
-                    break;
-
-                case GLFW_RELEASE:
-                    app->mouse_release(e);
-                    break;
-            }
+            if(action == GLFW_PRESS){ app->mouse_press(e); }
+            else if(action == GLFW_RELEASE){ app->mouse_release(e); }
         }
     }
 
     void GLFW_App::s_mouse_wheel(GLFWwindow *window, double offset_x, double offset_y)
     {
-        ImGui_ImplGlfw_ScrollCallback(window, offset_x, offset_y);
+        glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
+        double posX, posY;
+        glfwGetCursorPos(window, &posX, &posY);
+        uint32_t buttonMod, keyModifiers = 0;
+        s_get_modifiers(window, buttonMod, keyModifiers);
+        MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
+
+        gui::mouse_wheel(e);
 
         if(!ImGui::GetIO().WantCaptureMouse)
         {
             GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-            glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
-
-            double posX, posY;
-            glfwGetCursorPos(window, &posX, &posY);
-            uint32_t buttonMod, keyModifiers = 0;
-            s_get_modifiers(window, buttonMod, keyModifiers);
-            MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
             if(app->running()) app->mouse_wheel(e);
         }
     }
 
     void GLFW_App::s_key_func(GLFWwindow *window, int key, int scancode, int action, int modifier_mask)
     {
-        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, modifier_mask);
+        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        uint32_t buttonMod, keyMod;
+        s_get_modifiers(window, buttonMod, keyMod);
+        KeyEvent e(key, key, keyMod);
 
-        if(!ImGui::GetIO().WantCaptureKeyboard)
+        switch(action)
         {
-            GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+            case GLFW_PRESS:
+            case GLFW_REPEAT:
+                gui::key_press(e);
+                if(!ImGui::GetIO().WantCaptureKeyboard){ app->key_press(e); }
+                break;
 
-            uint32_t buttonMod, keyMod;
-            s_get_modifiers(window, buttonMod, keyMod);
+            case GLFW_RELEASE:
+                gui::key_release(e);
+                if(!ImGui::GetIO().WantCaptureKeyboard){ app->key_release(e); }
+                break;
 
-            KeyEvent e(key, key, keyMod);
-
-            switch(action)
-            {
-                case GLFW_PRESS:
-                case GLFW_REPEAT:
-                    app->key_press(e);
-                    break;
-
-                case GLFW_RELEASE:
-                    app->key_release(e);
-                    break;
-
-
-                default:
-                    break;
-            }
+            default:
+                break;
         }
     }
 
     void GLFW_App::s_char_func(GLFWwindow *window, unsigned int key)
     {
-        ImGui_ImplGlfw_CharCallback(window, key);
+        gui::char_callback(key);
 
         if(!ImGui::GetIO().WantCaptureKeyboard)
         {
@@ -691,7 +688,17 @@ namespace kinski
             LOG_DEBUG << "joystick " << joy << " disconnected";
         }
     }
-    
+
+    const char* GLFW_App::get_clipboard_text(void* user_data)
+    {
+        return glfwGetClipboardString((GLFWwindow*)user_data);
+    }
+
+    void GLFW_App::set_clipboard_text(void* user_data, const char* text)
+    {
+        glfwSetClipboardString((GLFWwindow*)user_data, text);
+    }
+
     void GLFW_App::set_display_tweakbar(bool b)
     {
         App::set_display_tweakbar(b);

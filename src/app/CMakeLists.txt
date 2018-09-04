@@ -6,6 +6,10 @@ FILE(GLOB FOLDER_SOURCES App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.
 FILE(GLOB FOLDER_HEADERS App.hpp RemoteControl.hpp ViewerApp.hpp LightComponent.hpp
      Object3DComponent.hpp MaterialComponent.hpp WarpComponent.hpp)
 
+##### IMGUI
+FILE(GLOB IMGUI_HEADERS imgui/*.h)
+FILE(GLOB IMGUI_SOURCES imgui/*.cpp)
+
 ##### GLFW
 if(NOT KINSKI_ARM)
 find_package(GLFW3 REQUIRED)
@@ -13,10 +17,6 @@ INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 FILE(GLOB GLFW_SOURCES GLFW_App.cpp App.cpp AntTweakBarConnector.cpp)
 FILE(GLOB GLFW_HEADERS GLFW_App.hpp AntTweakBarConnector.hpp)
-
-##### IMGUI
-FILE(GLOB IMGUI_HEADERS imgui/*.h imgui/glfw_gl3/*.h)
-FILE(GLOB IMGUI_SOURCES imgui/*.cpp imgui/glfw_gl3/*.cpp)
 
 set(FOLDER_SOURCES ${FOLDER_SOURCES} ${GLFW_SOURCES} ${IMGUI_SOURCES})
 set(FOLDER_HEADERS ${FOLDER_HEADERS} ${GLFW_HEADERS} ${IMGUI_HEADERS})
@@ -26,12 +26,8 @@ elseif(KINSKI_RASPI)
 FILE(GLOB ARM_SOURCES EGL_App.cpp esUtil.c)
 FILE(GLOB ARM_HEADERS EGL_App.hpp esUtil.h)
 
-##### IMGUI
-FILE(GLOB IMGUI_HEADERS imgui/*.h imgui/es2/*.h)
-FILE(GLOB IMGUI_SOURCES imgui/*.cpp imgui/es2/*.cpp)
-
-set(FOLDER_SOURCES ${FOLDER_SOURCES} ${ARM_SOURCES})
-set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS})
+set(FOLDER_SOURCES ${FOLDER_SOURCES} ${ARM_SOURCES} ${IMGUI_SOURCES})
+set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS} ${IMGUI_HEADERS})
 
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )

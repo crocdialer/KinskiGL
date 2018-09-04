@@ -67,6 +67,7 @@ namespace kinski
         virtual void mouse_drag(const MouseEvent &e) = 0;
         virtual void mouse_wheel(const MouseEvent &e) = 0;
         virtual void file_drop(const MouseEvent &e, const std::vector<std::string> &files) = 0;
+        virtual const MouseEvent mouse_state() const = 0;
     };
 
     class TouchDelegate
@@ -84,7 +85,7 @@ namespace kinski
         virtual void key_release(const KeyEvent &e) = 0;
     };
 
-    class KINSKI_API App : public Component, MouseDelegate, KeyDelegate, TouchDelegate
+    class KINSKI_API App : public Component, public MouseDelegate, public KeyDelegate, public TouchDelegate
     {
     public:
         
@@ -242,11 +243,11 @@ namespace kinski
         glm::ivec2 getWheelIncrement() const { return m_wheel_inc; }
         
         //! Returns whether the initiator for the event was the left mouse button
-        bool isLeft() const { return m_initiator & LEFT_DOWN; }
+        bool is_left() const { return m_initiator & LEFT_DOWN; }
         //! Returns whether the initiator for the event was the right mouse button
-        bool isRight() const { return m_initiator & RIGHT_DOWN; }
+        bool is_right() const { return m_initiator & RIGHT_DOWN; }
         //! Returns whether the initiator for the event was the middle mouse button
-        bool isMiddle() const { return m_initiator & MIDDLE_DOWN; }
+        bool is_middle() const { return m_initiator & MIDDLE_DOWN; }
         //! Returns whether the left mouse button was pressed during the event
         bool isLeftDown() const { return m_modifiers & LEFT_DOWN; }
         //! Returns whether the right mouse button was pressed during the event
