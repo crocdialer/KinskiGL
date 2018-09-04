@@ -299,16 +299,13 @@ void read_keyboard(kinski::App* the_app, int the_file_descriptor)
 
                 if(evp->value == 0)
                 {
-                    if(the_app->display_gui()){ gui::key_release(e); }
+                    gui::key_release(e);
                     if(!ImGui::GetIO().WantCaptureKeyboard){ the_app->key_release(e); }
                 }
                 else if(evp->value == 1 || evp->value == 2)
                 {
-                    if(the_app->display_gui())
-                    {
-                        gui::key_press(e);
-                        gui::char_callback(e.code());
-                    }
+                    gui::key_press(e);
+                    gui::char_callback(e.code());
                     if(!ImGui::GetIO().WantCaptureKeyboard){ the_app->key_press(e); }
                 }
 
@@ -439,7 +436,7 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
             // press /release
             if(evp->type == 1)
             {
-                if(the_app->display_gui() && evp->value){ gui::mouse_press(e); }
+                if(evp->value){ gui::mouse_press(e); }
 
                 if(!ImGui::GetIO().WantCaptureMouse)
                 {
@@ -449,7 +446,7 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
             }
             else if(evp->type == 2 || evp->type == 3)
             {
-                if(the_app->display_gui() && evp->code == REL_WHEEL){ gui::mouse_wheel(e); }
+                if(evp->code == REL_WHEEL){ gui::mouse_wheel(e); }
 
                 if(!ImGui::GetIO().WantCaptureMouse)
                 {
