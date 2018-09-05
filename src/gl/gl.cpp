@@ -1394,7 +1394,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             else
             {
                 glEnable(GL_SCISSOR_TEST);
-                glScissor(rect.x0, rect.y0, rect.width(), rect.height());
+                glScissor(rect.x0, gl::window_dimension().y - rect.y1, rect.width(), rect.height());
             }
         }
         KINSKI_CHECK_GL_ERRORS();

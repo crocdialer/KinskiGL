@@ -1,49 +1,9 @@
-// ImGui GLFW binding with OpenGL3 + shaders
-// (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan graphics context creation, etc.)
-// (GL3W is a helper library to access OpenGL functions since there is no standard header to access modern OpenGL functions easily. Alternatives are GLEW, Glad, etc.)
-
-// Implemented features:
-//  [X] User texture binding. Cast 'GLuint' OpenGL texture identifier as void*/ImTextureID. Read the FAQ about ImTextureID in imgui.cpp.
-//  [X] Gamepad navigation mapping. Enable with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
-
-// You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
-// If you use this binding you'll need to call 4 functions: ImGui_ImplXXXX_Init(), ImGui_ImplXXXX_NewFrame(), ImGui::Render() and ImGui_ImplXXXX_Shutdown().
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
-// https://github.com/ocornut/imgui
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2018-03-20: Misc: Setup io.BackendFlags ImGuiBackendFlags_HasMouseCursors and ImGuiBackendFlags_HasSetMousePos flags + honor ImGuiConfigFlags_NoMouseCursorChange flag.
-//  2018-03-06: OpenGL: Added const char* glsl_version parameter to ImGui_ImplGlfwGL3_Init() so user can override the GLSL version e.g. "#version 150".
-//  2018-02-23: OpenGL: Create the VAO in the render function so the setup can more easily be used with multiple shared GL context.
-//  2018-02-20: Inputs: Added support for mouse cursors (ImGui::GetMouseCursor() value, passed to glfwSetCursor()).
-//  2018-02-20: Inputs: Renamed GLFW callbacks exposed in .h to not include GL3 in their name.
-//  2018-02-16: Misc: Obsoleted the io.RenderDrawListsFn callback and exposed ImGui_ImplGlfwGL3_RenderDrawData() in the .h file so you can call it yourself.
-//  2018-02-06: Misc: Removed call to ImGui::Shutdown() which is not available from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
-//  2018-02-06: Inputs: Added mapping for ImGuiKey_Space.
-//  2018-01-25: Inputs: Added gamepad support if ImGuiConfigFlags_NavEnableGamepad is set.
-//  2018-01-25: Inputs: Honoring the io.WantSetMousePos flag by repositioning the mouse (ImGuiConfigFlags_NavEnableSetMousePos is set).
-//  2018-01-20: Inputs: Added Horizontal Mouse Wheel support.
-//  2018-01-18: Inputs: Added mapping for ImGuiKey_Insert.
-//  2018-01-07: OpenGL: Changed GLSL shader version from 330 to 150. (Also changed GL context from 3.3 to 3.2 in example's main.cpp)
-//  2017-09-01: OpenGL: Save and restore current bound sampler. Save and restore current polygon mode.
-//  2017-08-25: Inputs: MousePos set to -FLT_MAX,-FLT_MAX when mouse is unavailable/missing (instead of -1,-1).
-//  2017-05-01: OpenGL: Fixed save and restore of current blend function state.
-//  2016-10-15: Misc: Added a void* user_data parameter to Clipboard function handlers.
-//  2016-09-05: OpenGL: Fixed save and restore of current scissor rectangle.
-//  2016-04-30: OpenGL: Fixed save and restore of current GL_ACTIVE_TEXTURE.
-
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include "gl/Mesh.hpp"
 #include "app/imgui/imgui.h"
 #include "app/imgui/imgui_util.h"
 #include "imgui_integration.h"
 
 namespace kinski{ namespace gui {
-
 
 // app instance
 static kinski::App *g_app = nullptr;
@@ -62,14 +22,12 @@ void render_draw_data(ImDrawData *draw_data)
     ImGuiIO &io = ImGui::GetIO();
     int fb_width = (int) (io.DisplaySize.x * io.DisplayFramebufferScale.x);
     int fb_height = (int) (io.DisplaySize.y * io.DisplayFramebufferScale.y);
-    if(fb_width == 0 || fb_height == 0)
-    { return; }
+    if(fb_width == 0 || fb_height == 0){ return; }
     draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
-    kinski::gl::ScopedMatrixPush push_modelview(kinski::gl::MODEL_VIEW_MATRIX), push_proj(
-            kinski::gl::PROJECTION_MATRIX);
-    kinski::gl::load_identity(kinski::gl::MODEL_VIEW_MATRIX);
-    kinski::gl::load_matrix(kinski::gl::PROJECTION_MATRIX, glm::ortho(0.f, io.DisplaySize.x, io.DisplaySize.y, 0.f));
+    gl::ScopedMatrixPush push_modelview(gl::MODEL_VIEW_MATRIX), push_proj(gl::PROJECTION_MATRIX);
+    gl::load_identity(gl::MODEL_VIEW_MATRIX);
+    gl::load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, io.DisplaySize.x, io.DisplaySize.y, 0.f));
 
     // Draw
     for(int n = 0; n < draw_data->CmdListsCount; n++)
@@ -82,7 +40,7 @@ void render_draw_data(ImDrawData *draw_data)
         entry.num_indices = cmd_list->IdxBuffer.Size;
         entry.primitive_type = GL_TRIANGLES;
 
-        // upload index data
+        // upload data
         g_vertex_buffer.set_data(cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
         g_index_buffer.set_data(cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
 
@@ -94,8 +52,8 @@ void render_draw_data(ImDrawData *draw_data)
             {
                 auto &tex = *reinterpret_cast<kinski::gl::Texture *>(pcmd->TextureId);
                 g_mesh->material()->add_texture(tex);
-                auto rect = kinski::Area_<uint32_t>(pcmd->ClipRect.x, fb_height - pcmd->ClipRect.w,
-                                                    pcmd->ClipRect.z, fb_height - pcmd->ClipRect.y);
+                auto rect = kinski::Area_<uint32_t>(pcmd->ClipRect.x, pcmd->ClipRect.y,
+                                                    pcmd->ClipRect.z, pcmd->ClipRect.w);
                 g_mesh->material()->set_scissor_rect(rect);
                 entry.num_indices = pcmd->ElemCount;
                 kinski::gl::draw_mesh(g_mesh);
@@ -249,8 +207,7 @@ bool init(kinski::App *the_app)
     // Setup back-end capabilities flags
     ImGuiIO &io = ImGui::GetIO();
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;   // We can honor GetMouseCursor() values (optional)
-    io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;    // We can honor io.WantSetMousePos requests (optional, rarely used)
-
+//    io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;    // We can honor io.WantSetMousePos requests (optional, rarely used)
 
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
     io.KeyMap[ImGuiKey_Tab] = Key::_TAB;
@@ -280,16 +237,6 @@ bool init(kinski::App *the_app)
     im_style.Colors[ImGuiCol_FrameBg] = gui::im_vec_cast(gl::COLOR_WHITE.rgb * 0.07f);
     im_style.Colors[ImGuiCol_FrameBgHovered] = im_style.Colors[ImGuiCol_FrameBgActive] =
             gui::im_vec_cast(gl::COLOR_ORANGE.rgb * 0.5f);
-
-//    // Load cursors
-//    // FIXME: GLFW doesn't expose suitable cursors for ResizeAll, ResizeNESW, ResizeNWSE. We revert to arrow cursor for those.
-//    g_MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-//    g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-//    g_MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-//    g_MouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-//    g_MouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-//    g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-//    g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
     return true;
 }
 
@@ -307,8 +254,7 @@ void new_frame()
 
     // Setup display size (every frame to accommodate for window resizing)
     io.DisplaySize = kinski::gui::im_vec_cast(kinski::gl::window_dimension());
-    io.DisplayFramebufferScale = ImVec2(1.f,
-                                        1.f);//ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
+    io.DisplayFramebufferScale = ImVec2(1.f, 1.f);
 
     // Setup time step
     double current_time = g_app->get_application_time();
@@ -335,7 +281,7 @@ void new_frame()
 
     for(int i = 0; i < 3; i++){ g_mouse_pressed[i] = false; }
 
-    // Start the frame. This call will update the io.WantCaptureMouse, io.WantCaptureKeyboard flag that you can use to dispatch inputs (or not) to your application.
+    // start the frame. will update the io.WantCaptureMouse, io.WantCaptureKeyboard flags
     ImGui::NewFrame();
 }
 
