@@ -37,7 +37,6 @@ namespace kinski {
         register_property(m_logger_severity);
 
         m_show_tweakbar = Property_<bool>::create("show Tweakbar", false);
-        m_show_tweakbar->set_tweakable(false);
         register_property(m_show_tweakbar);
 
         m_hide_cursor = Property_<bool>::create("hide cursor", false);
