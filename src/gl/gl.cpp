@@ -1247,14 +1247,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                         std::map<ImagePtr, gl::Texture> *the_img_tex_cache)
     {
         KINSKI_CHECK_GL_ERRORS();
-        static MaterialWeakPtr weak_last;
-        
-        MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
-
+        static MaterialPtr last_mat = gl::Material::create();
         if(!the_mat) return;
-
-        // weak copy of current mat
-        weak_last = the_mat;
 
         // process texture queue
         auto it = the_mat->queued_textures().begin(), end = the_mat->queued_textures().end();
@@ -1333,8 +1327,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         KINSKI_CHECK_GL_ERRORS();
 
         // twoSided
-        if(!last_mat || (last_mat->culling() != the_mat->culling() ||
-                         last_mat->wireframe() != the_mat->wireframe()))
+        if(force_apply || last_mat->culling() != the_mat->culling() || last_mat->wireframe() != the_mat->wireframe())
         {
             if(the_mat->culling() == Material::CULL_NONE || the_mat->wireframe())
             { glDisable(GL_CULL_FACE); }
@@ -1356,28 +1349,28 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         // wireframe ?
 #ifndef KINSKI_GLES
-        if(!last_mat || last_mat->wireframe() != the_mat->wireframe())
+        if(force_apply || last_mat->wireframe() != the_mat->wireframe())
             glPolygonMode(GL_FRONT_AND_BACK, the_mat->wireframe() ? GL_LINE : GL_FILL);
 #endif
 
         KINSKI_CHECK_GL_ERRORS();
 
         // read write depth buffer ?
-        if(!last_mat || (last_mat->depth_test() != the_mat->depth_test()))
+        if(force_apply || last_mat->depth_test() != the_mat->depth_test())
         {
             if(the_mat->depth_test()) { glEnable(GL_DEPTH_TEST); }
             else { glDisable(GL_DEPTH_TEST); }
         }
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!last_mat || (last_mat->depth_write() != the_mat->depth_write()))
+        if(force_apply || last_mat->depth_write() != the_mat->depth_write())
         {
             if(the_mat->depth_write()){ glDepthMask(GL_TRUE); }
             else{ glDepthMask(GL_FALSE); }
         }
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!last_mat || (last_mat->stencil_test() != the_mat->stencil_test()))
+        if(force_apply || last_mat->stencil_test() != the_mat->stencil_test())
         {
             if(the_mat->stencil_test()){ glEnable(GL_STENCIL_TEST); }
             else{ glDisable(GL_STENCIL_TEST); }
@@ -1386,7 +1379,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         KINSKI_CHECK_GL_ERRORS();
 
         // scissor test
-        if(!last_mat || (last_mat->scissor_rect() != the_mat->scissor_rect()))
+        if(force_apply || last_mat->scissor_rect() != the_mat->scissor_rect())
         {
             auto rect = the_mat->scissor_rect();
 
@@ -1399,28 +1392,28 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         }
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!last_mat || (last_mat->blending() != the_mat->blending()))
+        if(force_apply || last_mat->blending() != the_mat->blending())
         {
             if(!the_mat->blending()){ glDisable(GL_BLEND); }
             else{ glEnable(GL_BLEND); }
         }
         KINSKI_CHECK_GL_ERRORS();
         
-        if(!last_mat || (last_mat->blend_factors() != the_mat->blend_factors()))
+        if(force_apply || last_mat->blend_factors() != the_mat->blend_factors())
         {
             glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
         }
         KINSKI_CHECK_GL_ERRORS();
 
 #if !defined(KINSKI_GLES_2)
-        if(!last_mat || (last_mat->blend_equation() != the_mat->blend_equation()))
+        if(force_apply || last_mat->blend_equation() != the_mat->blend_equation())
         {
             glBlendEquation(the_mat->blend_equation());
         }
         KINSKI_CHECK_GL_ERRORS();
 #endif
 
-        if(!last_mat || last_mat->point_size() != the_mat->point_size())
+        if(force_apply || last_mat->point_size() != the_mat->point_size())
         {
             if(the_mat->point_size() > 0.f)
             {
@@ -1433,7 +1426,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         }
 
 #if defined(KINSKI_GLES)
-        if(!last_mat || last_mat->line_width() != the_mat->line_width())
+        if(force_apply || last_mat->line_width() != the_mat->line_width())
         {
             glLineWidth(the_mat->line_width());
             KINSKI_CHECK_GL_ERRORS();
@@ -1503,6 +1496,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         // update uniform buffers and uniform values for current shader
         the_mat->update_uniforms(shader);
+
+        *last_mat = *the_mat;
     }
 
 ///////////////////////////////////////////////////////////////////////////////
