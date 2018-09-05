@@ -478,7 +478,11 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
                     if(evp->value == -1){ the_app->touch_end(e, touches); }
                     else{ the_app->touch_begin(e, touches); }
                 }
-                else{ the_app->touch_move(e, touches); }
+                else
+                {
+                    the_app->touch_move(e, touches);
+                    the_app->mouse_move(e);
+                }
             }
         }
     }
