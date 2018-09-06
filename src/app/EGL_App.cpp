@@ -183,7 +183,7 @@ void EGL_App::draw_internal()
         outstream_gl().draw();
 
         // render and draw gui
-        gui::render_draw_data();
+        gui::render();
     }
 
     if(cursor_visible() && (m_mouse_fd || m_touch_fd))
