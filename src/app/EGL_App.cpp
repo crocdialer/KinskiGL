@@ -171,6 +171,8 @@ void EGL_App::set_window_size(const glm::vec2 &size)
 
 void EGL_App::draw_internal()
 {
+    gl::reset_state();
+
     // fire user draw-callback
     draw();
 
@@ -180,9 +182,8 @@ void EGL_App::draw_internal()
         // console output
         outstream_gl().draw();
 
-        // render and draw ImGui
-        ImGui::Render();
-        gui::render_draw_data(ImGui::GetDrawData());
+        // render and draw gui
+        gui::render_draw_data();
     }
 
     if(cursor_visible() && (m_mouse_fd || m_touch_fd))
@@ -193,7 +194,7 @@ void EGL_App::draw_internal()
 
 void EGL_App::post_draw()
 {
-    ImGui::EndFrame();
+    gui::end_frame();
 }
 
 void EGL_App::swap_buffers()
@@ -478,11 +479,7 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
                     if(evp->value == -1){ the_app->touch_end(e, touches); }
                     else{ the_app->touch_begin(e, touches); }
                 }
-                else
-                {
-                    the_app->touch_move(e, touches);
-                    the_app->mouse_move(e);
-                }
+                else{ the_app->touch_move(e, touches); }
             }
         }
     }

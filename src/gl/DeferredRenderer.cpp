@@ -137,8 +137,6 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
 
     if(!m_mat_lighting){ init(); }
 
-    gl::reset_state();
-
     // determine internal resolution for rendering
     gl::vec2 resolution = gl::window_dimension();
     if(m_g_buffer_resolution.x > 0 && m_g_buffer_resolution.y > 0){ resolution = m_g_buffer_resolution; }

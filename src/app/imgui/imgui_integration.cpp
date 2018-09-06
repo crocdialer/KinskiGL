@@ -16,8 +16,11 @@ static kinski::gl::Texture g_font_texture;
 static kinski::gl::Buffer g_vertex_buffer;
 static kinski::gl::Buffer g_index_buffer;
 
-void render_draw_data(ImDrawData *draw_data)
+void render()
 {
+    ImGui::Render();
+    ImDrawData *draw_data = ImGui::GetDrawData();
+
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO &io = ImGui::GetIO();
     int fb_width = (int) (io.DisplaySize.x * io.DisplayFramebufferScale.x);
@@ -283,6 +286,11 @@ void new_frame()
 
     // start the frame. will update the io.WantCaptureMouse, io.WantCaptureKeyboard flags
     ImGui::NewFrame();
+}
+
+void end_frame()
+{
+    ImGui::EndFrame();
 }
 
 }}//namespace

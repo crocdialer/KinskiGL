@@ -309,12 +309,14 @@ namespace kinski
 
     void GLFW_App::draw_internal()
     {
+        gl::reset_state();
+
         for(auto &w : m_windows){ w->draw(); }
     }
 
     void GLFW_App::post_draw()
     {
-        ImGui::EndFrame();
+        gui::end_frame();
     }
 
     bool GLFW_App::is_running()
@@ -392,17 +394,13 @@ namespace kinski
             GLFW_WindowPtr window = GLFW_Window::create(new_res.x, new_res.y, name(), b, monitor_index,
                                                         m_windows.front()->handle());
 
-            if(!b)
-            { window->set_position(m_win_params.zw()); }
-//            else{ window->set_position(gl::vec2(0)); }
+            if(!b) { window->set_position(m_win_params.zw()); }
 
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
 
             add_window(window);
             set_window_size(new_res);
-
-//            gui::init(this);
 
             gl::reset_state();
             set_cursor_visible(cursor_visible());
@@ -450,8 +448,6 @@ namespace kinski
             glfwSetWindowSizeCallback(w, &GLFW_App::s_resize);
             the_window->set_draw_function([this]()
             {
-                // TODO: remove this, as soon as the side-effect making this necessary is found
-                glDepthMask(GL_TRUE);
                 draw();
 
                 // draw tweakbar
@@ -460,9 +456,8 @@ namespace kinski
                     // console output
                     outstream_gl().draw();
 
-                    // render and draw ImGui
-                    ImGui::Render();
-                    gui::render_draw_data(ImGui::GetDrawData());
+                    // render and draw gui
+                    gui::render();
                 }
             });
         }

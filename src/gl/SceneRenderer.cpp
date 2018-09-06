@@ -168,9 +168,6 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
         }
     }
 
-    // reset state
-    gl::reset_state();
-
     // skybox drawing
     if(the_scene->skybox())
     {

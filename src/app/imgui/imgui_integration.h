@@ -22,7 +22,9 @@ KINSKI_API void shutdown();
 
 KINSKI_API void new_frame();
 
-KINSKI_API void render_draw_data(ImDrawData *draw_data);
+KINSKI_API void end_frame();
+
+KINSKI_API void render();
 
 // Use if you want to reset your rendering device without losing ImGui state.
 KINSKI_API void invalidate_device_objects();
