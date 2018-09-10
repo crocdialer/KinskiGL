@@ -240,7 +240,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
         {
                 m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
         }
-            matrix_struct_140_t m;
+        matrix_struct_140_t m;
         m.model_view = modelView;
         m.model_view_projection = mvp_matrix;
         m.normal_matrix = mat4(normal_matrix);
@@ -331,8 +331,8 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                                                  e.base_vertex);
 #else
                         glDrawElements(primitive_type,
-                                       e.num_indices, m->geometry()->index_type(),
-                                       BUFFER_OFFSET(e.base_index * m->geometry()->index_size()));
+                                       e.num_indices, mesh->geometry()->index_type(),
+                                       BUFFER_OFFSET(e.base_index * mesh->geometry()->index_size()));
 #endif
                     }
                 }
