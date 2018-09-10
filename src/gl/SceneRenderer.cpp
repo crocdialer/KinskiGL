@@ -235,18 +235,19 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
         mat4 mvp_matrix = cam->projection_matrix() * modelView;
         mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
 
+#if !defined(KINSKI_GLES)
         if(!m_uniform_buffer[MATRIX_UNIFORM_BUFFER])
         {
-            m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
+                m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
         }
-        matrix_struct_140_t m;
+            matrix_struct_140_t m;
         m.model_view = modelView;
         m.model_view_projection = mvp_matrix;
         m.normal_matrix = mat4(normal_matrix);
         m.texture_matrix = mesh->material()->texture_matrix();
         m_uniform_buffer[MATRIX_UNIFORM_BUFFER].set_data(&m, sizeof(matrix_struct_140_t));
         glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATRIX_BLOCK, m_uniform_buffer[MATRIX_UNIFORM_BUFFER].id());
-
+#endif
         for(auto &mat : mesh->materials())
         {
             if(!m_shadow_pass && m_num_shadow_lights)
@@ -267,7 +268,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                 mat->uniform("u_shadow_map_size", m_shadow_fbos[0]->size());
                 //                    mat->uniform("u_poisson_radius", 3.f);
             }
-            
+
             if(mesh->geometry()->has_bones()){ mat->uniform("u_bones", mesh->bone_matrices()); }
 
             // lighting parameters
