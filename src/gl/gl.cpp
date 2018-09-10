@@ -926,7 +926,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     matrix_struct_140_t m;
     m.model_view = modelView;
     m.model_view_projection = mvp_matrix;
-    m.normal_matrix = normal_matrix;
+    m.normal_matrix = mat4(normal_matrix);
     m.texture_matrix = the_mesh->material()->texture_matrix();
 
     static gl::Buffer matrix_ubo(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);

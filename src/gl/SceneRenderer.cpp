@@ -242,7 +242,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
         matrix_struct_140_t m;
         m.model_view = modelView;
         m.model_view_projection = mvp_matrix;
-        m.normal_matrix = normal_matrix;
+        m.normal_matrix = mat4(normal_matrix);
         m.texture_matrix = mesh->material()->texture_matrix();
         m_uniform_buffer[MATRIX_UNIFORM_BUFFER].set_data(&m, sizeof(matrix_struct_140_t));
         glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATRIX_BLOCK, m_uniform_buffer[MATRIX_UNIFORM_BUFFER].id());

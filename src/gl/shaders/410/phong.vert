@@ -30,7 +30,7 @@ out VertexData
 void main()
 {
   vertex_out.color = a_color;
-  vertex_out.normal = normalize(transpose(inverse(mat3(ubo.model_view))) * a_normal);
+  vertex_out.normal = normalize(ubo.normal_matrix * a_normal);
   vertex_out.texCoord = ubo.texture_matrix * a_texCoord;
   vertex_out.eyeVec = (ubo.model_view * a_vertex).xyz;
   gl_Position = ubo.model_view_projection * a_vertex;

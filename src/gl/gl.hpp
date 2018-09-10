@@ -132,8 +132,7 @@ struct matrix_struct_140_t
     mat4 model_view;
     mat4 model_view_projection;
     mat4 texture_matrix;
-    mat3 normal_matrix;
-    float pad[7];
+    mat4 normal_matrix;
 };
 
 enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};

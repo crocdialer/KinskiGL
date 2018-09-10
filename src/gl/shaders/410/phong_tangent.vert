@@ -31,7 +31,6 @@ out VertexData
 
 void main()
 {
-  // vertex_out.color = a_color;
   vertex_out.normal = normalize(ubo.normal_matrix * a_normal);
   vertex_out.tangent = normalize(ubo.normal_matrix * a_tangent);
   vertex_out.texCoord = ubo.texture_matrix * a_texCoord;
