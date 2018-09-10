@@ -105,10 +105,18 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     return vec4(ambient, 1.0) + vec4(diffuse.rgb + specular, diffuse.a) * att * nDotL;
 }
 
-uniform mat4 u_modelViewMatrix;
-uniform mat4 u_modelViewProjectionMatrix;
-uniform mat3 u_normalMatrix;
-uniform mat4 u_textureMatrix;
+struct matrix_struct_t
+{
+    mat4 model_view;
+    mat4 model_view_projection;
+    mat4 texture_matrix;
+    mat3 normal_matrix;
+};
+
+layout(std140) uniform MatrixBlock
+{
+    matrix_struct_t ubo;
+};
 
 layout(std140) uniform MaterialBlock
 {
@@ -134,9 +142,9 @@ out VertexData
 
 void main()
 {
-  vertex_out.texCoord = u_textureMatrix * a_texCoord;
-  vec3 normal = normalize(u_normalMatrix * a_normal);
-  vec3 eyeVec = (u_modelViewMatrix * a_vertex).xyz;
+  vertex_out.texCoord = ubo.texture_matrix * a_texCoord;
+  vec3 normal = normalize(ubo.normal_matrix * a_normal);
+  vec3 eyeVec = (ubo.model_view * a_vertex).xyz;
   vec4 shade_color = vec4(0);
 
   int num_lights = min(MAX_NUM_LIGHTS, u_numLights);
@@ -147,5 +155,5 @@ void main()
                            vec4(u_material.metalness, u_material.roughness, 0, 1), 1.0);
   }
   vertex_out.color = a_color * shade_color;
-  gl_Position = u_modelViewProjectionMatrix * a_vertex;
+  gl_Position = ubo.model_view_projection * a_vertex;
 }

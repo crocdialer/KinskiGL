@@ -229,18 +229,26 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
     
     for (const RenderBin::item &item : item_list)
     {
-        auto m = item.mesh;
+        auto mesh = item.mesh;
         
         const glm::mat4 &modelView = item.transform;
         mat4 mvp_matrix = cam->projection_matrix() * modelView;
         mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
-        
-        for(auto &mat : m->materials())
+
+        if(!m_uniform_buffer[MATRIX_UNIFORM_BUFFER])
         {
-            mat->uniform("u_modelViewMatrix", modelView);
-            mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
-            mat->uniform("u_normalMatrix", normal_matrix);
-            
+            m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
+        }
+        matrix_struct_140_t m;
+        m.model_view = modelView;
+        m.model_view_projection = mvp_matrix;
+        m.normal_matrix = normal_matrix;
+        m.texture_matrix = mesh->material()->texture_matrix();
+        m_uniform_buffer[MATRIX_UNIFORM_BUFFER].set_data(&m, sizeof(matrix_struct_140_t));
+        glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATRIX_BLOCK, m_uniform_buffer[MATRIX_UNIFORM_BUFFER].id());
+
+        for(auto &mat : mesh->materials())
+        {
             if(!m_shadow_pass && m_num_shadow_lights)
             {
                 std::vector<glm::mat4> shadow_matrices;
@@ -250,7 +258,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                     if(!m_shadow_cams[i]) break;
                     int tex_unit = mat->textures().size() + i;
                     shadow_matrices.push_back(m_shadow_cams[i]->projection_matrix() *
-                                              m_shadow_cams[i]->view_matrix() * m->global_transform());
+                                              m_shadow_cams[i]->view_matrix() * mesh->global_transform());
                     m_shadow_fbos[i]->depth_texture().bind(tex_unit);
                     sprintf(buf, "u_shadow_map[%d]", i);
                     mat->uniform(buf, tex_unit);
@@ -260,64 +268,65 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                 //                    mat->uniform("u_poisson_radius", 3.f);
             }
             
-            if(m->geometry()->has_bones())
-            {
-                mat->uniform("u_bones", m->bone_matrices());
-            }
+            if(mesh->geometry()->has_bones()){ mat->uniform("u_bones", mesh->bone_matrices()); }
 
             // lighting parameters
 #if !defined(KINSKI_GLES)
+            mat->shader()->uniform_block_binding("MatrixBlock", gl::Context::MATRIX_BLOCK);
             mat->shader()->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
 #else
             set_light_uniforms(mat, light_list);
+            mat->uniform("u_modelViewMatrix", modelView);
+            mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
+            mat->uniform("u_normalMatrix", normal_matrix);
 #endif
         }
 
 //        if(m->geometry()->has_dirty_buffers()){ m->geometry()->create_gl_buffers(); }
-        gl::apply_material(m->material());
-        m->bind_vertex_array();
+        gl::apply_material(mesh->material());
+        mesh->bind_vertex_array();
 
         KINSKI_CHECK_GL_ERRORS();
         
-        if(m->geometry()->has_indices())
+        if(mesh->geometry()->has_indices())
         {
-            if(!m->entries().empty())
+            if(!mesh->entries().empty())
             {
-                std::list<uint32_t> mat_entries[m->materials().size()];
+                std::list<uint32_t> mat_entries[mesh->materials().size()];
                 
-                for (uint32_t i = 0; i < m->entries().size(); ++i)
+                for (uint32_t i = 0; i < mesh->entries().size(); ++i)
                 {
-                    uint32_t mat_index = m->entries()[i].material_index;
+                    uint32_t mat_index = mesh->entries()[i].material_index;
                     
-                    if(mat_index < m->materials().size())
+                    if(mat_index < mesh->materials().size())
                         mat_entries[mat_index].push_back(i);
                 }
                 
-                for (uint32_t i = 0; i < m->materials().size(); ++i)
+                for (uint32_t i = 0; i < mesh->materials().size(); ++i)
                 {
                     const auto& entry_list = mat_entries[i];
                     
                     if(!entry_list.empty())
                     {
-                        m->bind_vertex_array(i);
-                        apply_material(m->materials()[i]);
+                        mesh->bind_vertex_array(i);
+                        apply_material(mesh->materials()[i]);
                     }
                     
                     for (auto entry_index : entry_list)
                     {
-                        const gl::Mesh::Entry &e = m->entries()[entry_index];
+                        const gl::Mesh::Entry &e = mesh->entries()[entry_index];
                         
                         // skip disabled entries
                         if(!e.enabled) continue;
                         
                         uint32_t primitive_type = e.primitive_type;
-                        primitive_type = primitive_type ? : m->geometry()->primitive_type();
+                        primitive_type = primitive_type ? : mesh->geometry()->primitive_type();
 
 #ifndef KINSKI_GLES
                         glDrawElementsBaseVertex(primitive_type,
                                                  e.num_indices,
-                                                 m->geometry()->index_type(),
-                                                 BUFFER_OFFSET(e.base_index * m->geometry()->index_size()),
+                                                 mesh->geometry()->index_type(),
+                                                 BUFFER_OFFSET(e.base_index * mesh->geometry()->index_size()),
                                                  e.base_vertex);
 #else
                         glDrawElements(primitive_type,
@@ -330,15 +339,15 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
             }
             else
             {
-                glDrawElements(m->geometry()->primitive_type(),
-                               m->geometry()->indices().size(), m->geometry()->index_type(),
+                glDrawElements(mesh->geometry()->primitive_type(),
+                               mesh->geometry()->indices().size(), mesh->geometry()->index_type(),
                                BUFFER_OFFSET(0));
             }
         }
         else
         {
-            glDrawArrays(m->geometry()->primitive_type(), 0,
-                         m->geometry()->vertices().size());
+            glDrawArrays(mesh->geometry()->primitive_type(), 0,
+                         mesh->geometry()->vertices().size());
         }
         KINSKI_CHECK_GL_ERRORS();
     }

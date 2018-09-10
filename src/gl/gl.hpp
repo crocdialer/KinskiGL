@@ -127,6 +127,15 @@ private:
 KINSKI_API void create_context(const std::shared_ptr<PlatformData> &the_platform_data);
 KINSKI_API const std::unique_ptr<Context>& context();
 
+struct matrix_struct_140_t
+{
+    mat4 model_view;
+    mat4 model_view_projection;
+    mat4 texture_matrix;
+    mat3 normal_matrix;
+    float pad[7];
+};
+
 enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
 KINSKI_API void push_matrix(const Matrixtype type);
 KINSKI_API void pop_matrix(const Matrixtype type);

@@ -1,7 +1,19 @@
 #version 410 core
 #extension GL_ARB_separate_shader_objects : enable
 
-uniform mat4 u_modelViewProjectionMatrix;
+struct matrix_struct_t
+{
+    mat4 model_view;
+    mat4 model_view_projection;
+    mat4 texture_matrix;
+    mat3 normal_matrix;
+};
+
+layout(std140) uniform MatrixBlock
+{
+    matrix_struct_t ubo;
+};
+
 uniform mat4 u_bones[110];
 
 layout(location = 0) in vec4 a_vertex;
@@ -16,5 +28,5 @@ void main()
     {
         newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i];
     }
-    gl_Position = u_modelViewProjectionMatrix * newVertex;
+    gl_Position = ubo.model_view_projection * newVertex;
 }

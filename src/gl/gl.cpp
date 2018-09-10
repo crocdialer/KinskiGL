@@ -923,12 +923,31 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
     mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
 
+    matrix_struct_140_t m;
+    m.model_view = modelView;
+    m.model_view_projection = mvp_matrix;
+    m.normal_matrix = normal_matrix;
+    m.texture_matrix = the_mesh->material()->texture_matrix();
+
+    static gl::Buffer matrix_ubo(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
+    matrix_ubo.set_data(&m, sizeof(matrix_struct_140_t));
+    glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATRIX_BLOCK, matrix_ubo.id());
+
     for(auto &mat : the_mesh->materials())
     {
-        mat->uniform("u_window_dimension", gl::window_dimension());
+#if !defined(KINSKI_GLES)
+        auto &shader = overide_shader ? overide_shader : mat->shader();
+        shader->uniform_block_binding("MatrixBlock", gl::Context::MATRIX_BLOCK);
+        shader->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
+#else
+        mat->uniform("u_modelViewMatrix", modelView);
+        mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
+        mat->uniform("u_normalMatrix", normal_matrix);
         mat->uniform("u_modelViewMatrix", modelView);
         mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
         if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", normal_matrix); }
+#endif
+        mat->uniform("u_window_dimension", gl::window_dimension());
         if(the_mesh->geometry()->has_bones()){ mat->uniform("u_bones", the_mesh->bone_matrices()); }
     }
     if(the_mesh->geometry()->has_dirty_buffers()){ the_mesh->geometry()->create_gl_buffers(); }

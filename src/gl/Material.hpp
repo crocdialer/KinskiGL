@@ -63,7 +63,9 @@ namespace kinski { namespace gl {
         bool has_texture(uint32_t the_key);
         
         gl::Texture get_texture(Texture::Usage the_usage);
-        
+
+        glm::mat4 texture_matrix() const;
+
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };
         

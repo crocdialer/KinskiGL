@@ -4,8 +4,18 @@
 #define DIFFUSE 0
 #define DISPLACE 1
 
-uniform mat4 u_modelViewProjectionMatrix;
-uniform mat4 u_textureMatrix;
+struct matrix_struct_t
+{
+    mat4 model_view;
+    mat4 model_view_projection;
+    mat4 texture_matrix;
+    mat3 normal_matrix;
+};
+
+layout(std140) uniform MatrixBlock
+{
+    matrix_struct_t ubo;
+};
 uniform mat4 u_bones[110];
 
 // vertex displacement
@@ -28,7 +38,7 @@ out VertexData
 void main()
 {
   vertex_out.color = a_color;
-  vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;
+  vertex_out.texCoord = (ubo.texture_matrix * a_texCoord).xy;
   vec4 newVertex = vec4(0);
   vec3 newNormal = vec3(0);
 
@@ -41,5 +51,5 @@ void main()
 
   float displace = (2.0 * texture(u_sampler_2D[DISPLACE], vertex_out.texCoord.st).x) - 1.0;
   vec4 displace_vert = newVertex + vec4(newNormal * u_displace_factor * displace, 0.f);
-  gl_Position = u_modelViewProjectionMatrix * displace_vert;
+  gl_Position = ubo.model_view_projection * displace_vert;
 }

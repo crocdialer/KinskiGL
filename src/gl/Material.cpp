@@ -174,7 +174,18 @@ namespace kinski { namespace gl {
         }
         return gl::Texture();
     }
-    
+
+    glm::mat4 Material::texture_matrix() const
+    {
+        for(const auto &pair : m_textures)
+        {
+            const auto &t = pair.second;
+            if(!t){ continue; }
+            return t.texture_matrix();
+        }
+        return glm::mat4();
+    }
+
     const ShaderPtr& Material::shader()
     {
         if(!m_shader && m_queued_shader != ShaderType::NONE)
@@ -248,7 +259,7 @@ namespace kinski { namespace gl {
         glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATERIAL_BLOCK, m_uniform_buffer.id());
         KINSKI_CHECK_GL_ERRORS();
 
-        shader_obj->uniform_block_binding(materialblock_str, 0);
+        shader_obj->uniform_block_binding(materialblock_str, gl::Context::MATERIAL_BLOCK);
 #else
         if(m_dirty_uniform_buffer)
         {

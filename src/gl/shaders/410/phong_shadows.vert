@@ -3,11 +3,19 @@
 
 #define NUM_SHADOW_LIGHTS 4
 
-uniform mat4 u_modelViewMatrix;
-uniform mat4 u_modelViewProjectionMatrix;
-uniform mat3 u_normalMatrix;
+struct matrix_struct_t
+{
+    mat4 model_view;
+    mat4 model_view_projection;
+    mat4 texture_matrix;
+    mat3 normal_matrix;
+};
+
+layout(std140) uniform MatrixBlock
+{
+    matrix_struct_t ubo;
+};
 uniform mat4 u_shadow_matrices[NUM_SHADOW_LIGHTS];
-uniform mat4 u_textureMatrix;
 
 layout(location = 0) in vec4 a_vertex;
 layout(location = 1) in vec3 a_normal;
@@ -26,12 +34,12 @@ out VertexData
 void main()
 {
   vertex_out.color = a_color;
-  vertex_out.normal = normalize(u_normalMatrix * a_normal);
-  vertex_out.texCoord = u_textureMatrix * a_texCoord;
-  vertex_out.eyeVec = (u_modelViewMatrix * a_vertex).xyz;
+  vertex_out.normal = normalize(ubo.normal_matrix * a_normal);
+  vertex_out.texCoord = ubo.texture_matrix * a_texCoord;
+  vertex_out.eyeVec = (ubo.model_view * a_vertex).xyz;
   for(int i = 0; i < NUM_SHADOW_LIGHTS; i++)
   {
     vertex_out.lightspace_pos[i] = u_shadow_matrices[i] * a_vertex;
   }
-  gl_Position = u_modelViewProjectionMatrix * a_vertex;
+  gl_Position = ubo.model_view_projection * a_vertex;
 }
