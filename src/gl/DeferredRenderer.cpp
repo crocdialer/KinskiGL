@@ -271,17 +271,6 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
             m_mat_lighting_shadow_omni->add_texture(m_fbo_geometry->texture(i), i);
             m_mat_lighting_enviroment->add_texture(m_fbo_geometry->texture(i), i);
         }
-//        std::vector<gl::ShaderPtr> shaders{m_mat_lighting->shader(), m_mat_lighting_shadow->shader(),
-//                                           m_mat_lighting_shadow_omni->shader()};
-//        for(auto &s : shaders)
-//        {
-//            s->uniform_block_binding("MatrixBlock", gl::Context::MATRIX_BLOCK);
-//            s->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
-//        }
-
-//        m_mat_lighting->shader()->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
-//        m_mat_lighting_shadow->shader()->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
-//        m_mat_lighting_shadow_omni->shader()->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
     }
     gl::SaveViewPort sv;
     gl::set_window_dimension(m_fbo_lighting->size());

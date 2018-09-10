@@ -923,6 +923,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
     mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
 
+#if !defined(KINSKI_GLES)
     matrix_struct_140_t m;
     m.model_view = modelView;
     m.model_view_projection = mvp_matrix;
@@ -932,6 +933,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     static gl::Buffer matrix_ubo(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
     matrix_ubo.set_data(&m, sizeof(matrix_struct_140_t));
     glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATRIX_BLOCK, matrix_ubo.id());
+#endif
 
     for(auto &mat : the_mesh->materials())
     {
@@ -940,9 +942,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         shader->uniform_block_binding("MatrixBlock", gl::Context::MATRIX_BLOCK);
         shader->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
 #else
-        mat->uniform("u_modelViewMatrix", modelView);
-        mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
-        mat->uniform("u_normalMatrix", normal_matrix);
         mat->uniform("u_modelViewMatrix", modelView);
         mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
         if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", normal_matrix); }
