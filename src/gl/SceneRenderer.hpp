@@ -66,10 +66,6 @@ public:
     static const char* TAG_NO_CULL;
 
     static SceneRendererPtr create();
-    enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0, MATRIX_UNIFORM_BUFFER = 1,
-        SHADOW_UNIFORM_BUFFER = 2};
-    enum UniformBlockBinding {MATERIAL_BLOCK = 0, LIGHT_BLOCK = 1, MATRIX_BLOCK = 2,
-        SHADOW_BLOCK = 3};
 
     virtual ~SceneRenderer(){};
 
@@ -96,6 +92,8 @@ private:
     void draw_sorted_by_material(const CameraPtr &cam, const std::list<RenderBin::item> &item_list,
                                  const std::list<RenderBin::light> &light_list);
 
+    enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0, MATRIX_UNIFORM_BUFFER = 1,
+        SHADOW_UNIFORM_BUFFER = 2};
     gl::Buffer m_uniform_buffer[3];
 
     // shadow params

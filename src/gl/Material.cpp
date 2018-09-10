@@ -208,6 +208,7 @@ namespace kinski { namespace gl {
     void Material::update_uniforms(const ShaderPtr &the_shader)
     {
         auto shader_obj = the_shader ? the_shader : m_shader;
+        if(!shader_obj){ LOG_WARNING << "update_uniforms: no shader assigned"; return; }
 
 #if !defined(KINSKI_GLES_2)
         if(!m_uniform_buffer){ m_uniform_buffer = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW); }
@@ -243,10 +244,11 @@ namespace kinski { namespace gl {
             for(const auto &pair : m_textures){ m.texture_properties |= pair.first; }
             m_uniform_buffer.set_data(&m, sizeof(m));
         }
-        glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());
+        const char* materialblock_str = "MaterialBlock";
+        glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATERIAL_BLOCK, m_uniform_buffer.id());
         KINSKI_CHECK_GL_ERRORS();
 
-        if(shader_obj){ shader_obj->uniform_block_binding("MaterialBlock", 0); }
+        shader_obj->uniform_block_binding(materialblock_str, 0);
 #else
         if(m_dirty_uniform_buffer)
         {

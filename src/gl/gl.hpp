@@ -112,6 +112,14 @@ public:
     void clear_fbo(const gl::Fbo* the_fbo, uint32_t the_index);
     void clear_assets_for_context(void* the_context_id);
 
+    enum UniformBlockBinding
+    {
+        MATERIAL_BLOCK = 0,
+        LIGHT_BLOCK = 1,
+        MATRIX_BLOCK = 2,
+        SHADOW_BLOCK = 3
+    };
+
 private:
     std::unique_ptr<struct ContextImpl> m_impl;
 };

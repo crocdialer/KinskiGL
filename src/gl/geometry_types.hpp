@@ -262,32 +262,22 @@ struct KINSKI_API AABB
     }
     
 	/* used for fast AABB <-> Plane intersection test */
-	inline vec3 posVertex(const vec3& dir) const
+	inline vec3 pos_vertex(const vec3 &dir) const
 	{
 		vec3 ret = min;
-		
-		if (dir.x >= 0)
-			ret.x = max.x;
-		if (dir.y >= 0)
-			ret.y = max.y;
-		if (dir.z >= 0)
-			ret.z = max.z;
-			
+		if(dir.x >= 0){ ret.x = max.x; }
+		if(dir.y >= 0){ ret.y = max.y; }
+		if(dir.z >= 0){ ret.z = max.z; }
 		return ret;
 	}
 	
 	/* used for fast AABB <-> Plane intersection test */
-	inline vec3 negVertex(const vec3& dir) const
+	inline vec3 neg_vertex(const vec3 &dir) const
 	{
 		vec3 ret = max;
-		
-		if (dir.x >= 0)
-			ret.x = min.x;
-		if (dir.y >= 0)
-			ret.y = min.y;
-		if (dir.z >= 0)
-			ret.z = min.z;
-		
+		if(dir.x >= 0){ ret.x = min.x; }
+		if(dir.y >= 0){ ret.y = min.y; }
+		if(dir.z >= 0){ ret.z = min.z; }
 		return ret;
 	}
 	
@@ -301,13 +291,9 @@ struct KINSKI_API AABB
     
     inline uint32_t intersect(const vec3 &thePoint)
     {
-        if(thePoint.x < min.x || thePoint.x > max.x)
-            return REJECT;
-        if(thePoint.y < min.y || thePoint.y > max.y)
-            return REJECT;
-        if(thePoint.z < min.z || thePoint.z > max.z)
-            return REJECT;
-        
+        if(thePoint.x < min.x || thePoint.x > max.x){ return REJECT; }
+        if(thePoint.y < min.y || thePoint.y > max.y){ return REJECT; }
+        if(thePoint.z < min.z || thePoint.z > max.z){ return REJECT; }
         return INSIDE;
     }
     
@@ -360,9 +346,7 @@ struct KINSKI_API Frustum
 	inline Frustum& transform(const mat4& t)
 	{	
 		Plane* end = planes+6 ;
-		for (Plane *p = planes; p < end; p++)
-			p->transform(t);
-		
+		for(Plane *p = planes; p < end; p++){ p->transform(t); }
 		return *this;
 	}
     
@@ -375,10 +359,9 @@ struct KINSKI_API Frustum
     inline uint32_t intersect(const vec3& v)
 	{
 		Plane* end = planes+6 ;
-		for (Plane *p = planes; p < end; p++)
+		for(Plane *p = planes; p < end; p++)
 		{
-			if (p->distance(v) < 0)
-				return REJECT;
+			if(p->distance(v) < 0){ return REJECT; }
 		}
 		return INSIDE;
 	};
@@ -388,8 +371,7 @@ struct KINSKI_API Frustum
 		Plane* end = planes + 6 ;
 		for (Plane *p = planes; p < end; p++)
 		{
-			if (- p->distance(s.center) > s.radius)
-				return REJECT;
+			if(- p->distance(s.center) > s.radius){ return REJECT; }
 		}
 		return INSIDE;
 	};
@@ -402,12 +384,10 @@ struct KINSKI_API Frustum
 		for (Plane *p = planes; p < end; p++)
 		{
 			//positive vertex outside ?
-			if (p->distance(aabb.posVertex(p->normal()) ) < 0)
-				return REJECT ;
+			if(p->distance(aabb.pos_vertex(p->normal()) ) < 0){ return REJECT; }
 			
 			//negative vertex outside ?
-			else if(p->distance(aabb.negVertex(p->normal()) ) < 0)
-				ret = INTERSECT ;
+			else if(p->distance(aabb.neg_vertex(p->normal()) ) < 0){ ret = INTERSECT; }
 		}
 		return ret;
 	};

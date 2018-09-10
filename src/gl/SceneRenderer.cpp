@@ -267,7 +267,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
 
             // lighting parameters
 #if !defined(KINSKI_GLES)
-            mat->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
+            mat->shader()->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
 #else
             set_light_uniforms(mat, light_list);
 #endif
@@ -428,7 +428,7 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
     memcpy(buf, &num_lights, 4);
     memcpy(buf + 16, &light_structs[0], sizeof(lightstruct_std140) * light_structs.size());
     m_uniform_buffer[LIGHT_UNIFORM_BUFFER].set_data(buf, num_bytes);
-    glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_BLOCK, m_uniform_buffer[LIGHT_UNIFORM_BUFFER].id());
+    glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::LIGHT_BLOCK, m_uniform_buffer[LIGHT_UNIFORM_BUFFER].id());
 #endif
 }
 
