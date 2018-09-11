@@ -493,7 +493,7 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 {
 #if !defined(KINSKI_GLES_2)
     auto task = Task::create("cubemap diffuse convolution");
-    constexpr uint32_t conv_size = 32;
+    constexpr uint32_t conv_size = 64;
     constexpr GLenum data_type = GL_FLOAT;
 
     auto mat = gl::Material::create();

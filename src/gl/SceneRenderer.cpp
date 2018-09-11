@@ -230,21 +230,18 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
     for (const RenderBin::item &item : item_list)
     {
         auto mesh = item.mesh;
-        
-        const glm::mat4 &modelView = item.transform;
-        mat4 mvp_matrix = cam->projection_matrix() * modelView;
-        mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
+
+        matrix_struct_140_t m;
+        m.model_view = item.transform;
+        m.model_view_projection = cam->projection_matrix() * item.transform;
+        m.normal_matrix = mat4(glm::inverseTranspose(glm::mat3(item.transform)));
+        m.texture_matrix = mesh->material()->texture_matrix();
 
 #if !defined(KINSKI_GLES)
         if(!m_uniform_buffer[MATRIX_UNIFORM_BUFFER])
         {
-                m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
+            m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
         }
-        matrix_struct_140_t m;
-        m.model_view = modelView;
-        m.model_view_projection = mvp_matrix;
-        m.normal_matrix = mat4(normal_matrix);
-        m.texture_matrix = mesh->material()->texture_matrix();
         m_uniform_buffer[MATRIX_UNIFORM_BUFFER].set_data(&m, sizeof(matrix_struct_140_t));
         glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATRIX_BLOCK, m_uniform_buffer[MATRIX_UNIFORM_BUFFER].id());
 #endif
@@ -277,9 +274,10 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
             mat->shader()->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
 #else
             set_light_uniforms(mat, light_list);
-            mat->uniform("u_modelViewMatrix", modelView);
-            mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
-            mat->uniform("u_normalMatrix", normal_matrix);
+            mat->uniform("u_modelViewMatrix", m.model_view);
+            mat->uniform("u_modelViewProjectionMatrix", m.model_view_projection);
+            mat->uniform("u_normalMatrix", mat3(m.normal_matrix));
+            mat->uniform("u_textureMatrix", m.texture_matrix);
 #endif
         }
 

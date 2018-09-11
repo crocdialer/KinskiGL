@@ -919,17 +919,13 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     KINSKI_CHECK_GL_ERRORS();
     if(!the_mesh) return;
 
-    const glm::mat4 &modelView = g_modelViewMatrixStack.top();
-    mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
-    mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
-
-#if !defined(KINSKI_GLES)
     matrix_struct_140_t m;
-    m.model_view = modelView;
-    m.model_view_projection = mvp_matrix;
-    m.normal_matrix = mat4(normal_matrix);
+    m.model_view = g_modelViewMatrixStack.top();
+    m.model_view_projection = g_projectionMatrixStack.top() * m.model_view;
+    m.normal_matrix = mat4(glm::inverseTranspose(glm::mat3(m.model_view)));
     m.texture_matrix = the_mesh->material()->texture_matrix();
 
+#if !defined(KINSKI_GLES)
     static gl::Buffer matrix_ubo(GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
     matrix_ubo.set_data(&m, sizeof(matrix_struct_140_t));
     glBindBufferBase(GL_UNIFORM_BUFFER, gl::Context::MATRIX_BLOCK, matrix_ubo.id());
@@ -1461,14 +1457,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         int32_t tex_rect = 0;
 #endif
         char buf[512];
-        auto texture_matrix = glm::mat4();
-        bool got_tex_matrix = false;
 
         for(const auto &pair : the_mat->textures())
         {
             auto t = pair.second;
             if(!t){ continue; }
-            if(!got_tex_matrix){ texture_matrix = t.texture_matrix(); got_tex_matrix = true; }
             
             num_textures++;
             t.bind(tex_unit);
@@ -1505,9 +1498,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             }
             the_mat->uniform(buf, tex_unit++);
         }
-
-        // texture matrix from first texture, if any
-        shader->uniform("u_textureMatrix", texture_matrix);
         shader->uniform("u_numTextures", num_textures);
 
         KINSKI_CHECK_GL_ERRORS();
