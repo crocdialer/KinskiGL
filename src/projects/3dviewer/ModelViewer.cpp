@@ -6,6 +6,7 @@
 //
 //
 
+#include <app/imgui/ImGuizmo.h>
 #include "core/Image.hpp"
 #include "ModelViewer.h"
 #include "assimp/assimp.hpp"
@@ -99,8 +100,18 @@ void ModelViewer::update(float timeDelta)
         gui::draw_component_ui(shared_from_this());
         gui::draw_component_ui(m_light_component);
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
-        if(selected_mesh()){ gui::draw_mesh_ui(selected_mesh()); }
-        else if(m_mesh){ gui::draw_mesh_ui(m_mesh); }
+
+        auto mesh = selected_mesh();
+
+        if(mesh)
+        {
+            bool is_ortho = std::dynamic_pointer_cast<gl::OrthoCamera>(camera()).get();
+            ImGuizmo::SetOrthographic(is_ortho);
+
+            gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), p(gl::PROJECTION_MATRIX);
+            gl::set_matrices(camera());
+            gui::draw_mesh_ui(selected_mesh());
+        }
 
         // draw tasks
 //        auto tasks = Task::current_tasks();

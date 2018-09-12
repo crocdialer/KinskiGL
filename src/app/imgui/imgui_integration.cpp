@@ -265,15 +265,8 @@ void new_frame()
     g_Time = current_time;
 
     // Setup inputs
-    // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
-//    if(glfwGetWindowAttrib(g_Window, GLFW_FOCUSED))
-    {
-        // Set OS mouse position if requested (only used when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
-//        if(io.WantSetMousePos) { g_app->set_cursor_position(io.MousePos.x, io.MousePos.y); }
-//        else
-        { io.MousePos = kinski::gui::im_vec_cast(g_app->cursor_position()); }
-    }
-    if(!g_app->display_gui()){ io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX); }
+    if(g_app->display_gui()){ io.MousePos = kinski::gui::im_vec_cast(g_app->cursor_position()); }
+    else{ io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX); }
 
     // If a mouse press event came, always pass it as "mouse held this frame"
     // so we don't miss click-release events that are shorter than 1 frame.
@@ -286,6 +279,10 @@ void new_frame()
 
     // start the frame. will update the io.WantCaptureMouse, io.WantCaptureKeyboard flags
     ImGui::NewFrame();
+
+    // signal begin frame to ImGuizmo
+    ImGuizmo::BeginFrame();
+    ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 }
 
 void end_frame()

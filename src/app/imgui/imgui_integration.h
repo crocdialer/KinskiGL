@@ -1,5 +1,6 @@
 #include "app/App.hpp"
 #include "imgui.h"
+#include "ImGuizmo.h"
 
 namespace kinski{ namespace gui {
 

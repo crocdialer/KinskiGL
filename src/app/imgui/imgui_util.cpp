@@ -4,6 +4,7 @@
 
 #include "imgui_util.h"
 #include "gl/Mesh.hpp"
+#include "ImGuizmo.h"
 
 namespace kinski{ namespace gui{
 
@@ -339,6 +340,9 @@ void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
 void draw_mesh_ui(const gl::MeshPtr &the_mesh)
 {
     if(!the_mesh){ return; }
+
+    static uint32_t current_gizmo = 0;
+
     ImGui::Begin("mesh");
     std::stringstream ss;
     ss << the_mesh->name() << "\nvertices: " << to_string(the_mesh->geometry()->vertices().size()) <<
@@ -346,8 +350,28 @@ void draw_mesh_ui(const gl::MeshPtr &the_mesh)
     ImGui::Text("%s", ss.str().c_str());
     ImGui::Separator();
 
+    if(ImGui::RadioButton("None", !current_gizmo)){ current_gizmo = 0; }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Translate", current_gizmo == ImGuizmo::TRANSLATE)){ current_gizmo = ImGuizmo::TRANSLATE; }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Rotate", current_gizmo == ImGuizmo::ROTATE)){ current_gizmo = ImGuizmo::ROTATE; }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Scale", current_gizmo == ImGuizmo::SCALE)){ current_gizmo = ImGuizmo::SCALE; }
+
     draw_materials_ui(the_mesh->materials());
     ImGui::End();
+
+    if(current_gizmo)
+    {
+        glm::mat4 view, projection;
+        gl::get_matrix(gl::MODEL_VIEW_MATRIX, view);
+        gl::get_matrix(gl::PROJECTION_MATRIX, projection);
+
+        glm::mat4 transform = the_mesh->global_transform();
+        ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
+                             ImGuizmo::OPERATION(current_gizmo), ImGuizmo::WORLD, glm::value_ptr(transform));
+        the_mesh->set_global_transform(transform);
+    }
 }
 
 void process_joystick_input(const std::vector<JoystickState> &the_joystick_states)

@@ -135,12 +135,10 @@ struct matrix_struct_140_t
     mat4 normal_matrix;
 };
 
-struct application_data_140_t
+struct viewport_struct_140_t
 {
     gl::vec2 screen_size;
     gl::vec2 clip_planes;
-    gl::vec2 mouse_pos;
-    float time;
 };
 
 enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
