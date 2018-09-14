@@ -3,6 +3,7 @@
 //
 
 #include "imgui_util.h"
+#include "gl/Camera.hpp"
 #include "gl/Mesh.hpp"
 #include "gl/Light.hpp"
 #include "ImGuizmo.h"
@@ -338,17 +339,7 @@ void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
 
 void draw_light_component_ui(const LightComponentPtr &the_component)
 {
-    static uint32_t current_gizmo = 0;
-
     ImGui::Begin("lights");
-
-    if(ImGui::RadioButton("None", !current_gizmo)){ current_gizmo = 0; }
-    ImGui::SameLine();
-    if(ImGui::RadioButton("Translate", current_gizmo == ImGuizmo::TRANSLATE)){ current_gizmo = ImGuizmo::TRANSLATE; }
-    ImGui::SameLine();
-    if(ImGui::RadioButton("Rotate", current_gizmo == ImGuizmo::ROTATE)){ current_gizmo = ImGuizmo::ROTATE; }
-    ImGui::SameLine();
-    if(ImGui::RadioButton("Scale", current_gizmo == ImGuizmo::SCALE)){ current_gizmo = ImGuizmo::SCALE; }
 
     for(size_t i = 0; i < the_component->lights().size(); ++i)
     {
@@ -374,19 +365,6 @@ void draw_light_component_ui(const LightComponentPtr &the_component)
         else{ ImGui::PopStyleColor(); }
     }
     ImGui::End();
-
-    // light manipulation gizmo
-    if(current_gizmo)
-    {
-        glm::mat4 view, projection;
-        gl::get_matrix(gl::MODEL_VIEW_MATRIX, view);
-        gl::get_matrix(gl::PROJECTION_MATRIX, projection);
-
-        glm::mat4 transform = the_component->current_light()->global_transform();
-        ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
-                             ImGuizmo::OPERATION(current_gizmo), ImGuizmo::WORLD, glm::value_ptr(transform));
-        the_component->current_light()->set_global_transform(transform);
-    }
 }
 
 void draw_light_ui(const gl::LightPtr &the_light)
@@ -399,12 +377,13 @@ void draw_light_ui(const gl::LightPtr &the_light)
 
     // intensity
     float intensity = the_light->intensity();
-    ImGui::InputFloat("intensity", &intensity, 0.f, 0.f, (std::abs(intensity) < 1.f) ? 5 : 2,
-                      ImGuiInputTextFlags_EnterReturnsTrue);
+    if(ImGui::InputFloat("intensity", &intensity, 0.f, 0.f, (std::abs(intensity) < 1.f) ? 5 : 2))
+    { the_light->set_intensity(intensity); }
 
     // radius
     float radius = the_light->radius();
-    ImGui::InputFloat("radius", &radius, 0.f, 0.f, (std::abs(radius) < 1.f) ? 5 : 2, ImGuiInputTextFlags_EnterReturnsTrue);
+    if(ImGui::InputFloat("radius", &radius, 0.f, 0.f, (std::abs(radius) < 1.f) ? 5 : 2))
+    { the_light->set_radius(radius); }
 
     // color
     gl::Color color = the_light->diffuse();
@@ -440,17 +419,15 @@ void draw_light_ui(const gl::LightPtr &the_light)
     }
 }
 
-void draw_mesh_ui(const gl::MeshPtr &the_mesh)
+void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPtr &the_camera)
 {
-    if(!the_mesh){ return; }
-
     static uint32_t current_gizmo = 0;
 
-    ImGui::Begin("mesh");
-    std::stringstream ss;
-    ss << the_mesh->name() << "\nvertices: " << to_string(the_mesh->geometry()->vertices().size()) <<
-          "\nfaces: " << to_string(the_mesh->geometry()->faces().size());
-    ImGui::Text("%s", ss.str().c_str());
+    ImGui::Begin("selected object");
+
+    if(!the_object){ ImGui::End(); return; }
+
+    ImGui::Text(the_object->name().c_str());
     ImGui::Separator();
 
     if(ImGui::RadioButton("None", !current_gizmo)){ current_gizmo = 0; }
@@ -460,20 +437,50 @@ void draw_mesh_ui(const gl::MeshPtr &the_mesh)
     if(ImGui::RadioButton("Rotate", current_gizmo == ImGuizmo::ROTATE)){ current_gizmo = ImGuizmo::ROTATE; }
     ImGui::SameLine();
     if(ImGui::RadioButton("Scale", current_gizmo == ImGuizmo::SCALE)){ current_gizmo = ImGuizmo::SCALE; }
+    ImGui::Separator();
 
-    draw_materials_ui(the_mesh->materials());
+    glm::mat4 transform = the_object->global_transform();
+    glm::vec3 position = transform[3].xyz;
+    glm::vec3 rotation = glm::degrees(glm::eulerAngles(glm::quat_cast(transform)));
+    glm::vec3 scale = glm::vec3(length(transform[0]), length(transform[1]), length(transform[2]));
+
+    bool changed = ImGui::InputFloat3("position", glm::value_ptr(position), 3);
+    changed = ImGui::InputFloat3("rotation", glm::value_ptr(rotation), 3, ImGuiInputTextFlags_EnterReturnsTrue) || changed;
+    changed = ImGui::InputFloat3("scale", glm::value_ptr(scale), 3) || changed;
+
+    if(changed)
+    {
+        auto m = glm::mat4_cast(glm::quat(glm::radians(rotation)));
+        m = glm::scale(m, scale);
+        m[3].xyz = position;
+        transform = m;
+        the_object->set_global_transform(m);
+    }
+    ImGui::Separator();
+
+    // cast to gl::MeshPtr
+    auto mesh = std::dynamic_pointer_cast<gl::Mesh>(the_object);
+
+    if(mesh)
+    {
+        std::stringstream ss;
+        ss << mesh->name() << "\nvertices: " << to_string(mesh->geometry()->vertices().size()) <<
+           "\nfaces: " << to_string(mesh->geometry()->faces().size());
+        ImGui::Text("%s", ss.str().c_str());
+        ImGui::Separator();
+        draw_materials_ui(mesh->materials());
+    }
     ImGui::End();
 
-    if(current_gizmo)
+    if(the_camera && current_gizmo)
     {
-        glm::mat4 view, projection;
-        gl::get_matrix(gl::MODEL_VIEW_MATRIX, view);
-        gl::get_matrix(gl::PROJECTION_MATRIX, projection);
+        bool is_ortho = std::dynamic_pointer_cast<const gl::OrthoCamera>(the_camera).get();
+        ImGuizmo::SetOrthographic(is_ortho);
 
-        glm::mat4 transform = the_mesh->global_transform();
-        ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
+//        glm::mat4 transform = the_object->global_transform();
+        ImGuizmo::Manipulate(glm::value_ptr(the_camera->view_matrix()), glm::value_ptr(the_camera->projection_matrix()),
                              ImGuizmo::OPERATION(current_gizmo), ImGuizmo::WORLD, glm::value_ptr(transform));
-        the_mesh->set_global_transform(transform);
+        the_object->set_global_transform(transform);
     }
 }
 

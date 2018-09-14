@@ -97,22 +97,29 @@ void ModelViewer::update(float timeDelta)
     // update window title with current fps
     set_window_title(name() + " (" + to_string(fps(), 1) + ")");
 
+    // light selection
+    for(uint32_t i = 0; i < lights().size(); ++i)
+    {
+        auto &l = lights()[i];
+
+        gl::SelectVisitor<gl::Mesh> visitor;
+        l->accept(visitor);
+        for(auto m : visitor.get_objects()){ m->material()->set_emission(1.8f * l->diffuse()); }
+
+        if(selected_object() && l == selected_object()->parent())
+        {
+            m_light_component->set_index(i);
+            set_selected_object(l);
+        }
+    }
+
     // construct ImGui window for this frame
     if(display_gui())
     {
         gui::draw_component_ui(shared_from_this());
         gui::draw_light_component_ui(m_light_component);
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
-
-        if(selected_mesh())
-        {
-            bool is_ortho = std::dynamic_pointer_cast<gl::OrthoCamera>(camera()).get();
-            ImGuizmo::SetOrthographic(is_ortho);
-
-            gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), p(gl::PROJECTION_MATRIX);
-            gl::set_matrices(camera());
-            gui::draw_mesh_ui(selected_mesh());
-        }
+        gui::draw_object3D_ui(selected_object(), camera());
 
 //        // draw tasks
 //        auto tasks = Task::current_tasks();
@@ -125,17 +132,6 @@ void ModelViewer::update(float timeDelta)
 
     update_shader();
     update_fbos();
-
-    for(uint32_t i = 0; i < lights().size(); ++i)
-    {
-        auto &l = lights()[i];
-        
-        gl::SelectVisitor<gl::Mesh> visitor;
-        l->accept(visitor);
-        for(auto m : visitor.get_objects()){ m->material()->set_emission(1.8f * l->diffuse()); }
-        
-        if(selected_mesh() && l == selected_mesh()->parent()){ m_light_component->set_index(i); }
-    }
 
     process_joystick(timeDelta);
 }
@@ -154,14 +150,14 @@ void ModelViewer::draw()
         // render bones
         if(*m_display_bones){ render_bones(m_mesh, camera(), true); }
 
-        if(m_selected_mesh)
+        if(m_selected_object)
         {
-            auto aabb = m_selected_mesh->aabb();
+            auto aabb = m_selected_object->aabb();
             gl::draw_boundingbox(aabb);
-            vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
-            std::string txt_label = m_selected_mesh->name() + "\nvertices: " + to_string(m_selected_mesh->geometry()->vertices().size()) +
-                    "\nfaces: " + to_string(m_selected_mesh->geometry()->faces().size());
-            gl::draw_text_2D(txt_label, fonts()[0], gl::COLOR_WHITE, p2d);
+//            vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
+//            std::string txt_label = m_selected_object->name() + "\nvertices: " + to_string(m_selected_object->geometry()->vertices().size()) +
+//                    "\nfaces: " + to_string(m_selected_object->geometry()->faces().size());
+//            gl::draw_text_2D(txt_label, fonts()[0], gl::COLOR_WHITE, p2d);
         }
 
         // draw enabled light dummies
@@ -462,7 +458,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         {
             if(m)
             {
-                m_selected_mesh.reset();
+                m_selected_object.reset();
                 scene()->remove_object(m_mesh);
                 m_mesh = m;
                 scene()->add_object(m_mesh);

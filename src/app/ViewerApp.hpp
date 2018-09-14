@@ -65,8 +65,8 @@ namespace kinski {
         const gl::PerspectiveCamera::Ptr& camera() const { return m_camera; };
         const gl::OrthoCamera::Ptr& gui_camera() const { return m_gui_camera; };
         
-        const gl::MeshPtr& selected_mesh() const { return m_selected_mesh; };
-        void set_selected_mesh(gl::MeshPtr m){ m_selected_mesh = m; };
+        const gl::Object3DPtr& selected_object() const { return m_selected_object; };
+        void set_selected_object(gl::Object3DPtr m){ m_selected_object = m; };
 //        const std::vector<gl::MaterialPtr>& materials() const { return m_materials; };
 //        std::vector<gl::MaterialPtr>& materials(){ return m_materials; };
         
@@ -114,7 +114,7 @@ namespace kinski {
         std::vector<gl::Font> m_fonts{4};
         
         std::vector<gl::MaterialPtr> m_materials;
-        gl::MeshPtr m_selected_mesh;
+        gl::Object3DPtr m_selected_object;
         
         gl::PerspectiveCamera::Ptr m_camera;
         uint32_t m_cam_index;

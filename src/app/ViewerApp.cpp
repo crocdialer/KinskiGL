@@ -197,8 +197,8 @@ namespace kinski {
         if(m_dirty_cam)
         {
             glm::vec3 look_at = *m_look_at;
-            if(m_selected_mesh && m_center_selected)
-                look_at = gl::OBB(m_selected_mesh->aabb(), m_selected_mesh->transform()).center;
+            if(m_selected_object && m_center_selected)
+                look_at = gl::OBB(m_selected_object->aabb(), m_selected_object->transform()).center;
 
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
@@ -237,14 +237,14 @@ namespace kinski {
                 LOG_TRACE << "picked id: " << picked_obj->get_id();
                 if(gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
                 {
-                    m_selected_mesh = m;
+                    m_selected_object = m;
                 }
             }
         }
 
         if(e.is_right())
         {
-            m_selected_mesh.reset();
+            m_selected_object.reset();
         }
     }
     
@@ -460,7 +460,7 @@ namespace kinski {
         auto task = Task::create();
 
         m_inertia = glm::vec2(0);
-        m_selected_mesh.reset();
+        m_selected_object.reset();
 
         std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
         path_prefix = fs::get_directory_part(path_prefix);
