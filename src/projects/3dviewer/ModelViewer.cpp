@@ -94,16 +94,17 @@ void ModelViewer::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
 
+    // update window title with current fps
+    set_window_title(name() + " (" + to_string(fps(), 1) + ")");
+
     // construct ImGui window for this frame
     if(display_gui())
     {
         gui::draw_component_ui(shared_from_this());
-        gui::draw_component_ui(m_light_component);
+        gui::draw_light_component_ui(m_light_component);
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
 
-        auto mesh = selected_mesh();
-
-        if(mesh)
+        if(selected_mesh())
         {
             bool is_ortho = std::dynamic_pointer_cast<gl::OrthoCamera>(camera()).get();
             ImGuizmo::SetOrthographic(is_ortho);
@@ -113,7 +114,7 @@ void ModelViewer::update(float timeDelta)
             gui::draw_mesh_ui(selected_mesh());
         }
 
-        // draw tasks
+//        // draw tasks
 //        auto tasks = Task::current_tasks();
 //        std::stringstream ss;
 //        for(auto &t : tasks){ ss << t->description() << " (" << to_string(t->duration(), 2) << " s)\n"; }

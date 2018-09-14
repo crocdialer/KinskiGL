@@ -4,6 +4,7 @@
 
 #include "imgui_util.h"
 #include "gl/Mesh.hpp"
+#include "gl/Light.hpp"
 #include "ImGuizmo.h"
 
 namespace kinski{ namespace gui{
@@ -28,6 +29,9 @@ const ImVec4 im_vec_cast(const gl::vec3 &the_vec)
     auto tmp = gl::vec4(the_vec, 1.f);
     return *reinterpret_cast<const ImVec4*>(&tmp);
 }
+
+// internal function signatures
+void draw_light_ui(const gl::LightPtr &the_light);
 
 // int
 void draw_property_ui(const Property_<int>::Ptr &the_property)
@@ -265,11 +269,6 @@ void draw_textures_ui(const std::vector<gl::Texture> &the_textures)
     }
 }
 
-void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights)
-{
-
-}
-
 void draw_material_ui(const gl::MaterialPtr &the_mat)
 {
 
@@ -333,6 +332,110 @@ void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials)
         {
             draw_material_ui(the_materials[i]);
             ImGui::TreePop();
+        }
+    }
+}
+
+void draw_light_component_ui(const LightComponentPtr &the_component)
+{
+    static uint32_t current_gizmo = 0;
+
+    ImGui::Begin("lights");
+
+    if(ImGui::RadioButton("None", !current_gizmo)){ current_gizmo = 0; }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Translate", current_gizmo == ImGuizmo::TRANSLATE)){ current_gizmo = ImGuizmo::TRANSLATE; }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Rotate", current_gizmo == ImGuizmo::ROTATE)){ current_gizmo = ImGuizmo::ROTATE; }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Scale", current_gizmo == ImGuizmo::SCALE)){ current_gizmo = ImGuizmo::SCALE; }
+
+    for(size_t i = 0; i < the_component->lights().size(); ++i)
+    {
+        const auto &l = the_component->lights()[i];
+
+        // enabled?
+        bool is_enabled = l->enabled();
+        if(ImGui::Checkbox((to_string(i) + ": enabled").c_str(), &is_enabled)){ l->set_enabled(is_enabled); }
+        ImGui::SameLine();
+
+        bool draw_dummy = the_component->use_dummy(i);
+        if(ImGui::Checkbox((to_string(i) + ": dummy").c_str(), &draw_dummy)){ the_component->set_use_dummy(i, draw_dummy); }
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Text, im_vec_cast(l->diffuse()));
+        if(ImGui::TreeNode(("light " + to_string(i)).c_str()))
+        {
+            ImGui::PopStyleColor();
+            draw_light_ui(l);
+            ImGui::TreePop();
+            ImGui::Separator();
+        }
+        else{ ImGui::PopStyleColor(); }
+    }
+    ImGui::End();
+
+    // light manipulation gizmo
+    if(current_gizmo)
+    {
+        glm::mat4 view, projection;
+        gl::get_matrix(gl::MODEL_VIEW_MATRIX, view);
+        gl::get_matrix(gl::PROJECTION_MATRIX, projection);
+
+        glm::mat4 transform = the_component->current_light()->global_transform();
+        ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
+                             ImGuizmo::OPERATION(current_gizmo), ImGuizmo::WORLD, glm::value_ptr(transform));
+        the_component->current_light()->set_global_transform(transform);
+    }
+}
+
+void draw_light_ui(const gl::LightPtr &the_light)
+{
+    if(ImGui::RadioButton("Directional", the_light->type() == gl::Light::DIRECTIONAL)){ the_light->set_type(gl::Light::DIRECTIONAL); }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Omni", the_light->type() == gl::Light::POINT)){ the_light->set_type(gl::Light::POINT); }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Spot", the_light->type() == gl::Light::SPOT)){ the_light->set_type(gl::Light::SPOT); }
+
+    // intensity
+    float intensity = the_light->intensity();
+    ImGui::InputFloat("intensity", &intensity, 0.f, 0.f, (std::abs(intensity) < 1.f) ? 5 : 2,
+                      ImGuiInputTextFlags_EnterReturnsTrue);
+
+    // radius
+    float radius = the_light->radius();
+    ImGui::InputFloat("radius", &radius, 0.f, 0.f, (std::abs(radius) < 1.f) ? 5 : 2, ImGuiInputTextFlags_EnterReturnsTrue);
+
+    // color
+    gl::Color color = the_light->diffuse();
+    if(ImGui::ColorEdit4("color", (float*)&color)){ the_light->set_diffuse(color); }
+
+    // shadows
+    bool shadows = the_light->cast_shadow();
+    if(ImGui::Checkbox("cast shadow", &shadows)){ the_light->set_cast_shadow(shadows); }
+
+    if(the_light->type() == gl::Light::SPOT)
+    {
+        float spot_cutoff = the_light->spot_cutoff();
+        if(ImGui::SliderFloat("spot cutoff", &spot_cutoff, 0.f, 90.f))
+        {
+            the_light->set_spot_cutoff(spot_cutoff);
+        }
+
+        float spot_exponent = the_light->spot_exponent();
+        if(ImGui::SliderFloat("spot exponent", &spot_exponent, 0.f, 128.f))
+        {
+            the_light->set_spot_exponent(spot_exponent);
+        }
+    }
+
+    if(the_light->type() != gl::Light::DIRECTIONAL)
+    {
+        auto attenuation = the_light->attenuation();
+
+        if(ImGui::SliderFloat("attenuation", &attenuation.quadratic, 0.f, 1.f))
+        {
+            the_light->set_attenuation(attenuation);
         }
     }
 }

@@ -28,8 +28,12 @@ namespace kinski
 
         void update_property(const Property::ConstPtr &theProperty);
         void set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings = true);
+        const std::vector<gl::LightPtr>& lights() const { return m_lights; };
         void set_index(int index);
+        gl::LightPtr current_light() const;
         void draw_light_dummies() const;
+        bool use_dummy(size_t the_index) const;
+        void set_use_dummy(size_t the_index, bool b);
         void refresh();
         
     private:

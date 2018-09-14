@@ -134,6 +134,11 @@ void LightComponent::set_index(int index)
     *m_light_index = index;
 }
 
+gl::LightPtr LightComponent::current_light() const
+{
+    return m_lights[*m_light_index];
+}
+
 void LightComponent::draw_light_dummies() const
 {
     for(uint32_t i = 0 ; i < m_lights.size(); ++i)
@@ -153,6 +158,20 @@ void LightComponent::set_lights(const std::vector<gl::LightPtr> &l, bool copy_se
         observe_properties();
         m_light_index->set(*m_light_index);
     }
+}
+
+bool LightComponent::use_dummy(size_t the_index) const
+{
+    if(the_index < m_draw_dummy_flags.size())
+    {
+        return m_draw_dummy_flags[the_index];
+    }
+    return false;
+}
+
+void LightComponent::set_use_dummy(size_t the_index, bool b)
+{
+    if(the_index < m_draw_dummy_flags.size()){ m_draw_dummy_flags[the_index] = b; }
 }
 
 void LightComponent::refresh()

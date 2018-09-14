@@ -8,6 +8,7 @@
 #include "core/Component.hpp"
 #include "gl/gl.hpp"
 #include "app/App.hpp"
+#include "app/LightComponent.hpp"
 #include "imgui.h"
 
 // forward declared to avoid inclusion of App.h
@@ -19,15 +20,15 @@ const ImVec2& im_vec_cast(const gl::vec2 &the_vec);
 const ImVec4& im_vec_cast(const gl::vec4 &the_vec);
 const ImVec4 im_vec_cast(const gl::vec3 &the_vec);
 
-//! draw a kinski::Component using ImGui
+//! draw a generic kinski::Component using ImGui
 void draw_component_ui(const ComponentConstPtr &the_component);
 
 void draw_textures_ui(const std::vector<gl::Texture> &the_textures);
 
-void draw_lights_ui(const std::vector<gl::LightPtr> &the_lights);
-
 void draw_material_ui(const gl::MaterialPtr &the_mat);
 void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials);
+
+void draw_light_component_ui(const LightComponentPtr &the_component);
 
 void draw_mesh_ui(const gl::MeshPtr &the_mesh);
 
