@@ -6,6 +6,7 @@
 #include "gl/Camera.hpp"
 #include "gl/Mesh.hpp"
 #include "gl/Light.hpp"
+#include "gl/Scene.hpp"
 #include "ImGuizmo.h"
 
 namespace kinski{ namespace gui{
@@ -343,19 +344,20 @@ void draw_light_component_ui(const LightComponentPtr &the_component)
 
     for(size_t i = 0; i < the_component->lights().size(); ++i)
     {
+        ImGui::PushID(i);
         const auto &l = the_component->lights()[i];
 
         // enabled?
         bool is_enabled = l->enabled();
-        if(ImGui::Checkbox((to_string(i) + ": enabled").c_str(), &is_enabled)){ l->set_enabled(is_enabled); }
+        if(ImGui::Checkbox("enabled", &is_enabled)){ l->set_enabled(is_enabled); }
         ImGui::SameLine();
 
         bool draw_dummy = the_component->use_dummy(i);
-        if(ImGui::Checkbox((to_string(i) + ": dummy").c_str(), &draw_dummy)){ the_component->set_use_dummy(i, draw_dummy); }
+        if(ImGui::Checkbox("dummy", &draw_dummy)){ the_component->set_use_dummy(i, draw_dummy); }
         ImGui::SameLine();
 
         ImGui::PushStyleColor(ImGuiCol_Text, im_vec_cast(l->diffuse()));
-        if(ImGui::TreeNode(("light " + to_string(i)).c_str()))
+        if(ImGui::TreeNode(l->name().c_str()))
         {
             ImGui::PopStyleColor();
             draw_light_ui(l);
@@ -363,6 +365,7 @@ void draw_light_component_ui(const LightComponentPtr &the_component)
             ImGui::Separator();
         }
         else{ ImGui::PopStyleColor(); }
+        ImGui::PopID();
     }
     ImGui::End();
 }
@@ -460,27 +463,138 @@ void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPt
 
     // cast to gl::MeshPtr
     auto mesh = std::dynamic_pointer_cast<gl::Mesh>(the_object);
+    if(mesh){ draw_mesh_ui(mesh); }
 
-    if(mesh)
-    {
-        std::stringstream ss;
-        ss << mesh->name() << "\nvertices: " << to_string(mesh->geometry()->vertices().size()) <<
-           "\nfaces: " << to_string(mesh->geometry()->faces().size());
-        ImGui::Text("%s", ss.str().c_str());
-        ImGui::Separator();
-        draw_materials_ui(mesh->materials());
-    }
+    // cast to gl::LightPtr
+    auto light = std::dynamic_pointer_cast<gl::Light>(the_object);
+    if(light){ draw_light_ui(light); }
+
     ImGui::End();
 
     if(the_camera && current_gizmo)
     {
         bool is_ortho = std::dynamic_pointer_cast<const gl::OrthoCamera>(the_camera).get();
         ImGuizmo::SetOrthographic(is_ortho);
-
-//        glm::mat4 transform = the_object->global_transform();
         ImGuizmo::Manipulate(glm::value_ptr(the_camera->view_matrix()), glm::value_ptr(the_camera->projection_matrix()),
                              ImGuizmo::OPERATION(current_gizmo), ImGuizmo::WORLD, glm::value_ptr(transform));
         the_object->set_global_transform(transform);
+    }
+}
+
+void draw_mesh_ui(const gl::MeshPtr &the_mesh)
+{
+    if(!the_mesh){ return; }
+
+    std::stringstream ss;
+    ss << the_mesh->name() << "\n";
+    ss << "vertices: " << to_string(the_mesh->geometry()->vertices().size()) << "\n";
+    ss << "faces: " << to_string(the_mesh->geometry()->faces().size()) << "\n";
+    if(the_mesh->root_bone()){ ss << "bones: " << to_string(the_mesh->num_bones()) << "\n"; }
+    if(!the_mesh->animations().empty()){ ss << "animations: " << to_string(the_mesh->animations().size()) << "\n"; }
+
+    ImGui::Text("%s", ss.str().c_str());
+    ImGui::Separator();
+
+    if(!the_mesh->animations().empty())
+    {
+        ImGui::Text("animation: ");
+
+        // animation index
+        int animation_index = the_mesh->animation_index();
+        if(ImGui::SliderInt("index", &animation_index, 0, the_mesh->animations().size() - 1))
+        { the_mesh->set_animation_index(animation_index); }
+
+        // animation speed
+        float animation_speed = the_mesh->animation_speed();
+        if(ImGui::SliderFloat("speed", &animation_speed, -10.f, 10.f))
+        { the_mesh->set_animation_speed(animation_speed); }
+
+        // animation current time / max time
+        auto &current_anim = the_mesh->animations()[the_mesh->animation_index()];
+        ImGui::SliderFloat("time", &current_anim.current_time, 0.f, current_anim.duration);
+
+        ImGui::Separator();
+    }
+
+    // shadow cast / receive
+    auto shadow_props = the_mesh->material()->shadow_properties();
+    bool receive_shadow = shadow_props & gl::Material::SHADOW_RECEIVE;
+    bool cast_shadow = shadow_props & gl::Material::SHADOW_CAST;
+
+    ImGui::Text("shadow: ");
+    ImGui::SameLine();
+    if(ImGui::Checkbox("receive", &receive_shadow))
+    {
+        if(receive_shadow){ shadow_props |= gl::Material::SHADOW_RECEIVE; }
+        else{ shadow_props |= gl::Material::SHADOW_RECEIVE; shadow_props ^= gl::Material::SHADOW_RECEIVE;}
+    }
+
+    ImGui::SameLine();
+    if(ImGui::Checkbox("cast", &cast_shadow))
+    {
+        if(cast_shadow){ shadow_props |= gl::Material::SHADOW_CAST; }
+        else{ shadow_props |= gl::Material::SHADOW_CAST; shadow_props ^= gl::Material::SHADOW_CAST;}
+    }
+    if(shadow_props != the_mesh->material()->shadow_properties())
+    {
+        for(auto &mat : the_mesh->materials()){ mat->set_shadow_properties(shadow_props); }
+    }
+    ImGui::Separator();
+
+    draw_materials_ui(the_mesh->materials());
+}
+
+gl::Object3DPtr draw_scenegraph_ui_helper(const gl::Object3DPtr &the_obj, const std::set<gl::Object3DPtr>* the_selection)
+{
+    gl::Object3DPtr ret;
+    ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+    node_flags |= the_selection && the_selection->count(the_obj) ? ImGuiTreeNodeFlags_Selected : 0;
+
+    if(!the_obj->enabled()){ ImGui::PushStyleColor(the_obj->get_id(), im_vec_cast(gl::COLOR_GRAY)); }
+
+    if(the_obj->children().empty())
+    {
+        node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; // ImGuiTreeNodeFlags_Bullet
+        ImGui::TreeNodeEx((void*)(uintptr_t)the_obj->get_id(), node_flags, the_obj->name().c_str());
+        if(ImGui::IsItemClicked()){ ret = the_obj; }
+    }
+    else
+    {
+        bool is_open = ImGui::TreeNodeEx((void*)(uintptr_t)the_obj->get_id(), node_flags, the_obj->name().c_str());
+        if(ImGui::IsItemClicked()){ ret = the_obj; }
+
+        if(is_open)
+        {
+            for(auto &c : the_obj->children())
+            {
+                auto clicked_obj = draw_scenegraph_ui_helper(c, the_selection);
+                if(!ret){ ret = clicked_obj; }
+            }
+            ImGui::TreePop();
+        }
+    }
+    if(!the_obj->enabled()){ ImGui::PopStyleColor(); }
+    return ret;
+}
+
+void draw_scenegraph_ui(const gl::SceneConstPtr &the_scene, std::set<gl::Object3DPtr>* the_selection)
+{
+    ImGui::Begin("scene");
+    auto clicked_obj = draw_scenegraph_ui_helper(the_scene->root(), the_selection);
+    ImGui::End();
+
+    if(clicked_obj)
+    {
+        if(ImGui::GetIO().KeyCtrl)
+        {
+            if(the_selection->count(clicked_obj)){ the_selection->erase(clicked_obj); }
+            else{ the_selection->insert(clicked_obj); }
+        }
+        else
+        {
+            the_selection->clear();
+            the_selection->insert(clicked_obj);
+        }
     }
 }
 

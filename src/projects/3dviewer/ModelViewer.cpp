@@ -104,13 +104,13 @@ void ModelViewer::update(float timeDelta)
 
         gl::SelectVisitor<gl::Mesh> visitor;
         l->accept(visitor);
-        for(auto m : visitor.get_objects()){ m->material()->set_emission(1.8f * l->diffuse()); }
+        for(auto m : visitor.get_objects()){ m->material()->set_emission(1.4f * l->diffuse()); }
 
-        if(selected_object() && l == selected_object()->parent())
-        {
-            m_light_component->set_index(i);
-            set_selected_object(l);
-        }
+//        if(selected_objects() && l == selected_objects()->parent())
+//        {
+//            m_light_component->set_index(i);
+//            add_selected_object(l);
+//        }
     }
 
     // construct ImGui window for this frame
@@ -119,7 +119,10 @@ void ModelViewer::update(float timeDelta)
         gui::draw_component_ui(shared_from_this());
         gui::draw_light_component_ui(m_light_component);
         if(*m_use_warping){ gui::draw_component_ui(m_warp_component); }
-        gui::draw_object3D_ui(selected_object(), camera());
+
+        auto obj = selected_objects().empty() ? nullptr : *selected_objects().begin();
+        gui::draw_object3D_ui(obj, camera());
+        gui::draw_scenegraph_ui(scene(), &m_selected_objects);
 
 //        // draw tasks
 //        auto tasks = Task::current_tasks();
@@ -150,9 +153,9 @@ void ModelViewer::draw()
         // render bones
         if(*m_display_bones){ render_bones(m_mesh, camera(), true); }
 
-        if(m_selected_object)
+        for(auto &obj : selected_objects())
         {
-            auto aabb = m_selected_object->aabb();
+            auto aabb = obj->aabb();
             gl::draw_boundingbox(aabb);
 //            vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
 //            std::string txt_label = m_selected_object->name() + "\nvertices: " + to_string(m_selected_object->geometry()->vertices().size()) +
@@ -458,7 +461,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         {
             if(m)
             {
-                m_selected_object.reset();
+                clear_selected_objects();
                 scene()->remove_object(m_mesh);
                 m_mesh = m;
                 scene()->add_object(m_mesh);

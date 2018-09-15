@@ -33,6 +33,10 @@ void draw_light_component_ui(const LightComponentPtr &the_component);
 void draw_object3D_ui(const gl::Object3DPtr &the_object,
                       const gl::CameraConstPtr &the_camera = nullptr);
 
+void draw_mesh_ui(const gl::MeshPtr &the_mesh);
+
+void draw_scenegraph_ui(const gl::SceneConstPtr &the_scene, std::set<gl::Object3DPtr>* the_selection = nullptr);
+
 void process_joystick_input(const std::vector<JoystickState> &the_joystick_states);
 
 }}// namespaces

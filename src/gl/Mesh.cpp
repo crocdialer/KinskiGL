@@ -12,6 +12,14 @@
 
 namespace kinski { namespace gl {
 
+uint32_t num_bones_in_hierarchy(const BonePtr &the_root)
+{
+    if(!the_root){ return 0; }
+    uint32_t ret = 1;
+    for (const auto &b : the_root->children){ ret += num_bones_in_hierarchy(b); }
+    return ret;
+}
+
 BonePtr deep_copy_bones(BonePtr src)
 {
     if(!src){ return BonePtr(); }
@@ -217,19 +225,14 @@ void Mesh::update(float time_delta)
                                   anim.duration);
         anim.current_time += anim.current_time < 0.f ? anim.duration : 0.f;
 
-        m_boneMatrices.resize(get_num_bones(m_rootBone));
+        m_boneMatrices.resize(num_bones());
         build_bone_matrices(m_rootBone, m_boneMatrices);
     }
 }
 
-uint32_t Mesh::get_num_bones(const BonePtr &theRoot)
+uint32_t Mesh::num_bones()
 {
-    if(!theRoot){ return 0; }
-
-    uint32_t ret = 1;
-    std::list<BonePtr>::const_iterator it = theRoot->children.begin();
-    for (; it != theRoot->children.end(); ++it){ ret += get_num_bones(*it); }
-    return ret;
+    return num_bones_in_hierarchy(root_bone());
 }
 
 void Mesh::build_bone_matrices(BonePtr bone, std::vector<glm::mat4> &matrices,
@@ -336,11 +339,7 @@ AABB Mesh::aabb() const
     AABB ret = m_geometry->aabb();
     mat4 global_trans = global_transform();
     ret.transform(global_trans);
-
-    for (auto &c :children())
-    {
-        ret += c->aabb();
-    }
+    for(auto &c :children()){ ret += c->aabb(); }
     return ret;
 }
 
@@ -352,8 +351,6 @@ gl::OBB Mesh::obb() const
 
 GLuint Mesh::create_vertex_array(const gl::ShaderPtr &the_shader)
 {
-//    if(m_geometry->vertices().empty()) return 0;
-
     GLuint vao_id = 0;
 
 #ifndef KINSKI_NO_VAO

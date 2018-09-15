@@ -26,7 +26,7 @@ namespace kinski { namespace gl {
         BonePtr parent;
         std::list<BonePtr> children;
     };
-    
+
     template<typename T> struct Key
     {
         float time;
@@ -55,7 +55,9 @@ namespace kinski { namespace gl {
     BonePtr deep_copy_bones(BonePtr src);
     
     BonePtr get_bone_by_name(BonePtr root, const std::string &the_name);
-    
+
+    uint32_t num_bones_in_hierarchy(const BonePtr &the_root);
+
     class KINSKI_API Mesh : public Object3D
     {
     public:
@@ -145,7 +147,7 @@ namespace kinski { namespace gl {
         const BonePtr& root_bone() const { return m_rootBone; };
         void set_root_bone(BonePtr b){ m_rootBone = b; };
 
-        uint32_t get_num_bones(const BonePtr &theRoot);
+        uint32_t num_bones();
         
         /*!
          *  return a copy of this mesh, sharing its geometry, materials, animations, etc.

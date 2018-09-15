@@ -27,7 +27,7 @@ namespace kinski
         gl::DeferredRendererPtr m_deferred_renderer = gl::DeferredRenderer::create();
 
         gl::MeshPtr m_mesh, m_ground_mesh, m_load_indicator;
-        gl::Texture m_cube_map, m_normal_map;
+        gl::Texture m_normal_map;
         
         gl::FboPtr m_post_process_fbo, m_offscreen_fbo;
         gl::MaterialPtr m_post_process_mat;

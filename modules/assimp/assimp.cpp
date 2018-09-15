@@ -574,7 +574,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         mesh->set_name(fs::get_filename_part(found_path));
 
         LOG_DEBUG<<"loaded model: " << geom->vertices().size()<<" vertices - " <<
-        geom->faces().size()<<" faces - " << mesh->get_num_bones(mesh->root_bone()) << " bones";
+        geom->faces().size()<<" faces - " << mesh->num_bones() << " bones";
         LOG_DEBUG<<"bounds: " << to_string(mesh->aabb().min) << " - " << to_string(mesh->aabb().max);
 
         // load animations

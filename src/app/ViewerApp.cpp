@@ -197,8 +197,9 @@ namespace kinski {
         if(m_dirty_cam)
         {
             glm::vec3 look_at = *m_look_at;
-            if(m_selected_object && m_center_selected)
-                look_at = gl::OBB(m_selected_object->aabb(), m_selected_object->transform()).center;
+
+//            if(m_selected_objects && m_center_selected)
+//                look_at = gl::OBB(m_selected_objects->aabb(), m_selected_objects->transform()).center;
 
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
@@ -237,15 +238,12 @@ namespace kinski {
                 LOG_TRACE << "picked id: " << picked_obj->get_id();
                 if(gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
                 {
-                    m_selected_object = m;
+                    if(!e.is_control_down()){ clear_selected_objects(); }
+                    add_selected_object(m);
                 }
             }
         }
-
-        if(e.is_right())
-        {
-            m_selected_object.reset();
-        }
+        if(e.is_right()){ clear_selected_objects(); }
     }
     
     void ViewerApp::mouse_move(const MouseEvent &e)
@@ -460,7 +458,7 @@ namespace kinski {
         auto task = Task::create();
 
         m_inertia = glm::vec2(0);
-        m_selected_object.reset();
+        clear_selected_objects();
 
         std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
         path_prefix = fs::get_directory_part(path_prefix);
@@ -607,4 +605,20 @@ namespace kinski {
         m_snapshot_texture = ret;
         return ret;
     }
+
+    void ViewerApp::add_selected_object(const gl::Object3DPtr& the_obj)
+    {
+        m_selected_objects.insert(the_obj);
+    }
+
+    void ViewerApp::remove_selected_object(const gl::Object3DPtr& the_obj)
+    {
+        m_selected_objects.erase(the_obj);
+    }
+
+    void ViewerApp::clear_selected_objects()
+    {
+        m_selected_objects.clear();
+    }
+
 }
