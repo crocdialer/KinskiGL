@@ -8,12 +8,14 @@ uniform vec2 u_window_dimension = vec2(1280, 720);
 
 struct Material
 {
-  vec4 diffuse;
-  vec4 ambient;
-  vec4 specular;
-  vec4 emission;
-  vec4 point_vals;// (size, constant_att, linear_att, quad_att)
-  float shinyness;
+    vec4 diffuse;
+    vec4 emission;
+    vec4 point_vals;// (size, constant_att, linear_att, quad_att)
+    float metalness;
+    float roughness;
+    float occlusion;
+    int shadow_properties;
+    int texture_properties;
 };
 
 layout(std140) uniform MaterialBlock
@@ -77,6 +79,6 @@ void main()
 	fTaps_Poisson[11] = vec2(-.792,-.598);
 
   vec4 texColors = vec4(0, 0, 0, 1);//vertex_in.color;
-  texColors = poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); 
+  texColors = poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st);
   fragData = vec4(mix(texColors.rgb, u_material.diffuse.rgb, u_material.diffuse.a), texColors.a);
 }

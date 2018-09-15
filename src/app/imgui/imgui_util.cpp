@@ -430,9 +430,6 @@ void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPt
 
     if(!the_object){ ImGui::End(); return; }
 
-    ImGui::Text(the_object->name().c_str());
-    ImGui::Separator();
-
     if(ImGui::RadioButton("None", !current_gizmo)){ current_gizmo = 0; }
     ImGui::SameLine();
     if(ImGui::RadioButton("Translate", current_gizmo == ImGuizmo::TRANSLATE)){ current_gizmo = ImGuizmo::TRANSLATE; }
@@ -461,6 +458,9 @@ void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPt
     }
     ImGui::Separator();
 
+    // name
+    ImGui::Text("name: %s", the_object->name().c_str());
+
     // cast to gl::MeshPtr
     auto mesh = std::dynamic_pointer_cast<gl::Mesh>(the_object);
     if(mesh){ draw_mesh_ui(mesh); }
@@ -486,7 +486,6 @@ void draw_mesh_ui(const gl::MeshPtr &the_mesh)
     if(!the_mesh){ return; }
 
     std::stringstream ss;
-    ss << the_mesh->name() << "\n";
     ss << "vertices: " << to_string(the_mesh->geometry()->vertices().size()) << "\n";
     ss << "faces: " << to_string(the_mesh->geometry()->faces().size()) << "\n";
     if(the_mesh->root_bone()){ ss << "bones: " << to_string(the_mesh->num_bones()) << "\n"; }
@@ -511,7 +510,8 @@ void draw_mesh_ui(const gl::MeshPtr &the_mesh)
 
         // animation current time / max time
         auto &current_anim = the_mesh->animations()[the_mesh->animation_index()];
-        ImGui::SliderFloat("time", &current_anim.current_time, 0.f, current_anim.duration);
+        ImGui::SliderFloat(("/ " + to_string(current_anim.duration, 2) + "s").c_str(),
+                           &current_anim.current_time, 0.f, current_anim.duration);
 
         ImGui::Separator();
     }
@@ -549,8 +549,7 @@ gl::Object3DPtr draw_scenegraph_ui_helper(const gl::Object3DPtr &the_obj, const 
     gl::Object3DPtr ret;
     ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
     node_flags |= the_selection && the_selection->count(the_obj) ? ImGuiTreeNodeFlags_Selected : 0;
-
-    if(!the_obj->enabled()){ ImGui::PushStyleColor(the_obj->get_id(), im_vec_cast(gl::COLOR_GRAY)); }
+    if(!the_obj->enabled()){ ImGui::PushStyleColor(ImGuiCol_Text, im_vec_cast(gl::COLOR_GRAY)); }
 
     if(the_obj->children().empty())
     {
