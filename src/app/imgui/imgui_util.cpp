@@ -505,7 +505,7 @@ void draw_mesh_ui(const gl::MeshPtr &the_mesh)
 
         // animation speed
         float animation_speed = the_mesh->animation_speed();
-        if(ImGui::SliderFloat("speed", &animation_speed, -10.f, 10.f))
+        if(ImGui::SliderFloat("speed", &animation_speed, -3.f, 3.f))
         { the_mesh->set_animation_speed(animation_speed); }
 
         // animation current time / max time
@@ -515,6 +515,14 @@ void draw_mesh_ui(const gl::MeshPtr &the_mesh)
 
         ImGui::Separator();
     }
+
+    // wireframe
+    bool use_wireframe = the_mesh->material()->wireframe();
+    if(ImGui::Checkbox("wireframe", &use_wireframe))
+    {
+        for(auto &mat : the_mesh->materials()){ mat->set_wireframe(use_wireframe); }
+    }
+    ImGui::Separator();
 
     // shadow cast / receive
     auto shadow_props = the_mesh->material()->shadow_properties();
@@ -549,7 +557,14 @@ gl::Object3DPtr draw_scenegraph_ui_helper(const gl::Object3DPtr &the_obj, const 
     gl::Object3DPtr ret;
     ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
     node_flags |= the_selection && the_selection->count(the_obj) ? ImGuiTreeNodeFlags_Selected : 0;
-    if(!the_obj->enabled()){ ImGui::PushStyleColor(ImGuiCol_Text, im_vec_cast(gl::COLOR_GRAY)); }
+
+    // push object id
+    ImGui::PushID(the_obj->get_id());
+    bool is_enabled = the_obj->enabled();
+    if(ImGui::Checkbox("", &is_enabled)){ the_obj->set_enabled(is_enabled); }
+    ImGui::SameLine();
+
+    if(!is_enabled){ ImGui::PushStyleColor(ImGuiCol_Text, im_vec_cast(gl::COLOR_GRAY)); }
 
     if(the_obj->children().empty())
     {
@@ -572,7 +587,8 @@ gl::Object3DPtr draw_scenegraph_ui_helper(const gl::Object3DPtr &the_obj, const 
             ImGui::TreePop();
         }
     }
-    if(!the_obj->enabled()){ ImGui::PopStyleColor(); }
+    if(!is_enabled){ ImGui::PopStyleColor(); }
+    ImGui::PopID();
     return ret;
 }
 

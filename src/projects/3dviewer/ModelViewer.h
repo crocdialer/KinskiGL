@@ -26,7 +26,7 @@ namespace kinski
 
         gl::DeferredRendererPtr m_deferred_renderer = gl::DeferredRenderer::create();
 
-        gl::MeshPtr m_mesh, m_ground_mesh, m_load_indicator;
+        gl::MeshPtr m_load_indicator;
         gl::Texture m_normal_map;
         
         gl::FboPtr m_post_process_fbo, m_offscreen_fbo;
@@ -57,8 +57,6 @@ namespace kinski
         Property_<bool>::Ptr
         m_draw_fps = Property_<bool>::create("draw fps", true),
         m_use_deferred_render = Property_<bool>::create("use deferred rendering", true),
-        m_shadow_cast = Property_<bool>::create("cast shadow", true),
-        m_shadow_receive = Property_<bool>::create("receive shadow", true),
         m_use_lighting = Property_<bool>::create("use lighting", true),
         m_use_normal_map = Property_<bool>::create("use normal mapping", true),
         m_use_ground_plane = Property_<bool>::create("use ground plane", true);
@@ -76,12 +74,6 @@ namespace kinski
         
         Property_<bool>::Ptr
         m_display_bones = Property_<bool>::create("display bones", false);
-
-        RangedProperty<float>::Ptr
-        m_animation_index = RangedProperty<float>::create("animation index", 0, 0, 999);
-        
-        RangedProperty<float>::Ptr
-        m_animation_speed = RangedProperty<float>::create("animation speed", 1.f, -1.5f, 1.5f);
         
         void build_skeleton(gl::BonePtr currentBone, const glm::mat4 start_transform,
                             vector<gl::vec3> &points, vector<string> &bone_names);

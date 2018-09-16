@@ -30,8 +30,6 @@ void ModelViewer::setup()
     register_property(m_model_path);
     register_property(m_use_lighting);
     register_property(m_use_deferred_render);
-    register_property(m_shadow_cast);
-    register_property(m_shadow_receive);
     register_property(m_use_post_process);
     register_property(m_use_fxaa);
     register_property(m_offscreen_resolution);
@@ -39,8 +37,6 @@ void ModelViewer::setup()
     register_property(m_use_ground_plane);
     register_property(m_use_bones);
     register_property(m_display_bones);
-    register_property(m_animation_index);
-    register_property(m_animation_speed);
     register_property(m_normalmap_path);
     register_property(m_skybox_path);
     register_property(m_ground_textures);
@@ -74,13 +70,14 @@ void ModelViewer::setup()
     }
     
     // add groundplane
-    m_ground_mesh = gl::Mesh::create(gl::Geometry::create_plane(400, 400),
-                                     gl::Material::create(gl::create_shader(gl::ShaderType::PHONG_SHADOWS)));
-    m_ground_mesh->material()->set_shadow_properties(gl::Material::SHADOW_RECEIVE);
-    m_ground_mesh->material()->set_roughness(0.4);
-    m_ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
-    m_ground_mesh->add_tag(tag_ground_plane);
-    scene()->add_object(m_ground_mesh);
+    auto ground_mesh  = gl::Mesh::create(gl::Geometry::create_plane(400, 400),
+                                         gl::Material::create(gl::create_shader(gl::ShaderType::PHONG_SHADOWS)));
+    ground_mesh->set_name(tag_ground_plane);
+    ground_mesh->material()->set_shadow_properties(gl::Material::SHADOW_RECEIVE);
+    ground_mesh->material()->set_roughness(0.4);
+    ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
+    ground_mesh->add_tag(tag_ground_plane);
+    scene()->add_object(ground_mesh);
 
     load_settings();
 
@@ -150,13 +147,14 @@ void ModelViewer::draw()
     {
         if(draw_grid()){ gl::draw_grid(50, 50); }
 
-        // render bones
-        if(*m_display_bones){ render_bones(m_mesh, camera(), true); }
-
         for(auto &obj : selected_objects())
         {
             auto aabb = obj->aabb();
             gl::draw_boundingbox(aabb);
+
+            // render bones
+            if(*m_display_bones){ render_bones(dynamic_pointer_cast<gl::Mesh>(obj), camera(), true); }
+
 //            vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
 //            std::string txt_label = m_selected_object->name() + "\nvertices: " + to_string(m_selected_object->geometry()->vertices().size()) +
 //                    "\nfaces: " + to_string(m_selected_object->geometry()->faces().size());
@@ -340,6 +338,15 @@ void ModelViewer::resize(int w ,int h)
 void ModelViewer::key_press(const KeyEvent &e)
 {
     ViewerApp::key_press(e);
+
+    switch(e.code())
+    {
+        case Key::_DELETE:
+            for(auto &obj : selected_objects()){ scene()->remove_object(obj); clear_selected_objects(); }
+            break;
+        default:
+            break;
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -433,11 +440,11 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
                 break;
         }
     }
-    if(obj == m_ground_mesh)
-    {
-        LOG_DEBUG << "texture drop on ground";
-        m_ground_textures->set(files);
-    }
+//    if(obj == m_ground_mesh)
+//    {
+//        LOG_DEBUG << "texture drop on ground";
+//        m_ground_textures->set(files);
+//    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -462,10 +469,10 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
             if(m)
             {
                 clear_selected_objects();
-                scene()->remove_object(m_mesh);
-                m_mesh = m;
-                scene()->add_object(m_mesh);
-                m_animation_index->set_range(0.f, m_mesh->animations().size() - 1);
+//                scene()->remove_object(m_mesh);
+//                m_mesh = m;
+                scene()->add_object(m);
+//                m_animation_index->set_range(0.f, m_mesh->animations().size() - 1);
                 m_dirty_shader = true;
             }
         });
@@ -478,19 +485,6 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
             m_dirty_g_buffer = true;
         }
         scene()->set_renderer(*m_use_deferred_render ? m_deferred_renderer : gl::SceneRenderer::create());
-    }
-    else if(theProperty == m_shadow_cast ||
-            theProperty == m_shadow_receive)
-    {
-        if(m_mesh)
-        {
-            for(auto &mat : m_mesh->materials())
-            {
-                int val = (*m_shadow_cast ? gl::Material::SHADOW_CAST : 0) |
-                        (*m_shadow_receive ? gl::Material::SHADOW_RECEIVE : 0);
-                mat->set_shadow_properties(val);
-            }
-        }
     }
     else if(theProperty == m_normalmap_path)
     {
@@ -510,30 +504,30 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
     else if(theProperty == m_use_normal_map){ m_dirty_shader = true; }
     else if(theProperty == m_use_bones){ m_dirty_shader = true; }
     else if(theProperty == m_use_lighting){ m_dirty_shader = true; }
-    else if(theProperty == m_wireframe)
-    {
-        if(m_mesh)
-        {
-            for(auto &mat : m_mesh->materials())
-            {
-                mat->set_wireframe(*m_wireframe);
-            }
-        }
-    }
-    else if(theProperty == m_animation_index)
-    {
-        if(m_mesh)
-        {
-            m_mesh->set_animation_index(*m_animation_index);
-        }
-    }
-    else if(theProperty == m_animation_speed)
-    {
-        if(m_mesh)
-        {
-            m_mesh->set_animation_speed(*m_animation_speed);
-        }
-    }
+//    else if(theProperty == m_wireframe)
+//    {
+//        if(m_mesh)
+//        {
+//            for(auto &mat : m_mesh->materials())
+//            {
+//                mat->set_wireframe(*m_wireframe);
+//            }
+//        }
+//    }
+//    else if(theProperty == m_animation_index)
+//    {
+//        if(m_mesh)
+//        {
+//            m_mesh->set_animation_index(*m_animation_index);
+//        }
+//    }
+//    else if(theProperty == m_animation_speed)
+//    {
+//        if(m_mesh)
+//        {
+//            m_mesh->set_animation_speed(*m_animation_speed);
+//        }
+//    }
     else if(theProperty == m_skybox_path)
     {
         async_load_texture(*m_skybox_path, [this](const gl::Texture &t)
@@ -552,22 +546,31 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_ground_textures)
     {
-        m_ground_mesh->material()->clear_textures();
-        int i = 0;
-        for(const auto &f : m_ground_textures->value())
+        auto objs = scene()->get_objects_by_tag(tag_ground_plane);
+
+        for(auto &obj : objs)
         {
-            m_ground_mesh->material()->enqueue_texture(f, 1 << i++);
+            auto mesh = std::dynamic_pointer_cast<gl::Mesh>(obj);
+            if(!mesh){ continue; }
+
+            mesh->material()->clear_textures();
+            int i = 0;
+
+            for(const auto &f : m_ground_textures->value())
+            {
+                mesh->material()->enqueue_texture(f, 1 << i++);
+            }
         }
     }
-    else if(theProperty == m_ground_plane_texture_scale)
-    {
-        for(auto &pair : m_ground_mesh->material()->textures())
-        {
-            auto t = pair.second;
-            t.set_texcoord_scale(gl::vec2(*m_ground_plane_texture_scale));
-            t.set_wrap(GL_REPEAT, GL_REPEAT);
-        }
-    }
+//    else if(theProperty == m_ground_plane_texture_scale)
+//    {
+//        for(auto &pair : m_ground_mesh->material()->textures())
+//        {
+//            auto t = pair.second;
+//            t.set_texcoord_scale(gl::vec2(*m_ground_plane_texture_scale));
+//            t.set_wrap(GL_REPEAT, GL_REPEAT);
+//        }
+//    }
     else if(theProperty == m_focal_length)
     {
         auto range_prop = std::dynamic_pointer_cast<RangedProperty<float>>(m_focal_depth);
@@ -661,8 +664,6 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
         {
             assimp::add_animations_to_mesh(f, m);
         }
-        m->set_animation_speed(*m_animation_speed);
-        m->set_animation_index(*m_animation_index);
     }
     return m;
 }
@@ -679,18 +680,6 @@ void ModelViewer::async_load_asset(const std::string &the_path,
         // load model on worker thread
         auto m = load_asset(*m_model_path);
 
-        if(m)
-        {
-            // load and decode images on worker thread
-            for(auto &mat : m->materials())
-            {
-                mat->set_wireframe(wireframe());
-                int val = (*m_shadow_cast ? gl::Material::SHADOW_CAST : 0) |
-                          (*m_shadow_receive ? gl::Material::SHADOW_RECEIVE : 0);
-                mat->set_shadow_properties(val);
-            }
-        }
-
         // work on this thread done, now queue texture creation on main queue
         main_queue().submit([m, task, the_completion_handler]()
         {
@@ -703,11 +692,16 @@ void ModelViewer::async_load_asset(const std::string &the_path,
 
 void ModelViewer::update_shader()
 {
-    if(m_mesh && m_dirty_shader)
+    if(!m_dirty_shader){ return; }
+
+    gl::SelectVisitor<gl::Mesh> visitor;
+    scene()->root()->accept(visitor);
+
+    for(auto &mesh : visitor.get_objects())
     {
         m_dirty_shader  = false;
         
-        bool use_bones = m_mesh->geometry()->has_bones() && *m_use_bones;
+        bool use_bones = mesh->geometry()->has_bones() && *m_use_bones;
         bool use_normal_map = *m_use_normal_map && *m_use_lighting;
         gl::ShaderPtr shader;
         gl::ShaderType type;
@@ -740,7 +734,7 @@ void ModelViewer::update_shader()
 
         auto t = (uint32_t)gl::Texture::Usage::NORMAL;
 
-        for(auto &mat : m_mesh->materials())
+        for(auto &mat : mesh->materials())
         {
             if(shader){ mat->set_shader(shader); }
 
@@ -785,22 +779,22 @@ void ModelViewer::render_bones(const gl::MeshPtr &the_mesh, const gl::CameraPtr 
 
 void ModelViewer::process_joystick(float the_time_delta)
 {
-    for(auto &j : get_joystick_states())
-    {
-        if(m_mesh)
-        {
-            auto val = (j.trigger() + gl::vec2(1)) / 2.f;
-            m_mesh->transform() = glm::rotate(m_mesh->transform(),
-                                              the_time_delta * (val.y - val.x) * 7.f,
-                                              gl::Y_AXIS);
-            
-            if(!m_mesh->animations().empty())
-            {
-                *m_animation_index += 2.f * the_time_delta * j.dpad().x;
-                *m_animation_speed -= .5f * the_time_delta * j.dpad().y;
-            }
-        }
-    }
+//    for(auto &j : get_joystick_states())
+//    {
+//        if(m_mesh)
+//        {
+//            auto val = (j.trigger() + gl::vec2(1)) / 2.f;
+//            m_mesh->transform() = glm::rotate(m_mesh->transform(),
+//                                              the_time_delta * (val.y - val.x) * 7.f,
+//                                              gl::Y_AXIS);
+//
+//            if(!m_mesh->animations().empty())
+//            {
+//                *m_animation_index += 2.f * the_time_delta * j.dpad().x;
+//                *m_animation_speed -= .5f * the_time_delta * j.dpad().y;
+//            }
+//        }
+//    }
 }
 
 void ModelViewer::draw_load_indicator(const gl::vec2 &the_screen_pos, float the_size)

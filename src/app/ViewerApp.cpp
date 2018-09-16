@@ -74,9 +74,6 @@ namespace kinski {
         m_draw_grid = Property_<bool>::create("draw grid", true);
         register_property(m_draw_grid);
 
-        m_wireframe = Property_<bool>::create("wireframe", false);
-        register_property(m_wireframe);
-
         m_use_warping = Property_<bool>::create("use warping", false);
         register_property(m_use_warping);
 
