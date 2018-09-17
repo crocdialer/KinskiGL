@@ -46,7 +46,7 @@ void DeferredRenderer::init()
     m_mat_lighting->set_blend_factors(GL_ONE, GL_ONE);
     
     m_mat_resolve = gl::Material::create(gl::ShaderType::RESOLVE);
-    m_mat_resolve->set_blending();
+//    m_mat_resolve->set_blending();
 
     // lighting with shadowmapping
     m_mat_lighting_shadow = gl::Material::create();
@@ -64,14 +64,6 @@ void DeferredRenderer::init()
     m_mat_lighting_enviroment = gl::Material::create();
     *m_mat_lighting_enviroment = *m_mat_lighting;
     m_mat_lighting_enviroment->set_shader(gl::Shader::create(unlit_vert, deferred_lighting_enviroment_frag));
-    
-    // lighting from emissive lighting
-    m_mat_lighting_emissive = gl::Material::create();
-    m_mat_lighting_emissive->set_depth_test(true);
-    m_mat_lighting_emissive->set_depth_write(false);
-    m_mat_lighting_emissive->set_blending(true);
-    m_mat_lighting_emissive->set_blend_equation(GL_FUNC_ADD);
-    m_mat_lighting_emissive->set_blend_factors(GL_ONE, GL_ONE);
     
     m_mat_stencil = gl::Material::create(shader);
     m_mat_stencil->set_depth_test(true);
@@ -166,6 +158,7 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     }
     // draw light texture
     m_mat_resolve->add_texture(m_fbo_lighting->texture());
+    m_mat_resolve->add_texture(m_fbo_geometry->texture(3), Texture::Usage::EMISSION);
     m_mat_resolve->add_texture(m_fbo_geometry->depth_texture(), Texture::Usage::DEPTH);
     m_mat_resolve->uniform("u_use_fxaa", m_use_fxaa ? 1 : 0);
     m_mat_resolve->uniform("u_luma_thresh", .4f);
@@ -196,9 +189,6 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
             m_fbo_geometry->texture(i).set_min_filter(GL_NEAREST);
         }
         KINSKI_CHECK_GL_ERRORS();
-        
-        m_mat_lighting_emissive->add_texture(m_fbo_geometry->texture(G_BUFFER_EMISSION),
-                                             Texture::Usage::COLOR);
     }
 
     std::list<RenderBin::item> opaque_items, blended_items;
@@ -298,10 +288,6 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
     m_fbo_lighting->enable_draw_buffers(true);
     render_light_volumes(the_renderbin, false);
-
-    // emmision pass
-//    m_mat_lighting_emissive->add_texture(m_fbo_geometry->depth_texture(), Texture::Usage::DEPTH);
-    gl::draw_quad(gl::window_dimension(), m_mat_lighting_emissive);
 #endif
 }
 

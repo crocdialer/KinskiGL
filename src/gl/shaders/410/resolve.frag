@@ -2,10 +2,11 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[2];
+uniform sampler2D u_sampler_2D[3];
 
 #define COLOR 0
-#define DEPTH 1
+#define EMISSION 1
+#define DEPTH 2
 
 struct Material
 {
@@ -42,12 +43,12 @@ uniform float u_mulReduce = 1.0 / 256.0;
 uniform float u_minReduce = 1.0 / 512.0;
 uniform float u_maxSpan = 16.0;
 
-float linear_depth(float val)
-{
-    float zNear = 0.5;    // TODO: Replace by the zNear of your perspective projection
-    float zFar  = 2000.0; // TODO: Replace by the zFar  of your perspective projection
-    return (2.0 * zNear) / (zFar + zNear - val * (zFar - zNear));
-}
+//float linear_depth(float val)
+//{
+//    float zNear = 0.5;    // TODO: Replace by the zNear of your perspective projection
+//    float zFar  = 2000.0; // TODO: Replace by the zFar  of your perspective projection
+//    return (2.0 * zNear) / (zFar + zNear - val * (zFar - zNear));
+//}
 
 // fast approximate anti-aliasing, by the book
 // @see http://developer.download.nvidia.com/assets/gamedev/files/sdk/11/FXAA_WhitePaper.pdf
@@ -158,5 +159,5 @@ void main()
 
     float depth = texture(u_sampler_2D[DEPTH], vertex_in.texCoord.st).x;
     gl_FragDepth = depth;
-    fragData = u_material.diffuse * texColors;
+    fragData = u_material.diffuse * texColors + vec4(texture(u_sampler_2D[EMISSION], vertex_in.texCoord.st).rgb, 1.0);
 }

@@ -289,7 +289,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
                                 std::map<std::string, ImagePtr> *the_img_map = nullptr)
 {
     gl::MaterialPtr theMaterial = gl::Material::create();
-    theMaterial->set_blending(true);
+//    theMaterial->set_blending(true);
     int ret1, ret2;
     aiColor4D c;
     float shininess, strength;

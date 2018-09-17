@@ -68,7 +68,7 @@ private:
     gl::FboPtr m_fbo_geometry, m_fbo_lighting, m_fbo_shadow, m_fbo_shadow_cube;
 
     gl::MaterialPtr m_mat_lighting, m_mat_lighting_shadow, m_mat_lighting_shadow_omni,
-    m_mat_lighting_emissive, m_mat_lighting_enviroment, m_mat_stencil, m_mat_resolve;
+    m_mat_lighting_enviroment, m_mat_stencil, m_mat_resolve;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
     
     bool m_use_fxaa = true;
