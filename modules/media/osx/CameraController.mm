@@ -304,7 +304,7 @@ namespace kinski{ namespace media{
 
     void CameraController::set_capture_mode(const capture_mode_t &the_mode)
     {
-        LOG_WARNING << "CameraController::set_capture_mode(const capture_mode_t &the_mode) NOT IMPLEMENTED ..."
+        LOG_WARNING << "CameraController::set_capture_mode(const capture_mode_t &the_mode) NOT IMPLEMENTED ...";
     }
 
 }}

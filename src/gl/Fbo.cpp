@@ -66,9 +66,6 @@ ImagePtr create_image_from_framebuffer(gl::FboPtr the_fbo)
         the_fbo->bind();
         w = the_fbo->width();
         h = the_fbo->height();
-        the_fbo->format().color_internal_format;
-//        num_comp = 4;
-//        format = GL_RGBA;
     }
     auto ret = Image_<uint8_t >::create(w, h, num_comp);
     ret->m_type = Image::Type::RGBA;

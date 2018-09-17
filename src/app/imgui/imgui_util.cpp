@@ -569,12 +569,12 @@ gl::Object3DPtr draw_scenegraph_ui_helper(const gl::Object3DPtr &the_obj, const 
     if(the_obj->children().empty())
     {
         node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; // ImGuiTreeNodeFlags_Bullet
-        ImGui::TreeNodeEx((void*)(uintptr_t)the_obj->get_id(), node_flags, the_obj->name().c_str());
+        ImGui::TreeNodeEx((void*)(uintptr_t)the_obj->get_id(), node_flags, "%s", the_obj->name().c_str());
         if(ImGui::IsItemClicked()){ ret = the_obj; }
     }
     else
     {
-        bool is_open = ImGui::TreeNodeEx((void*)(uintptr_t)the_obj->get_id(), node_flags, the_obj->name().c_str());
+        bool is_open = ImGui::TreeNodeEx((void*)(uintptr_t)the_obj->get_id(), node_flags, "%s",the_obj->name().c_str());
         if(ImGui::IsItemClicked()){ ret = the_obj; }
 
         if(is_open)
