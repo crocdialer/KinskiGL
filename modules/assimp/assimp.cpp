@@ -289,7 +289,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
                                 std::map<std::string, ImagePtr> *the_img_map = nullptr)
 {
     gl::MaterialPtr theMaterial = gl::Material::create();
-//    theMaterial->set_blending(true);
+    theMaterial->set_blending(true);
     int ret1, ret2;
     aiColor4D c;
     float shininess, strength;
@@ -319,6 +319,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &c))
     {
         theMaterial->set_emission(aicolor_convert(c));
+        theMaterial->set_blending(false);
     }
     
     // transparent material
@@ -326,6 +327,8 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     {
         //TODO: needed ?
         LOG_DEBUG << "encountered \"AI_MATKEY_COLOR_TRANSPARENT\"";
+        theMaterial->set_diffuse(aicolor_convert(c));
+        theMaterial->set_blending(true);
     }
     
     ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);

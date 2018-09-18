@@ -1025,297 +1025,227 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_light(const LightPtr &theLight)
+void draw_mesh_instanced(const MeshPtr &the_mesh, const std::vector<glm::mat4> &the_transforms,
+                         const ShaderPtr &overide_shader)
+{
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void draw_light(const LightPtr &theLight)
+{
+    static gl::MeshPtr directional_mesh, point_mesh, spot_mesh;
+
+    gl::ScopedMatrixPush mat_push(gl::MODEL_VIEW_MATRIX);
+
+    if(!directional_mesh)
     {
-        static gl::MeshPtr directional_mesh, point_mesh, spot_mesh;
+        directional_mesh = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
+        point_mesh = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 8),
+                                      gl::Material::create());
+        spot_mesh = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16),
+                                     gl::Material::create());
 
-        gl::ScopedMatrixPush mat_push(gl::MODEL_VIEW_MATRIX);
+        glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
 
-        if(!directional_mesh)
+        for(auto &vert : spot_mesh->geometry()->vertices())
         {
-            directional_mesh = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
-            point_mesh = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 8),
-                                          gl::Material::create());
-            spot_mesh = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16),
-                                         gl::Material::create());
-
-            glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
-
-            for(auto &vert : spot_mesh->geometry()->vertices())
-            {
-                vert -= vec3(0, 1, 0);
-                vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
-            }
-
-            std::list<gl::MaterialPtr> mats =
-            {
-                directional_mesh->material(),
-                point_mesh->material(),
-                spot_mesh->material()
-            };
-            for (auto mat : mats){ mat->set_wireframe(); }
-
-        }
-        gl::MeshPtr light_mesh;
-        float scale = theLight->radius();
-
-        switch (theLight->type())
-        {
-            case gl::Light::DIRECTIONAL:
-                light_mesh = directional_mesh;
-                break;
-
-            case gl::Light::POINT:
-                light_mesh = point_mesh;
-                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(theLight->global_transform(),
-                                                                  vec3(scale)));
-                break;
-
-            case gl::Light::SPOT:
-            {
-                light_mesh = spot_mesh;
-                float r_scale = tan(glm::radians(theLight->spot_cutoff())) * scale;
-                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(theLight->global_transform(),
-                                                                  vec3(r_scale, r_scale, scale)));
-            }
-                break;
-            
-            default:
-                LOG_WARNING << "light type not handled";
-                return;
+            vert -= vec3(0, 1, 0);
+            vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
         }
 
-        if(theLight->enabled())
+        std::list<gl::MaterialPtr> mats =
         {
-            light_mesh->material()->set_diffuse(theLight->diffuse());
+            directional_mesh->material(),
+            point_mesh->material(),
+            spot_mesh->material()
+        };
+        for (auto mat : mats){ mat->set_wireframe(); }
+
+    }
+    gl::MeshPtr light_mesh;
+    float scale = theLight->radius();
+
+    switch (theLight->type())
+    {
+        case gl::Light::DIRECTIONAL:
+            light_mesh = directional_mesh;
+            break;
+
+        case gl::Light::POINT:
+            light_mesh = point_mesh;
+            gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(theLight->global_transform(),
+                                                              vec3(scale)));
+            break;
+
+        case gl::Light::SPOT:
+        {
+            light_mesh = spot_mesh;
+            float r_scale = tan(glm::radians(theLight->spot_cutoff())) * scale;
+            gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(theLight->global_transform(),
+                                                              vec3(r_scale, r_scale, scale)));
         }
-        else
-        {
-//            light_mesh->material()->set_diffuse(gl::COLOR_RED);
+            break;
+
+        default:
+            LOG_WARNING << "light type not handled";
             return;
-        }
-
-        // draw the configured mesh
-        gl::draw_mesh(light_mesh);
     }
+
+    if(theLight->enabled())
+    {
+        light_mesh->material()->set_diffuse(theLight->diffuse());
+    }
+    else
+    {
+//            light_mesh->material()->set_diffuse(gl::COLOR_RED);
+        return;
+    }
+
+    // draw the configured mesh
+    gl::draw_mesh(light_mesh);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_boundingbox(const gl::AABB& the_aabb)
-    {
-        static MeshPtr line_mesh;
-        if(!line_mesh){ line_mesh = gl::Mesh::create(gl::Geometry::create_box_lines()); }
-        glm::mat4 center_mat = glm::translate(glm::mat4(), the_aabb.center());
-        glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(the_aabb.width(),
-                                                           the_aabb.height(),
-                                                           the_aabb.depth()));
-        gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, center_mat * scale_mat);
-        gl::draw_mesh(line_mesh);
-    }
+void draw_boundingbox(const gl::AABB& the_aabb)
+{
+    static MeshPtr line_mesh;
+    if(!line_mesh){ line_mesh = gl::Mesh::create(gl::Geometry::create_box_lines()); }
+    glm::mat4 center_mat = glm::translate(glm::mat4(), the_aabb.center());
+    glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(the_aabb.width(),
+                                                       the_aabb.height(),
+                                                       the_aabb.depth()));
+    gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
+    gl::mult_matrix(gl::MODEL_VIEW_MATRIX, center_mat * scale_mat);
+    gl::draw_mesh(line_mesh);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_normals(const MeshWeakPtr &the_mesh)
+void draw_circle(const vec2 &center, float radius, const gl::Color &the_color, bool solid,
+                 uint32_t the_num_segments)
+{
+    static gl::MaterialPtr color_mat;
+
+    if(!color_mat)
     {
-        static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
-        static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
+        color_mat = gl::Material::create();
+        color_mat->set_depth_test(false);
+        color_mat->set_depth_write(false);
+    }
+    color_mat->set_diffuse(the_color);
+    draw_circle(center, radius, color_mat, solid, the_num_segments);
+}
 
-        if(theMap.find(the_mesh) == theMap.end())
-        {
-            MeshConstPtr m = the_mesh.lock();
-            if(m->geometry()->normals().empty()) return;
-            GeometryPtr geom = Geometry::create();
-            geom->set_primitive_type(GL_LINES);
-            gl::MaterialPtr mat = gl::Material::create();
-            MeshPtr line_mesh = gl::Mesh::create(geom, mat);
-            vector<vec3> &thePoints = geom->vertices();
-            vector<vec4> &theColors = geom->colors();
-            const vector<vec3> &vertices = m->geometry()->vertices();
-            const vector<vec3> &normals = m->geometry()->normals();
+///////////////////////////////////////////////////////////////////////////////
 
-            float length = (m->geometry()->aabb().max -
-                            m->geometry()->aabb().min).length() * 5;
+void draw_circle(const glm::vec2 &center, float the_radius, const MaterialPtr &theMaterial,
+                 bool solid, uint32_t the_num_segments)
+{
+    constexpr uint32_t max_num_buffer_meshes = 10;
+    static std::unordered_map<uint32_t, gl::MeshPtr> solid_meshes, line_meshes;
+    static gl::MaterialPtr default_mat;
 
-            for (uint32_t i = 0; i < vertices.size(); i++)
-            {
-                thePoints.push_back(vertices[i]);
-                thePoints.push_back(vertices[i] + normals[i] * length);
-                theColors.push_back(colorGrey);
-                theColors.push_back(colorRed);
-            }
-            theMap[the_mesh] = line_mesh;
-        }
-        gl::draw_mesh(theMap[the_mesh]);
+    // automatically determine the number of segments from the circumference
+    if(!the_num_segments){ the_num_segments = (int)floor(the_radius * M_PI * 2);}
+    the_num_segments = std::max(the_num_segments, 2U);
+
+    gl::MeshPtr our_mesh;
+    auto it = solid ? solid_meshes.find(the_num_segments) : line_meshes.find(the_num_segments);
+    if(it != (solid ? solid_meshes.end() : line_meshes.end())){ our_mesh = it->second; }
+
+    if(!our_mesh)
+    {
+        GeometryPtr geom = solid ? Geometry::create_solid_circle(the_num_segments) :
+            Geometry::create_circle(the_num_segments);
+        default_mat = gl::Material::create();
+        default_mat->set_depth_test(false);
+        default_mat->set_depth_write(false);
+        our_mesh = gl::Mesh::create(geom, default_mat);
 
         // cleanup
-        map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
-        for (; meshIt != theMap.end(); ++meshIt)
-        {
-            if(! meshIt->first.lock() )
-                theMap.erase(meshIt);
-        }
+        if(solid_meshes.size() >= max_num_buffer_meshes){ solid_meshes.clear(); }
+        if(line_meshes.size() >= max_num_buffer_meshes){ line_meshes.clear(); }
+
+        // add our newly created mesh
+        if(solid){ solid_meshes[the_num_segments] = our_mesh; }
+        else{ line_meshes[the_num_segments] = our_mesh; }
     }
+    our_mesh->material() = theMaterial ? theMaterial : default_mat;
+    mat4 projectionMatrix = ortho(0.0f, g_viewport_dim[0], 0.0f, g_viewport_dim[1], 0.0f, 1.0f);
+    mat4 modelView = glm::scale(mat4(), vec3(the_radius));
+    modelView[3] = vec4(center.x, g_viewport_dim[1] - center.y, 0, modelView[3].w);
+
+    ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
+    load_matrix(PROJECTION_MATRIX, projectionMatrix);
+    load_matrix(MODEL_VIEW_MATRIX, modelView);
+    draw_mesh(our_mesh);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_circle(const vec2 &center, float radius, const gl::Color &the_color, bool solid,
-                     uint32_t the_num_segments)
+KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene,
+                                         const FboPtr &the_fbo,
+                                         const gl::CameraPtr &theCam)
+{
+    if(!the_fbo)
     {
-        static gl::MaterialPtr color_mat;
-
-        if(!color_mat)
-        {
-            color_mat = gl::Material::create();
-            color_mat->set_depth_test(false);
-            color_mat->set_depth_write(false);
-        }
-        color_mat->set_diffuse(the_color);
-        draw_circle(center, radius, color_mat, solid, the_num_segments);
+        LOG_WARNING << "trying to use an uninitialized FBO";
+        return gl::Texture();
     }
+
+    // push framebuffer and viewport states
+    gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+    gl::set_window_dimension(the_fbo->size());
+    the_fbo->bind();
+    gl::clear();
+    theScene->render(theCam);
+    return the_fbo->texture();
+}
+
+KINSKI_API gl::Texture render_to_texture(const FboPtr &the_fbo, std::function<void()> the_functor)
+{
+    if(!the_fbo)
+    {
+        LOG_WARNING << "trying to use an uninitialized FBO";
+        return gl::Texture();
+    }
+    // push framebuffer and viewport states
+    gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+    gl::set_window_dimension(the_fbo->size());
+    the_fbo->bind();
+    the_functor();
+    return the_fbo->texture();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_circle(const glm::vec2 &center, float the_radius, const MaterialPtr &theMaterial,
-                     bool solid, uint32_t the_num_segments)
+void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPtr &override_shader,
+                    std::map<ImagePtr, gl::Texture> *the_img_tex_cache)
+{
+    KINSKI_CHECK_GL_ERRORS();
+    static MaterialPtr last_mat = gl::Material::create();
+    if(!the_mat) return;
+
+    // process texture queue
+    auto it = the_mat->queued_textures().begin(), end = the_mat->queued_textures().end();
+
+    for(;it != end;)
     {
-        constexpr uint32_t max_num_buffer_meshes = 10;
-        static std::unordered_map<uint32_t, gl::MeshPtr> solid_meshes, line_meshes;
-        static gl::MaterialPtr default_mat;
+        auto &pair = *it;
 
-        // automatically determine the number of segments from the circumference
-        if(!the_num_segments){ the_num_segments = (int)floor(the_radius * M_PI * 2);}
-        the_num_segments = std::max(the_num_segments, 2U);
+        constexpr float anisotropic_lvl = 8.f;
 
-        gl::MeshPtr our_mesh;
-        auto it = solid ? solid_meshes.find(the_num_segments) : line_meshes.find(the_num_segments);
-        if(it != (solid ? solid_meshes.end() : line_meshes.end())){ our_mesh = it->second; }
+        // no DXT compression for normal maps
+        bool use_compression = pair.second.key != (uint32_t)Texture::Usage::NORMAL;
 
-        if(!our_mesh)
+        if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
         {
-            GeometryPtr geom = solid ? Geometry::create_solid_circle(the_num_segments) :
-                Geometry::create_circle(the_num_segments);
-            default_mat = gl::Material::create();
-            default_mat->set_depth_test(false);
-            default_mat->set_depth_write(false);
-            our_mesh = gl::Mesh::create(geom, default_mat);
-
-            // cleanup
-            if(solid_meshes.size() >= max_num_buffer_meshes){ solid_meshes.clear(); }
-            if(line_meshes.size() >= max_num_buffer_meshes){ line_meshes.clear(); }
-
-            // add our newly created mesh
-            if(solid){ solid_meshes[the_num_segments] = our_mesh; }
-            else{ line_meshes[the_num_segments] = our_mesh; }
-        }
-        our_mesh->material() = theMaterial ? theMaterial : default_mat;
-        mat4 projectionMatrix = ortho(0.0f, g_viewport_dim[0], 0.0f, g_viewport_dim[1], 0.0f, 1.0f);
-        mat4 modelView = glm::scale(mat4(), vec3(the_radius));
-        modelView[3] = vec4(center.x, g_viewport_dim[1] - center.y, 0, modelView[3].w);
-
-        ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
-        load_matrix(PROJECTION_MATRIX, projectionMatrix);
-        load_matrix(MODEL_VIEW_MATRIX, modelView);
-        draw_mesh(our_mesh);
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene,
-                                             const FboPtr &the_fbo,
-                                             const gl::CameraPtr &theCam)
-    {
-        if(!the_fbo)
-        {
-            LOG_WARNING << "trying to use an uninitialized FBO";
-            return gl::Texture();
-        }
-
-        // push framebuffer and viewport states
-        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::set_window_dimension(the_fbo->size());
-        the_fbo->bind();
-        gl::clear();
-        theScene->render(theCam);
-        return the_fbo->texture();
-    }
-
-    KINSKI_API gl::Texture render_to_texture(const FboPtr &the_fbo, std::function<void()> the_functor)
-    {
-        if(!the_fbo)
-        {
-            LOG_WARNING << "trying to use an uninitialized FBO";
-            return gl::Texture();
-        }
-        // push framebuffer and viewport states
-        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::set_window_dimension(the_fbo->size());
-        the_fbo->bind();
-        the_functor();
-        return the_fbo->texture();
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPtr &override_shader,
-                        std::map<ImagePtr, gl::Texture> *the_img_tex_cache)
-    {
-        KINSKI_CHECK_GL_ERRORS();
-        static MaterialPtr last_mat = gl::Material::create();
-        if(!the_mat) return;
-
-        // process texture queue
-        auto it = the_mat->queued_textures().begin(), end = the_mat->queued_textures().end();
-
-        for(;it != end;)
-        {
-            auto &pair = *it;
-
-            constexpr float anisotropic_lvl = 8.f;
-
-            // no DXT compression for normal maps
-            bool use_compression = pair.second.key != (uint32_t)Texture::Usage::NORMAL;
-
-            if(pair.second.status == gl::Material::AssetLoadStatus::NOT_LOADED)
+            try
             {
-                try
-                {
-                    auto t = gl::create_texture_from_file(pair.first, true, use_compression, anisotropic_lvl);
-                    the_mat->add_texture(t, pair.second.key);
-
-                    // copy iterator before incrementing
-                    auto delete_it = it++;
-
-                    // remove last iterator from map
-                    the_mat->queued_textures().erase(delete_it);
-                }
-                catch(Exception &e)
-                {
-                    LOG_WARNING << e.what();
-                    pair.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
-                    it++;
-                }
-            }
-            else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
-            {
-                gl::Texture t;
-
-                if(the_img_tex_cache)
-                {
-                    auto img_tex_it = the_img_tex_cache->find(pair.second.image);
-                    if(img_tex_it != the_img_tex_cache->end())
-                    {
-                        t = img_tex_it->second;
-                        LOG_TRACE << "using cached texture: " << pair.first;
-                    }
-                }
-
-                if(!t)
-                {
-                    LOG_TRACE << "creating texture: " << pair.first;
-                    t = gl::create_texture_from_image(pair.second.image, true, use_compression, anisotropic_lvl);
-                    if(the_img_tex_cache){ (*the_img_tex_cache)[pair.second.image] = t; }
-                }
+                auto t = gl::create_texture_from_file(pair.first, true, use_compression, anisotropic_lvl);
                 the_mat->add_texture(t, pair.second.key);
 
                 // copy iterator before incrementing
@@ -1324,504 +1254,536 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 // remove last iterator from map
                 the_mat->queued_textures().erase(delete_it);
             }
-        }
-
-        // shader queue
-        if(the_mat->queued_shader() != gl::ShaderType::NONE)
-        {
-            try{ the_mat->set_shader(gl::create_shader(the_mat->queued_shader())); }
-            catch(Exception &e){ LOG_WARNING << e.what(); }
-
-        }
-        if(!the_mat->shader()){ the_mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
-
-        // bind the shader
-        gl::ShaderPtr shader = override_shader ? override_shader : the_mat->shader();
-        shader->bind();
-        KINSKI_CHECK_GL_ERRORS();
-
-        // twoSided
-        if(force_apply || last_mat->culling() != the_mat->culling() || last_mat->wireframe() != the_mat->wireframe())
-        {
-            if(the_mat->culling() == Material::CULL_NONE || the_mat->wireframe())
-            { glDisable(GL_CULL_FACE); }
-            else
+            catch(Exception &e)
             {
-                glEnable(GL_CULL_FACE);
-                int val = GL_BACK;
+                LOG_WARNING << e.what();
+                pair.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
+                it++;
+            }
+        }
+        else if(pair.second.status == gl::Material::AssetLoadStatus::IMAGE_LOADED)
+        {
+            gl::Texture t;
 
-                if(the_mat->culling() & Material::CULL_BACK)
+            if(the_img_tex_cache)
+            {
+                auto img_tex_it = the_img_tex_cache->find(pair.second.image);
+                if(img_tex_it != the_img_tex_cache->end())
                 {
-                    val = GL_BACK;
-
-                    if(the_mat->culling() & Material::CULL_FRONT){ val = GL_FRONT_AND_BACK; }
-                }else if(the_mat->culling() & Material::CULL_FRONT){ val = GL_FRONT; }
-                glCullFace(val);
-            }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-
-        // wireframe ?
-#ifndef KINSKI_GLES
-        if(force_apply || last_mat->wireframe() != the_mat->wireframe())
-            glPolygonMode(GL_FRONT_AND_BACK, the_mat->wireframe() ? GL_LINE : GL_FILL);
-#endif
-
-        KINSKI_CHECK_GL_ERRORS();
-
-        // read write depth buffer ?
-        if(force_apply || last_mat->depth_test() != the_mat->depth_test())
-        {
-            if(the_mat->depth_test()) { glEnable(GL_DEPTH_TEST); }
-            else { glDisable(GL_DEPTH_TEST); }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-
-        if(force_apply || last_mat->depth_write() != the_mat->depth_write())
-        {
-            if(the_mat->depth_write()){ glDepthMask(GL_TRUE); }
-            else{ glDepthMask(GL_FALSE); }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-
-        if(force_apply || last_mat->stencil_test() != the_mat->stencil_test())
-        {
-            if(the_mat->stencil_test()){ glEnable(GL_STENCIL_TEST); }
-            else{ glDisable(GL_STENCIL_TEST); }
-
-        }
-        KINSKI_CHECK_GL_ERRORS();
-
-        // scissor test
-        if(force_apply || last_mat->scissor_rect() != the_mat->scissor_rect())
-        {
-            auto rect = the_mat->scissor_rect();
-
-            if(the_mat->scissor_rect() == Area_<uint32_t>()){ glDisable(GL_SCISSOR_TEST); }
-            else
-            {
-                glEnable(GL_SCISSOR_TEST);
-                glScissor(rect.x0, gl::window_dimension().y - rect.y1, rect.width(), rect.height());
-            }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-
-        if(force_apply || last_mat->blending() != the_mat->blending())
-        {
-            if(!the_mat->blending()){ glDisable(GL_BLEND); }
-            else{ glEnable(GL_BLEND); }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-        
-        if(force_apply || last_mat->blend_factors() != the_mat->blend_factors())
-        {
-            glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
-        }
-        KINSKI_CHECK_GL_ERRORS();
-
-#if !defined(KINSKI_GLES_2)
-        if(force_apply || last_mat->blend_equation() != the_mat->blend_equation())
-        {
-            glBlendEquation(the_mat->blend_equation());
-        }
-        KINSKI_CHECK_GL_ERRORS();
-#endif
-
-        if(force_apply || last_mat->point_size() != the_mat->point_size())
-        {
-            if(the_mat->point_size() > 0.f)
-            {
-#ifndef KINSKI_GLES
-                glEnable(GL_PROGRAM_POINT_SIZE);
-                glPointSize(the_mat->point_size());
-#endif
-                KINSKI_CHECK_GL_ERRORS();
-            }
-        }
-
-#if defined(KINSKI_GLES)
-        if(force_apply || last_mat->line_width() != the_mat->line_width())
-        {
-            glLineWidth(the_mat->line_width());
-            KINSKI_CHECK_GL_ERRORS();
-        }
-#endif
-
-        // add texturemaps
-        int32_t tex_unit = 0, tex_2d = 0, num_textures = 0;
-#if !defined(KINSKI_GLES_2)
-        int32_t tex_3d = 0, tex_2d_array = 0, tex_cube = 0;
-#endif
-        
-#if !defined(KINSKI_GLES)
-        int32_t tex_rect = 0;
-#endif
-        char buf[512];
-
-        for(const auto &pair : the_mat->textures())
-        {
-            auto t = pair.second;
-            if(!t){ continue; }
-            
-            num_textures++;
-            t.bind(tex_unit);
-
-            switch (t.target())
-            {
-                case GL_TEXTURE_2D:
-                    sprintf(buf, "u_sampler_2D[%d]", tex_2d++);
-                    break;
-
-#if !defined(KINSKI_GLES_2)
-
-                case GL_TEXTURE_3D:
-                    sprintf(buf, "u_sampler_3D[%d]", tex_3d++);
-                    break;
-
-                case GL_TEXTURE_2D_ARRAY:
-                    sprintf(buf, "u_sampler_2D_array[%d]", tex_2d_array++);
-                    break;
-                
-                case GL_TEXTURE_CUBE_MAP:
-                    sprintf(buf, "u_sampler_cube[%d]", tex_cube++);
-                    break;
-#endif
-                    
-#if !defined(KINSKI_GLES)
-                    
-                case GL_TEXTURE_RECTANGLE:
-                    sprintf(buf, "u_sampler_2Drect[%d]", tex_rect++);
-                    break;
-#endif
-                default:
-                    break;
-            }
-            the_mat->uniform(buf, tex_unit++);
-        }
-        shader->uniform("u_numTextures", num_textures);
-
-        KINSKI_CHECK_GL_ERRORS();
-
-        // update uniform buffers and uniform values for current shader
-        the_mat->update_uniforms(shader);
-
-        *last_mat = *the_mat;
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    void reset_state()
-    {
-        static auto mat = gl::Material::create();
-        gl::apply_material(mat, true);
-#if !defined(KINSKI_GLES_2)
-        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-#endif
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    const std::set<std::string>& get_extensions()
-    {
-        static std::set<std::string> s_extensions;
-
-        if(s_extensions.empty())
-        {
-#if !defined(KINSKI_GLES_2)
-            GLint numExtensions = 0;
-            glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions) ;
-            for (int i = 0; i < numExtensions; ++i) {
-                s_extensions.insert((char*)glGetStringi(GL_EXTENSIONS, i)) ;
-            }
-#endif
-        }
-        return s_extensions;
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    bool is_extension_supported(const std::string &theName)
-    {
-        return get_extensions().find(theName) != get_extensions().end();
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    // SaveFramebufferBinding
-    SaveFramebufferBinding::SaveFramebufferBinding()
-    {
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_old_value );
-    }
-
-    SaveFramebufferBinding::~SaveFramebufferBinding()
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_old_value );
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    bool is_point_inside_mesh(const glm::vec3& p, gl::MeshPtr m)
-    {
-        // checks only make sense with triangle geometry
-        if(!m ||
-           m->geometry()->primitive_type() != GL_TRIANGLES ||
-           m->geometry()->faces().empty())
-        {
-            return false;
-        }
-
-        auto aabb = m->aabb();
-
-        // checks if p is inside the aabb of our mesh)
-        if(!aabb.intersect(p)) return false;
-
-        const auto &vertices = m->geometry()->vertices();
-
-        // check the point's distance to all triangle planes
-        for (const auto &face : m->geometry()->faces())
-        {
-            gl::Plane plane(vertices[face.a], vertices[face.b], vertices[face.c]);
-            plane.transform(m->transform());
-            if(plane.distance(p) < 0)
-                return false;
-        }
-        return true;
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    void project_texcoords(gl::MeshPtr src, gl::MeshPtr dest)
-    {
-        const auto &src_verts = src->geometry()->vertices();
-        const auto &src_texcoords = src->geometry()->tex_coords();
-        const auto &dest_verts = dest->geometry()->vertices();
-        const auto &dest_normals = dest->geometry()->normals();
-        auto &dest_texcoords = dest->geometry()->tex_coords();
-
-        // aquire enough space for texcoords
-        dest_texcoords.resize(dest_verts.size());
-
-        // helper structure and comparator for sorting
-        struct hit_struct
-        {
-            gl::Face3 face;
-            float u, v, distance;
-        };
-        auto hit_struct_comp = [](const hit_struct &h1, const hit_struct &h2) -> bool
-        {
-            return h1.distance < h2.distance;
-        };
-
-        float ray_offset = 2 * glm::length(src->aabb().transform(src->global_transform()).halfExtents());
-        float scale_val = 1.01f;
-        mat4 world_to_src = glm::inverse(glm::scale(src->global_transform(), vec3(scale_val)));
-
-        for(uint32_t i = 0; i < dest_verts.size(); i++)
-        {
-            gl::Ray ray(dest_verts[i] + dest_normals[i] * ray_offset, -dest_normals[i]);
-            ray = ray.transform(dest->transform());
-            gl::Ray ray_in_object_space = ray.transform(world_to_src);
-
-            std::vector<hit_struct> hit_structs;
-
-            for (const auto &face : src->geometry()->faces())
-            {
-                gl::Triangle t(src_verts[face.a], src_verts[face.b], src_verts[face.c]);
-
-                if(gl::ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
-                {
-                    hit_structs.push_back({face, ray_tri_hit.u, ray_tri_hit.v, ray_tri_hit.distance});
+                    t = img_tex_it->second;
+                    LOG_TRACE << "using cached texture: " << pair.first;
                 }
             }
-            if(!hit_structs.empty())
+
+            if(!t)
             {
-                std::sort(hit_structs.begin(), hit_structs.end(), hit_struct_comp);
-                const auto & hs = hit_structs.front();
-                float u, v, w;
-                u = hs.u, v = hs.v, w = 1 - u - v;
+                LOG_TRACE << "creating texture: " << pair.first;
+                t = gl::create_texture_from_image(pair.second.image, true, use_compression, anisotropic_lvl);
+                if(the_img_tex_cache){ (*the_img_tex_cache)[pair.second.image] = t; }
+            }
+            the_mat->add_texture(t, pair.second.key);
 
-                dest_texcoords[i] = src_texcoords[hs.face.a] * v +
-                src_texcoords[hs.face.b] * u +
-                src_texcoords[hs.face.c] * w;
+            // copy iterator before incrementing
+            auto delete_it = it++;
 
-                dest_texcoords[i] = dest_texcoords[i].yx();
-                dest_texcoords[i].x = 1 - dest_texcoords[i].x;
-                dest_texcoords[i].y = 1 - dest_texcoords[i].y;
-
-            }else{ LOG_ERROR << "no triangle hit"; }
+            // remove last iterator from map
+            the_mat->queued_textures().erase(delete_it);
         }
     }
+
+    // shader queue
+    if(the_mat->queued_shader() != gl::ShaderType::NONE)
+    {
+        try{ the_mat->set_shader(gl::create_shader(the_mat->queued_shader())); }
+        catch(Exception &e){ LOG_WARNING << e.what(); }
+
+    }
+    if(!the_mat->shader()){ the_mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
+
+    // bind the shader
+    gl::ShaderPtr shader = override_shader ? override_shader : the_mat->shader();
+    shader->bind();
+    KINSKI_CHECK_GL_ERRORS();
+
+    // twoSided
+    if(force_apply || last_mat->culling() != the_mat->culling() || last_mat->wireframe() != the_mat->wireframe())
+    {
+        if(the_mat->culling() == Material::CULL_NONE || the_mat->wireframe())
+        { glDisable(GL_CULL_FACE); }
+        else
+        {
+            glEnable(GL_CULL_FACE);
+            int val = GL_BACK;
+
+            if(the_mat->culling() & Material::CULL_BACK)
+            {
+                val = GL_BACK;
+
+                if(the_mat->culling() & Material::CULL_FRONT){ val = GL_FRONT_AND_BACK; }
+            }else if(the_mat->culling() & Material::CULL_FRONT){ val = GL_FRONT; }
+            glCullFace(val);
+        }
+    }
+    KINSKI_CHECK_GL_ERRORS();
+
+    // wireframe ?
+#ifndef KINSKI_GLES
+    if(force_apply || last_mat->wireframe() != the_mat->wireframe())
+        glPolygonMode(GL_FRONT_AND_BACK, the_mat->wireframe() ? GL_LINE : GL_FILL);
+#endif
+
+    KINSKI_CHECK_GL_ERRORS();
+
+    // read write depth buffer ?
+    if(force_apply || last_mat->depth_test() != the_mat->depth_test())
+    {
+        if(the_mat->depth_test()) { glEnable(GL_DEPTH_TEST); }
+        else { glDisable(GL_DEPTH_TEST); }
+    }
+    KINSKI_CHECK_GL_ERRORS();
+
+    if(force_apply || last_mat->depth_write() != the_mat->depth_write())
+    {
+        if(the_mat->depth_write()){ glDepthMask(GL_TRUE); }
+        else{ glDepthMask(GL_FALSE); }
+    }
+    KINSKI_CHECK_GL_ERRORS();
+
+    if(force_apply || last_mat->stencil_test() != the_mat->stencil_test())
+    {
+        if(the_mat->stencil_test()){ glEnable(GL_STENCIL_TEST); }
+        else{ glDisable(GL_STENCIL_TEST); }
+
+    }
+    KINSKI_CHECK_GL_ERRORS();
+
+    // scissor test
+    if(force_apply || last_mat->scissor_rect() != the_mat->scissor_rect())
+    {
+        auto rect = the_mat->scissor_rect();
+
+        if(the_mat->scissor_rect() == Area_<uint32_t>()){ glDisable(GL_SCISSOR_TEST); }
+        else
+        {
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(rect.x0, gl::window_dimension().y - rect.y1, rect.width(), rect.height());
+        }
+    }
+    KINSKI_CHECK_GL_ERRORS();
+
+    if(force_apply || last_mat->blending() != the_mat->blending())
+    {
+        if(!the_mat->blending()){ glDisable(GL_BLEND); }
+        else{ glEnable(GL_BLEND); }
+    }
+    KINSKI_CHECK_GL_ERRORS();
+
+    if(force_apply || last_mat->blend_factors() != the_mat->blend_factors())
+    {
+        glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
+    }
+    KINSKI_CHECK_GL_ERRORS();
+
+#if !defined(KINSKI_GLES_2)
+    if(force_apply || last_mat->blend_equation() != the_mat->blend_equation())
+    {
+        glBlendEquation(the_mat->blend_equation());
+    }
+    KINSKI_CHECK_GL_ERRORS();
+#endif
+
+    if(force_apply || last_mat->point_size() != the_mat->point_size())
+    {
+        if(the_mat->point_size() > 0.f)
+        {
+#ifndef KINSKI_GLES
+            glEnable(GL_PROGRAM_POINT_SIZE);
+            glPointSize(the_mat->point_size());
+#endif
+            KINSKI_CHECK_GL_ERRORS();
+        }
+    }
+
+#if defined(KINSKI_GLES)
+    if(force_apply || last_mat->line_width() != the_mat->line_width())
+    {
+        glLineWidth(the_mat->line_width());
+        KINSKI_CHECK_GL_ERRORS();
+    }
+#endif
+
+    // add texturemaps
+    int32_t tex_unit = 0, tex_2d = 0, num_textures = 0;
+#if !defined(KINSKI_GLES_2)
+    int32_t tex_3d = 0, tex_2d_array = 0, tex_cube = 0;
+#endif
+
+#if !defined(KINSKI_GLES)
+    int32_t tex_rect = 0;
+#endif
+    char buf[512];
+
+    for(const auto &pair : the_mat->textures())
+    {
+        auto t = pair.second;
+        if(!t){ continue; }
+
+        num_textures++;
+        t.bind(tex_unit);
+
+        switch (t.target())
+        {
+            case GL_TEXTURE_2D:
+                sprintf(buf, "u_sampler_2D[%d]", tex_2d++);
+                break;
+
+#if !defined(KINSKI_GLES_2)
+
+            case GL_TEXTURE_3D:
+                sprintf(buf, "u_sampler_3D[%d]", tex_3d++);
+                break;
+
+            case GL_TEXTURE_2D_ARRAY:
+                sprintf(buf, "u_sampler_2D_array[%d]", tex_2d_array++);
+                break;
+
+            case GL_TEXTURE_CUBE_MAP:
+                sprintf(buf, "u_sampler_cube[%d]", tex_cube++);
+                break;
+#endif
+
+#if !defined(KINSKI_GLES)
+
+            case GL_TEXTURE_RECTANGLE:
+                sprintf(buf, "u_sampler_2Drect[%d]", tex_rect++);
+                break;
+#endif
+            default:
+                break;
+        }
+        the_mat->uniform(buf, tex_unit++);
+    }
+    shader->uniform("u_numTextures", num_textures);
+
+    KINSKI_CHECK_GL_ERRORS();
+
+    // update uniform buffers and uniform values for current shader
+    the_mat->update_uniforms(shader);
+
+    *last_mat = *the_mat;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    //////////////////////////////////////////////////////////////////////////
-    // global shader creation functions
+void reset_state()
+{
+    static auto mat = gl::Material::create();
+    gl::apply_material(mat, true);
+#if !defined(KINSKI_GLES_2)
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+#endif
+}
 
-    ShaderPtr create_shader_from_file(const std::string &vertPath,
-                                      const std::string &fragPath,
-                                      const std::string &geomPath)
+///////////////////////////////////////////////////////////////////////////////
+
+const std::set<std::string>& get_extensions()
+{
+    static std::set<std::string> s_extensions;
+
+    if(s_extensions.empty())
     {
-        ShaderPtr ret;
-        std::string vertSrc, fragSrc, geomSrc;
-        vertSrc = fs::read_file(vertPath);
-        fragSrc = fs::read_file(fragPath);
+#if !defined(KINSKI_GLES_2)
+        GLint numExtensions = 0;
+        glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions) ;
+        for (int i = 0; i < numExtensions; ++i) {
+            s_extensions.insert((char*)glGetStringi(GL_EXTENSIONS, i)) ;
+        }
+#endif
+    }
+    return s_extensions;
+}
 
-        if (!geomPath.empty()) geomSrc = fs::read_file(geomPath);
+///////////////////////////////////////////////////////////////////////////////
 
-        try { ret = gl::Shader::create(vertSrc, fragSrc, geomSrc); }
-        catch (Exception &e){ LOG_ERROR<<e.what(); }
-        return ret;
+bool is_extension_supported(const std::string &theName)
+{
+    return get_extensions().find(theName) != get_extensions().end();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// SaveFramebufferBinding
+SaveFramebufferBinding::SaveFramebufferBinding()
+{
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_old_value );
+}
+
+SaveFramebufferBinding::~SaveFramebufferBinding()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_old_value );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool is_point_inside_mesh(const glm::vec3& p, gl::MeshPtr m)
+{
+    // checks only make sense with triangle geometry
+    if(!m ||
+       m->geometry()->primitive_type() != GL_TRIANGLES ||
+       m->geometry()->faces().empty())
+    {
+        return false;
     }
 
-    ShaderPtr create_shader(ShaderType type, bool use_cached_shader)
+    auto aabb = m->aabb();
+
+    // checks if p is inside the aabb of our mesh)
+    if(!aabb.intersect(p)) return false;
+
+    const auto &vertices = m->geometry()->vertices();
+
+    // check the point's distance to all triangle planes
+    for (const auto &face : m->geometry()->faces())
     {
-        ShaderPtr ret;
-        auto it = use_cached_shader ? g_shaders.find(type) : g_shaders.end();
+        gl::Plane plane(vertices[face.a], vertices[face.b], vertices[face.c]);
+        plane.transform(m->transform());
+        if(plane.distance(p) < 0)
+            return false;
+    }
+    return true;
+}
 
+///////////////////////////////////////////////////////////////////////////////
 
-        if(it == g_shaders.end())
+void project_texcoords(gl::MeshPtr src, gl::MeshPtr dest)
+{
+    const auto &src_verts = src->geometry()->vertices();
+    const auto &src_texcoords = src->geometry()->tex_coords();
+    const auto &dest_verts = dest->geometry()->vertices();
+    const auto &dest_normals = dest->geometry()->normals();
+    auto &dest_texcoords = dest->geometry()->tex_coords();
+
+    // aquire enough space for texcoords
+    dest_texcoords.resize(dest_verts.size());
+
+    // helper structure and comparator for sorting
+    struct hit_struct
+    {
+        gl::Face3 face;
+        float u, v, distance;
+    };
+    auto hit_struct_comp = [](const hit_struct &h1, const hit_struct &h2) -> bool
+    {
+        return h1.distance < h2.distance;
+    };
+
+    float ray_offset = 2 * glm::length(src->aabb().transform(src->global_transform()).halfExtents());
+    float scale_val = 1.01f;
+    mat4 world_to_src = glm::inverse(glm::scale(src->global_transform(), vec3(scale_val)));
+
+    for(uint32_t i = 0; i < dest_verts.size(); i++)
+    {
+        gl::Ray ray(dest_verts[i] + dest_normals[i] * ray_offset, -dest_normals[i]);
+        ray = ray.transform(dest->transform());
+        gl::Ray ray_in_object_space = ray.transform(world_to_src);
+
+        std::vector<hit_struct> hit_structs;
+
+        for (const auto &face : src->geometry()->faces())
         {
-            std::string vert_src, frag_src, geom_src;
+            gl::Triangle t(src_verts[face.a], src_verts[face.b], src_verts[face.c]);
 
-            switch (type)
+            if(gl::ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
             {
-                case ShaderType::UNLIT:
-                    vert_src = unlit_vert;
-                    frag_src = unlit_frag;
-                    break;
+                hit_structs.push_back({face, ray_tri_hit.u, ray_tri_hit.v, ray_tri_hit.distance});
+            }
+        }
+        if(!hit_structs.empty())
+        {
+            std::sort(hit_structs.begin(), hit_structs.end(), hit_struct_comp);
+            const auto & hs = hit_structs.front();
+            float u, v, w;
+            u = hs.u, v = hs.v, w = 1 - u - v;
 
-                case ShaderType::UNLIT_MASK:
-                    vert_src = unlit_vert;
-                    frag_src = unlit_mask_frag;
-                    break;
+            dest_texcoords[i] = src_texcoords[hs.face.a] * v +
+            src_texcoords[hs.face.b] * u +
+            src_texcoords[hs.face.c] * w;
 
-                case ShaderType::SDF_FONT:
-                    vert_src = unlit_vert;
-                    frag_src = distance_field_frag;
-                    break;
+            dest_texcoords[i] = dest_texcoords[i].yx();
+            dest_texcoords[i].x = 1 - dest_texcoords[i].x;
+            dest_texcoords[i].y = 1 - dest_texcoords[i].y;
 
-                case ShaderType::UNLIT_SKIN:
-                    vert_src = unlit_skin_vert;
-                    frag_src = unlit_frag;
-                    break;
+        }else{ LOG_ERROR << "no triangle hit"; }
+    }
+}
 
-                case ShaderType::UNLIT_PANORAMA:
-                    vert_src = unlit_cube_vert;
-                    frag_src = unlit_panorama_frag;
-                    break;
-                    
-                case ShaderType::GOURAUD:
-                    vert_src = gouraud_vert;
-                    frag_src = gouraud_frag;
-                    break;
+///////////////////////////////////////////////////////////////////////////////
 
-                case ShaderType::GOURAUD_SKIN:
-                    vert_src = gouraud_skin_vert;
-                    frag_src = gouraud_frag;
-                    break;
+ShaderPtr create_shader_from_file(const std::string &vertPath,
+                                  const std::string &fragPath,
+                                  const std::string &geomPath)
+{
+    ShaderPtr ret;
+    std::string vertSrc, fragSrc, geomSrc;
+    vertSrc = fs::read_file(vertPath);
+    fragSrc = fs::read_file(fragPath);
 
-                case ShaderType::PHONG:
-                    vert_src = phong_vert;
-                    frag_src = phong_frag;
-                    break;
+    if (!geomPath.empty()) geomSrc = fs::read_file(geomPath);
 
-                case ShaderType::NOISE_3D:
-                    vert_src = unlit_vert;
-                    frag_src = noise_3D_frag;
-                    break;
+    try { ret = gl::Shader::create(vertSrc, fragSrc, geomSrc); }
+    catch (Exception &e){ LOG_ERROR<<e.what(); }
+    return ret;
+}
 
-                case ShaderType::POINTS_COLOR:
-                case ShaderType::POINTS_TEXTURE:
-                    vert_src = points_vert;
-                    frag_src = points_frag;
-                    break;
+ShaderPtr create_shader(ShaderType type, bool use_cached_shader)
+{
+    ShaderPtr ret;
+    auto it = use_cached_shader ? g_shaders.find(type) : g_shaders.end();
+
+
+    if(it == g_shaders.end())
+    {
+        std::string vert_src, frag_src, geom_src;
+
+        switch (type)
+        {
+            case ShaderType::UNLIT:
+                vert_src = unlit_vert;
+                frag_src = unlit_frag;
+                break;
+
+            case ShaderType::UNLIT_MASK:
+                vert_src = unlit_vert;
+                frag_src = unlit_mask_frag;
+                break;
+
+            case ShaderType::SDF_FONT:
+                vert_src = unlit_vert;
+                frag_src = distance_field_frag;
+                break;
+
+            case ShaderType::UNLIT_SKIN:
+                vert_src = unlit_skin_vert;
+                frag_src = unlit_frag;
+                break;
+
+            case ShaderType::UNLIT_PANORAMA:
+                vert_src = unlit_cube_vert;
+                frag_src = unlit_panorama_frag;
+                break;
+
+            case ShaderType::GOURAUD:
+                vert_src = gouraud_vert;
+                frag_src = gouraud_frag;
+                break;
+
+            case ShaderType::GOURAUD_SKIN:
+                vert_src = gouraud_skin_vert;
+                frag_src = gouraud_frag;
+                break;
+
+            case ShaderType::PHONG:
+                vert_src = phong_vert;
+                frag_src = phong_frag;
+                break;
+
+            case ShaderType::NOISE_3D:
+                vert_src = unlit_vert;
+                frag_src = noise_3D_frag;
+                break;
+
+            case ShaderType::POINTS_COLOR:
+            case ShaderType::POINTS_TEXTURE:
+                vert_src = points_vert;
+                frag_src = points_frag;
+                break;
 
 #if !defined(KINSKI_GLES)
-                
-                case ShaderType::UNLIT_CUBE:
-                    vert_src = unlit_cube_vert;
-                    frag_src = unlit_cube_frag;
-                    break;
 
-                case ShaderType::UNLIT_DISPLACE:
-                    vert_src = unlit_displace_vert;
-                    frag_src = unlit_frag;
-                    break;
+            case ShaderType::UNLIT_CUBE:
+                vert_src = unlit_cube_vert;
+                frag_src = unlit_cube_frag;
+                break;
 
-                case ShaderType::RESOLVE:
-                    vert_src = unlit_vert;
-                    frag_src = resolve_frag;
-                    break;
-                    
-                case ShaderType::BLUR:
-                    vert_src = unlit_vert;
-                    frag_src = blur_poisson_frag;
-                    break;
+            case ShaderType::UNLIT_DISPLACE:
+                vert_src = unlit_displace_vert;
+                frag_src = unlit_frag;
+                break;
 
-                case ShaderType::DEPTH_OF_FIELD:
-                    vert_src = unlit_vert;
-                    frag_src = depth_of_field_frag;
-                    break;
+            case ShaderType::RESOLVE:
+                vert_src = unlit_vert;
+                frag_src = resolve_frag;
+                break;
 
-                case ShaderType::PHONG_SHADOWS:
-                    vert_src = phong_shadows_vert;
-                    frag_src = phong_shadows_frag;
-                    break;
-                case ShaderType::PHONG_SKIN_SHADOWS:
-                    vert_src = phong_skin_shadows_vert;
-                    frag_src = phong_shadows_frag;
-                    break;
+            case ShaderType::BLUR:
+                vert_src = unlit_vert;
+                frag_src = blur_poisson_frag;
+                break;
 
-                case ShaderType::RECT_2D:
-                    vert_src = unlit_rect_vert;
-                    frag_src = unlit_rect_frag;
-                    break;
+            case ShaderType::DEPTH_OF_FIELD:
+                vert_src = unlit_vert;
+                frag_src = depth_of_field_frag;
+                break;
 
-                case ShaderType::PHONG_NORMALMAP:
-                    vert_src = phong_normalmap_vert;
-                    frag_src = phong_normalmap_frag;
-                    break;
+            case ShaderType::PHONG_SHADOWS:
+                vert_src = phong_shadows_vert;
+                frag_src = phong_shadows_frag;
+                break;
+            case ShaderType::PHONG_SKIN_SHADOWS:
+                vert_src = phong_skin_shadows_vert;
+                frag_src = phong_shadows_frag;
+                break;
 
-                case ShaderType::PHONG_SKIN:
-                    vert_src = phong_skin_vert;
-                    frag_src = phong_frag;
-                    break;
+            case ShaderType::RECT_2D:
+                vert_src = unlit_rect_vert;
+                frag_src = unlit_rect_frag;
+                break;
 
-                case ShaderType::LINES_2D:
-                    vert_src = unlit_vert;
-                    frag_src = unlit_frag;
-                    geom_src = lines_2D_geom;
-                    break;
+            case ShaderType::PHONG_NORMALMAP:
+                vert_src = phong_normalmap_vert;
+                frag_src = phong_normalmap_frag;
+                break;
 
-                case ShaderType::POINTS_SPHERE:
-                    vert_src = points_vert;
-                    frag_src = points_sphere_frag;
-                    break;
+            case ShaderType::PHONG_SKIN:
+                vert_src = phong_skin_vert;
+                frag_src = phong_frag;
+                break;
+
+            case ShaderType::LINES_2D:
+                vert_src = unlit_vert;
+                frag_src = unlit_frag;
+                geom_src = lines_2D_geom;
+                break;
+
+            case ShaderType::POINTS_SPHERE:
+                vert_src = points_vert;
+                frag_src = points_sphere_frag;
+                break;
 #endif
-                default:
-                    break;
-            }
-
-            if(vert_src.empty() || frag_src.empty())
-            {
-                LOG_WARNING << get_shader_name(type) << " not available, falling back to: " <<
-                    get_shader_name(ShaderType::UNLIT);
-                return create_shader(gl::ShaderType::UNLIT, false);
-            }
-            ret = gl::Shader::create(vert_src, frag_src, geom_src);
-            if(use_cached_shader){ g_shaders[type] = ret; }
-            KINSKI_CHECK_GL_ERRORS();
+            default:
+                break;
         }
-        else{ ret = it->second; }
-        return ret;
+
+        if(vert_src.empty() || frag_src.empty())
+        {
+            LOG_WARNING << get_shader_name(type) << " not available, falling back to: " <<
+                get_shader_name(ShaderType::UNLIT);
+            return create_shader(gl::ShaderType::UNLIT, false);
+        }
+        ret = gl::Shader::create(vert_src, frag_src, geom_src);
+        if(use_cached_shader){ g_shaders[type] = ret; }
+        KINSKI_CHECK_GL_ERRORS();
     }
-    
-    const std::string& get_shader_name(ShaderType the_type)
-    {
-        auto it = g_shader_names.find(the_type);
-        if(it != g_shader_names.end()){ return it->second; }
-        return g_shader_names[ShaderType::NONE];
-    }
+    else{ ret = it->second; }
+    return ret;
+}
+
+const std::string& get_shader_name(ShaderType the_type)
+{
+    auto it = g_shader_names.find(the_type);
+    if(it != g_shader_names.end()){ return it->second; }
+    return g_shader_names[ShaderType::NONE];
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 

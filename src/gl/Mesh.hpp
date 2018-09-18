@@ -82,6 +82,7 @@ namespace kinski { namespace gl {
             size_t offset = 0;
             size_t stride = 0;
             GLenum type = GL_FLOAT;
+            uint32_t instance_rate = 0;
             bool normalize = false;
         };
         

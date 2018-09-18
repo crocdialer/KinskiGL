@@ -198,6 +198,9 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
                                        vertex_attrib.buffer.stride(),
                                        BUFFER_OFFSET(vertex_attrib.offset));
             }
+
+            // set vertex attrib divisor (per vertex vs. per instance)
+            glVertexAttribDivisor(location, vertex_attrib.instance_rate);
 #endif
             KINSKI_CHECK_GL_ERRORS();
         }

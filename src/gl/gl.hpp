@@ -211,7 +211,9 @@ KINSKI_API void clear_color(const Color &theColor);
 KINSKI_API void clear(const gl::Color &the_color);
 
 
-KINSKI_API void draw_mesh(const MeshPtr &theMesh, const ShaderPtr &overide_shader = ShaderPtr());
+KINSKI_API void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader = ShaderPtr());
+KINSKI_API void draw_mesh_instanced(const MeshPtr &the_mesh, const std::vector<glm::mat4> &the_transforms,
+                                    const ShaderPtr &overide_shader = ShaderPtr());
 KINSKI_API void draw_light(const LightPtr &theLight);
 KINSKI_API void draw_line(const vec2 &a, const vec2 &b,
                           const Color &theColor = COLOR_WHITE,
@@ -250,7 +252,6 @@ KINSKI_API void draw_text_2D(const std::string &theText, const gl::Font &theFont
 KINSKI_API void draw_grid(float width, float height, int numW = 20, int numH = 20);
 KINSKI_API void draw_transform(const mat4& the_transform, float the_scale = 1.f);
 KINSKI_API void draw_boundingbox(const gl::AABB& the_aabb);
-KINSKI_API void draw_normals(const MeshWeakPtr &theMesh);
 KINSKI_API void draw_circle(const vec2 &center, float radius, const gl::Color &the_color,
                             bool solid = true, uint32_t the_num_segments = 0);
 KINSKI_API void draw_circle(const vec2 &center, float radius, const MaterialPtr &theMaterial,
