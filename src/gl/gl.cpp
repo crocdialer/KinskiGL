@@ -940,6 +940,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 #else
         mat->uniform("u_modelViewMatrix", m.model_view);
         mat->uniform("u_modelViewProjectionMatrix", m.model_view_projection);
+        mat->uniform("u_textureMatrix", m.texture_matrix);
         if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", mat3(m.normal_matrix)); }
 #endif
         mat->uniform("u_window_dimension", gl::window_dimension());
