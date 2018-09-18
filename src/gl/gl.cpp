@@ -938,9 +938,9 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         shader->uniform_block_binding("MatrixBlock", gl::Context::MATRIX_BLOCK);
         shader->uniform_block_binding("LightBlock", gl::Context::LIGHT_BLOCK);
 #else
-        mat->uniform("u_modelViewMatrix", modelView);
-        mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
-        if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", normal_matrix); }
+        mat->uniform("u_modelViewMatrix", m.model_view);
+        mat->uniform("u_modelViewProjectionMatrix", m.model_view_projection);
+        if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", mat3(m.normal_matrix)); }
 #endif
         mat->uniform("u_window_dimension", gl::window_dimension());
         if(the_mesh->geometry()->has_bones()){ mat->uniform("u_bones", the_mesh->bone_matrices()); }
