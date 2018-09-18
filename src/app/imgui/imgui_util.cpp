@@ -119,8 +119,7 @@ void draw_property_ui(const Property_<gl::vec2>::Ptr &the_property)
 {
     std::string prop_name = the_property->name();
 
-    if(ImGui::InputFloat2(prop_name.c_str(), &the_property->value()[0], 2,
-                          ImGuiInputTextFlags_EnterReturnsTrue))
+    if(ImGui::InputFloat2(prop_name.c_str(), &the_property->value()[0], 2, ImGuiInputTextFlags_EnterReturnsTrue))
     {
         the_property->notify_observers();
     }
@@ -131,8 +130,29 @@ void draw_property_ui(const Property_<gl::vec3>::Ptr &the_property)
 {
     std::string prop_name = the_property->name();
 
-    if(ImGui::InputFloat3(prop_name.c_str(), &the_property->value()[0], 2,
-                          ImGuiInputTextFlags_EnterReturnsTrue))
+    if(ImGui::InputFloat3(prop_name.c_str(), &the_property->value()[0], 2, ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        the_property->notify_observers();
+    }
+}
+
+// gl::ivec2
+void draw_property_ui(const Property_<gl::ivec2>::Ptr &the_property)
+{
+    std::string prop_name = the_property->name();
+
+    if(ImGui::InputInt2(prop_name.c_str(), &the_property->value()[0], ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        the_property->notify_observers();
+    }
+}
+
+// gl::ivec3
+void draw_property_ui(const Property_<gl::ivec3>::Ptr &the_property)
+{
+    std::string prop_name = the_property->name();
+
+    if(ImGui::InputInt3(prop_name.c_str(), &the_property->value()[0], ImGuiInputTextFlags_EnterReturnsTrue))
     {
         the_property->notify_observers();
     }
@@ -235,6 +255,16 @@ void draw_component_ui(const ComponentConstPtr &the_component)
         else if(p->is_of_type<gl::vec3>())
         {
             auto cast_prop = std::dynamic_pointer_cast<Property_<gl::vec3>>(p);
+            draw_property_ui(cast_prop);
+        }
+        else if(p->is_of_type<gl::ivec2>())
+        {
+            auto cast_prop = std::dynamic_pointer_cast<Property_<gl::ivec2>>(p);
+            draw_property_ui(cast_prop);
+        }
+        else if(p->is_of_type<gl::ivec3>())
+        {
+            auto cast_prop = std::dynamic_pointer_cast<Property_<gl::ivec3>>(p);
             draw_property_ui(cast_prop);
         }
         else if(p->is_of_type<gl::Color>())
