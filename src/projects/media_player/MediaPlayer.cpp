@@ -146,7 +146,7 @@ void MediaPlayer::draw()
         {
 
             gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
-                             *m_brightness, *m_gamma);
+                             gl::vec3(*m_brightness), *m_gamma);
 
         }
         else
@@ -169,7 +169,7 @@ void MediaPlayer::draw()
                     size = gl::vec2(gl::window_dimension().y * aspect, gl::window_dimension().y);
                     pos = gl::vec2((gl::window_dimension().x - size.x) / 2.f, 0);
                 }
-                gl::draw_texture(textures()[TEXTURE_INPUT], size, pos, *m_brightness, *m_gamma);
+                gl::draw_texture(textures()[TEXTURE_INPUT], size, pos, gl::vec3(*m_brightness), *m_gamma);
             }
         }
     }
