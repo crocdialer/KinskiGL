@@ -680,7 +680,7 @@ namespace kinski { namespace gl {
 ///////////////////////////////////////////////////////////////////////////////
 
     void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft,
-                      const float the_brightness, const float the_gamma)
+                      const gl::vec3 &the_channel_brightness, const float the_gamma)
     {
         static gl::MaterialPtr material;
 
@@ -721,7 +721,7 @@ namespace kinski { namespace gl {
         material->uniform("u_gamma", the_gamma);
 #endif
         // add the texture to the material
-        material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
+        material->set_diffuse(gl::Color(the_channel_brightness, 1.f));
         material->add_texture(theTexture);
 
         vec2 sz = theSize;
@@ -736,7 +736,7 @@ namespace kinski { namespace gl {
                                 const gl::Texture &the_mask,
                                 const vec2 &theSize,
                                 const vec2 &theTopLeft,
-                                const float the_brightness,
+                                const gl::vec3 &the_channel_brightness,
                                 const float the_gamma)
     {
         static gl::MaterialPtr material;
@@ -757,7 +757,7 @@ namespace kinski { namespace gl {
         // add the texture to the material
         material->add_texture(the_texture);
         material->add_texture(the_mask, Texture::Usage::MASK);
-        material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
+        material->set_diffuse(gl::Color(the_channel_brightness, 1.f));
         material->uniform("u_gamma", the_gamma);
 
         vec2 sz = theSize;
