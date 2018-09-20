@@ -303,6 +303,12 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     {
         auto col = aicolor_convert(c);
         col.a = 1.f;
+
+        // transparent material
+        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &c))
+        {
+            col.a = c.a;
+        }
         theMaterial->set_diffuse(col);
     }
     
@@ -318,17 +324,13 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &c))
     {
-        theMaterial->set_emission(aicolor_convert(c));
-        theMaterial->set_blending(false);
-    }
-    
-    // transparent material
-    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &c))
-    {
-        //TODO: needed ?
-        LOG_DEBUG << "encountered \"AI_MATKEY_COLOR_TRANSPARENT\"";
-        theMaterial->set_diffuse(aicolor_convert(c));
-        theMaterial->set_blending(true);
+        auto col = aicolor_convert(c);
+
+        if(col.r > 0.f || col.g > 0.f || col.b > 0.f)
+        {
+            theMaterial->set_emission(col);
+            theMaterial->set_blending(false);
+        }
     }
     
     ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);
