@@ -305,10 +305,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         col.a = 1.f;
 
         // transparent material
-        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &c))
-        {
-            col.a = c.a;
-        }
+        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &c)){ col.a = c.a; }
         theMaterial->set_diffuse(col);
     }
     

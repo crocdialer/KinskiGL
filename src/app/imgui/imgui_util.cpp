@@ -288,16 +288,19 @@ void draw_component_ui(const ComponentConstPtr &the_component)
     ImGui::End();
 }
 
-void draw_textures_ui(const std::vector<gl::Texture> &the_textures)
+void draw_textures_ui(const std::vector<gl::Texture*> &the_textures)
 {
-    for(auto &t : the_textures)
+    for(gl::Texture* t : the_textures)
     {
-        if(t)
+        if(t && *t)
         {
+            bool is_flipped = t->flipped();
+            if(ImGui::Checkbox("flip", &is_flipped)){ t->set_flipped(is_flipped); }
+
             constexpr float w = 150;
-            ImVec2 sz(w, w / t.aspect_ratio());
+            ImVec2 sz(w, w / t->aspect_ratio());
             //TODO: wonky shit
-            ImGui::Image((ImTextureID)(&t), sz);
+            ImGui::Image((ImTextureID)(t), sz);
         }
     }
 }
@@ -350,8 +353,8 @@ void draw_material_ui(const gl::MaterialPtr &the_mat)
     // textures
     if(ImGui::TreeNode(("textures (" + to_string(the_mat->textures().size()) + ")").c_str()))
     {
-        std::vector<gl::Texture> textures;
-        for(const auto &p : the_mat->textures()){ textures.push_back(p.second); }
+        std::vector<gl::Texture*> textures;
+        for(auto &p : the_mat->textures()){ textures.push_back(&p.second); }
         draw_textures_ui(textures);
         ImGui::TreePop();
     }
