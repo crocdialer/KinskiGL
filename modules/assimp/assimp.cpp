@@ -579,20 +579,6 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         geom->faces().size()<<" faces - " << mesh->num_bones() << " bones";
         LOG_DEBUG<<"bounds: " << to_string(mesh->aabb().min) << " - " << to_string(mesh->aabb().max);
 
-        // load animations
-        if(theScene && mesh)
-        {
-            for(uint32_t i = 0; i < theScene->mNumAnimations; i++)
-            {
-                aiAnimation *assimpAnimation = theScene->mAnimations[i];
-                gl::MeshAnimation anim;
-                anim.duration = assimpAnimation->mDuration;
-                anim.ticks_per_sec = assimpAnimation->mTicksPerSecond;
-                create_bone_animation(theScene->mRootNode, assimpAnimation, mesh->root_bone(), anim);
-                mesh->add_animation(anim);
-            }
-        }
-
         importer.FreeScene();
         return mesh;
     }

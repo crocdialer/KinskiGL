@@ -97,8 +97,8 @@ namespace kinski { namespace gl {
         const GeometryConstPtr geometry() const { return m_geometry; };
         GeometryPtr& geometry() { return m_geometry; };
         
-        const MaterialConstPtr material() const { return m_materials.front(); };
-        MaterialPtr& material() { return m_materials.front(); };
+        const MaterialConstPtr material() const;
+        MaterialPtr& material();
         
         //! create the vertex attrib structures corresponding to the attached Geometry
         // and store them in <m_vertex_attribs>
