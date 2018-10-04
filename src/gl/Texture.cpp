@@ -261,7 +261,8 @@ void Texture::set_roi(const Area_<uint32_t> &the_roi)
 mat4 Texture::texture_matrix() const
 {
     mat4 ret = m_textureMatrix;
-    
+    ret[3] += vec4(m_uvw_offset, 0.f);
+
     if(m_impl && m_impl->m_flipped)
     {
         static const mat4 flipY = mat4(vec4(1, 0, 0, 1),
@@ -311,14 +312,24 @@ void Texture::set_flipped(bool the_flipped)
     if(m_impl){ m_impl->m_flipped = the_flipped; }
 }
 
+void Texture::set_uvw_offset(const glm::vec3 &the_uvw_offset)
+{
+    m_uvw_offset = the_uvw_offset;
+}
+
+const glm::vec3& Texture::uvw_offset() const
+{
+    return m_uvw_offset;
+}
+
 //! retrieve the current scale applied to texture-coordinates
-const gl::vec2& Texture::texcoord_scale() const
+const gl::vec2& Texture::uv_scale() const
 {
     return m_texcoord_scale;
 }
 
 //! set the current scale applied to texture-coordinates
-void Texture::set_texcoord_scale(const gl::vec2 &the_scale)
+void Texture::set_uv_scale(const gl::vec2 &the_scale)
 {
     m_texcoord_scale = the_scale;
 }

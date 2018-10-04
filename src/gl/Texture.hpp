@@ -134,12 +134,16 @@ namespace kinski{ namespace gl{
         
         //!	Marks the texture as being flipped vertically or not
         void set_flipped(bool the_flip = true);
-        
+
+        void set_uvw_offset(const glm::vec3 &the_uvw_offset);
+
+        const glm::vec3& uvw_offset() const;
+
         //! retrieve the current scale applied to texture-coordinates
-        const gl::vec2& texcoord_scale() const;
+        const gl::vec2& uv_scale() const;
         
         //! set the current scale applied to texture-coordinates
-        void set_texcoord_scale(const gl::vec2 &the_scale);
+        void set_uv_scale(const gl::vec2 &the_scale);
         
         //!	set a region of interest (subimage), this function will alter the texture matrix appropriately
         void set_roi(int the_x, int the_y, uint32_t the_width, uint32_t the_height);
@@ -175,6 +179,7 @@ namespace kinski{ namespace gl{
         
         mat4 m_textureMatrix;
         gl::vec2 m_texcoord_scale = gl::vec2(1.f);
+        gl::vec3 m_uvw_offset = gl::vec3(0.f);
         std::shared_ptr<struct TextureImpl> m_impl;
         
     public:
