@@ -230,11 +230,6 @@ void Texture::set_do_not_dispose(bool the_do_not_dispose)
 { 
     m_impl->m_do_not_dispose = the_do_not_dispose; 
 }
-
-void Texture::set_texture_matrix(const mat4 &theMatrix)
-{
-    m_textureMatrix = theMatrix;
-}
     
 void Texture::set_swizzle(GLint red, GLint green, GLint blue, GLint alpha)
 {

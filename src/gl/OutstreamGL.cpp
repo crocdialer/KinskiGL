@@ -124,6 +124,7 @@ namespace kinski{ namespace gl{
                 if(!m_fbo || m_fbo->size() != fbo_sz){ m_fbo = gl::Fbo::create(fbo_sz); }
                 gl::render_to_texture(m_fbo, [this]()
                 {
+                    gl::reset_state();
                     gl::clear(gl::vec4(0));
                     m_gui_scene->render(gl::OrthoCamera::create_for_window());
                 });

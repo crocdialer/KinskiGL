@@ -82,8 +82,6 @@ namespace kinski{ namespace gl{
         void set_mipmapping(bool b = true);
         void set_anisotropic_filter(float f);
         
-        void set_texture_matrix(const mat4 &the_matrix);
-        
         void set_swizzle(GLint red, GLint green, GLint blue, GLint alpha);
         
         mat4 texture_matrix() const;
