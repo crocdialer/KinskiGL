@@ -6,6 +6,8 @@
 
 namespace kinski{ namespace media{
 
+std::weak_ptr<GMainLoop> GstUtil::s_g_main_loop;
+std::weak_ptr<std::thread> GstUtil::s_thread;
 std::weak_ptr<GstGLDisplay> GstUtil::s_gst_gl_display;
 const int GstUtil::s_enable_async_state_change = true;
 
@@ -29,8 +31,34 @@ m_target_state(GST_STATE_NULL)
 
     if(success)
     {
-        m_g_main_loop = g_main_loop_new(nullptr, false);
-        m_thread = std::thread(&g_main_loop_run, m_g_main_loop);
+        m_g_main_loop = s_g_main_loop.lock();
+        if(!m_g_main_loop)
+        {
+            m_g_main_loop = std::shared_ptr<GMainLoop>(g_main_loop_new(nullptr, false), [](GMainLoop *loop)
+            {
+                if(g_main_loop_is_running(loop))
+                {
+                    g_main_loop_quit(loop);
+                }
+                g_main_loop_unref(loop);
+            });
+            s_g_main_loop = m_g_main_loop;
+        }
+        m_thread = s_thread.lock();
+        if(!m_thread)
+        {
+            m_thread = std::shared_ptr<std::thread>(new std::thread(&g_main_loop_run, m_g_main_loop.get()),
+                                                    [](std::thread *t)
+            {
+                if(t->joinable())
+                {
+                    try{ t->join(); }
+                    catch(std::exception &e){ LOG_ERROR << e.what(); }
+                    delete t;
+                }
+            });
+            s_thread = m_thread;
+        }
         m_gst_gl_display = s_gst_gl_display.lock();
     }
 }
@@ -43,18 +71,6 @@ GstUtil::~GstUtil()
 
         // Reset the bus since the associated pipeline got resetted.
         reset_bus();
-    }
-
-    if(g_main_loop_is_running(m_g_main_loop))
-    {
-        g_main_loop_quit(m_g_main_loop);
-    }
-    g_main_loop_unref(m_g_main_loop);
-
-    if(m_thread.joinable())
-    {
-        try{ m_thread.join(); }
-        catch(std::exception &e){ LOG_ERROR << e.what(); }
     }
 }
 

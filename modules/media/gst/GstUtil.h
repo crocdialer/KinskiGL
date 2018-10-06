@@ -83,6 +83,8 @@ public:
     void set_on_aysnc_done_cb(const std::function<void()> &the_cb);
 
 private:
+    static std::weak_ptr<GMainLoop> s_g_main_loop;
+    static std::weak_ptr<std::thread> s_thread;
     static std::weak_ptr<GstGLDisplay> s_gst_gl_display;
     static const int s_enable_async_state_change;
 
@@ -118,7 +120,7 @@ private:
     std::shared_ptr<GstBuffer> m_current_buffer, m_new_buffer;
 
     // needed for message activation since we are not using signals.
-    GMainLoop* m_g_main_loop = nullptr;
+    std::shared_ptr<GMainLoop> m_g_main_loop;
 
     // delivers the messages
     GstBus* m_gst_bus = nullptr;
@@ -129,7 +131,7 @@ private:
     std::shared_ptr<GstGLDisplay> m_gst_gl_display;
 
     // runs GMainLoop.
-    std::thread m_thread;
+    std::shared_ptr<std::thread> m_thread;
 
     // network syncing
     std::shared_ptr<GstClock> m_gst_clock;
