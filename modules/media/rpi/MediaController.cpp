@@ -706,6 +706,13 @@ namespace kinski{ namespace media
 
 /////////////////////////////////////////////////////////////////
 
+    void MediaController::step_frame(int the_num_frames)
+    {
+        LOG_WARNING << "MediaController::step_frame not implemented";
+    }
+
+/////////////////////////////////////////////////////////////////
+
     void MediaController::set_loop(bool b)
     {
         if(m_impl){ m_impl->m_loop = b; }

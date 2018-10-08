@@ -22,7 +22,7 @@ m_buffering(false),
 m_has_new_frame(false),
 m_video_has_changed(true),
 m_fps(0.f),
-m_done(false),
+m_end_of_stream(true),
 m_pause(false),
 m_current_state(GST_STATE_NULL),
 m_target_state(GST_STATE_NULL)
@@ -249,6 +249,15 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
     add_bus_watch(m_pipeline);
 }
 
+void GstUtil::set_eos()
+{
+    {
+        std::lock_guard<std::mutex> guard(m_mutex);
+        m_end_of_stream = true;
+    }
+    m_condition_new_frame.notify_one();
+}
+
 void GstUtil::process_sample(GstSample* sample)
 {
     // pull the memory buffer from sample.
@@ -257,6 +266,7 @@ void GstUtil::process_sample(GstSample* sample)
         m_new_buffer = std::shared_ptr<GstBuffer>(gst_buffer_ref(gst_sample_get_buffer(sample)), &gst_buffer_unref);
         m_has_new_frame = true;
     }
+    m_condition_new_frame.notify_one();
 
     if(m_video_has_changed)
     {
@@ -308,7 +318,7 @@ void GstUtil::update_state(GstState the_state)
             break;
         }
         case GST_STATE_PLAYING:
-            m_done = false;
+            m_end_of_stream = false;
             m_pause = false;
             break;
 
@@ -436,7 +446,7 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
 {
     if(!userData){ return true; }
 
-    GstUtil* self = static_cast<GstUtil*>(userData);
+    auto *self = static_cast<GstUtil*>(userData);
 
     switch(GST_MESSAGE_TYPE(message))
     {
@@ -558,6 +568,7 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
 
         case GST_MESSAGE_EOS:
         {
+            self->set_eos();
             if(self->m_on_end_cb){ self->m_on_end_cb(); }
             break;
         }
@@ -568,33 +579,52 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
     return true;
 }
 
-GstBuffer* GstUtil::new_buffer()
+std::shared_ptr<GstBuffer> GstUtil::new_buffer()
 {
     if(m_has_new_frame)
     {
-        std::lock_guard<std::mutex> guard(m_mutex);
+        std::unique_lock<std::mutex> guard(m_mutex);
         m_has_new_frame = false;
         std::swap(m_new_buffer, m_current_buffer);
-        return m_current_buffer.get();
+        return m_current_buffer;
+    }
+    return nullptr;
+}
+
+std::shared_ptr<GstBuffer> GstUtil::wait_for_buffer()
+{
+    // aquire mutex
+    std::unique_lock<std::mutex> guard(m_mutex);
+
+    // wait on condition
+    m_condition_new_frame.wait(guard, [this](){ return m_has_new_frame || is_eos(); });
+
+    if(m_has_new_frame)
+    {
+        m_has_new_frame = false;
+        std::swap(m_new_buffer, m_current_buffer);
+        return m_current_buffer;
     }
     return nullptr;
 }
 
 void GstUtil::on_gst_eos(GstAppSink *sink, gpointer userData)
 {
-
+    LOG_DEBUG << "on_gst_eos";
+    auto *self = static_cast<GstUtil*>(userData);
+    self->set_eos();
 }
 
 GstFlowReturn GstUtil::on_gst_sample(GstAppSink *sink, gpointer userData)
 {
-    GstUtil *self = static_cast<GstUtil*>(userData);
+    auto *self = static_cast<GstUtil*>(userData);
     self->process_sample(gst_app_sink_pull_sample(sink));
     return GST_FLOW_OK;
 }
 
 GstFlowReturn GstUtil::on_gst_preroll(GstAppSink *sink, gpointer userData)
 {
-    GstUtil *self = static_cast<GstUtil*>(userData);
+    auto *self = static_cast<GstUtil*>(userData);
     self->process_sample(gst_app_sink_pull_preroll(sink));
     return GST_FLOW_OK;
 }
@@ -639,9 +669,9 @@ const float GstUtil::fps() const
     return m_fps;
 }
 
-const bool GstUtil::is_done() const
+const bool GstUtil::is_eos() const
 {
-    return m_done;
+    return m_end_of_stream;
 }
 
 const bool GstUtil::is_paused() const
@@ -657,6 +687,11 @@ void GstUtil::set_on_load_cb(const std::function<void()> &the_cb)
 void GstUtil::set_on_end_cb(const std::function<void()> &the_cb)
 {
     m_on_end_cb = the_cb;
+}
+
+void GstUtil::set_on_new_frame_cb(const std::function<void(std::shared_ptr<GstBuffer>)> &the_cb)
+{
+    m_on_new_frame_cb = the_cb;
 }
 
 void GstUtil::set_on_aysnc_done_cb(const std::function<void()> &the_cb)

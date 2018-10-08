@@ -102,7 +102,7 @@ void CameraController::stop_capture()
 
 bool CameraController::copy_frame(std::vector<uint8_t>& out_data, int *width, int *height)
 {
-    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+    auto buf = m_impl->m_gst_util.new_buffer();
 
     if(buf)
     {
@@ -110,11 +110,11 @@ bool CameraController::copy_frame(std::vector<uint8_t>& out_data, int *width, in
         *height = m_impl->m_gst_util.video_info().height;
 
         // map the buffer for reading
-        gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+        gst_buffer_map(buf.get(), &m_impl->m_memory_map_info, GST_MAP_READ);
         uint8_t *buf_data = m_impl->m_memory_map_info.data;
         size_t num_bytes = m_impl->m_memory_map_info.size;
         out_data.assign(buf_data, buf_data + num_bytes);
-        gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+        gst_buffer_unmap(buf.get(), &m_impl->m_memory_map_info);
         return true;
     }
     return false;
@@ -124,7 +124,7 @@ bool CameraController::copy_frame(std::vector<uint8_t>& out_data, int *width, in
 
 bool CameraController::copy_frame_to_image(ImagePtr& the_image)
 {
-    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+    auto buf = m_impl->m_gst_util.new_buffer();
 
     if(buf)
     {
@@ -141,11 +141,11 @@ bool CameraController::copy_frame_to_image(ImagePtr& the_image)
         }
 
         // map the buffer for reading
-        gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+        gst_buffer_map(buf.get(), &m_impl->m_memory_map_info, GST_MAP_READ);
         uint8_t *buf_data = m_impl->m_memory_map_info.data;
         size_t num_bytes = m_impl->m_memory_map_info.size;
         memcpy(the_image->data(), buf_data, num_bytes);
-        gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+        gst_buffer_unmap(buf.get(), &m_impl->m_memory_map_info);
         return true;
     }
     return false;
@@ -159,7 +159,7 @@ bool CameraController::copy_frame_to_texture(gl::Texture &tex)
 
     if(m_impl)
     {
-        GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+        auto buf = m_impl->m_gst_util.new_buffer();
 
         if(buf)
         {
@@ -167,7 +167,7 @@ bool CameraController::copy_frame_to_texture(gl::Texture &tex)
             int height = m_impl->m_gst_util.video_info().height;
 
             // map the buffer for reading
-            gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+            gst_buffer_map(buf.get(), &m_impl->m_memory_map_info, GST_MAP_READ);
             uint8_t *buf_data = m_impl->m_memory_map_info.data;
             size_t num_bytes = m_impl->m_memory_map_info.size;
 
@@ -179,7 +179,7 @@ bool CameraController::copy_frame_to_texture(gl::Texture &tex)
             uint8_t *ptr = m_impl->m_buffer_front.map();
             memcpy(ptr, buf_data, num_bytes);
             m_impl->m_buffer_front.unmap();
-            gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+            gst_buffer_unmap(buf.get(), &m_impl->m_memory_map_info);
 
             // bind pbo and schedule texture upload
             m_impl->m_buffer_front.bind();

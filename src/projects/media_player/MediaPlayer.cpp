@@ -247,6 +247,27 @@ void MediaPlayer::key_press(const KeyEvent &e)
             case Key::_PAGE_DOWN:
                 playlist_prev();
                 break;
+
+            case Key::_B:
+            {
+                if(m_media->is_playing()){ m_media->pause(); }
+                m_media->step_frame(-1);
+                break;
+            }
+
+            case Key::_N:
+            {
+                if(m_media->is_playing()){ m_media->pause(); }
+                m_media->step_frame(1);
+                break;
+            }
+
+            case Key::_X:
+            {
+                gl::Texture t;
+                m_media->copy_frames_offline(t);
+                break;
+            }
             default:
                 break;
         }

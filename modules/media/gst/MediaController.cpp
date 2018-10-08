@@ -22,6 +22,9 @@ struct MediaControllerImpl
     // memory map that holds the incoming frame.
     GstMapInfo m_memory_map_info;
 
+    // handle for the pipeline's videosink element
+    GstElement *m_video_sink;
+
     std::weak_ptr<MediaController> m_media_controller;
     MediaController::callback_t m_on_load_cb, m_on_end_cb;
 
@@ -37,7 +40,8 @@ struct MediaControllerImpl
     m_seek_requested_nanos(0),
     m_stream(false),
     m_loop(false),
-    m_gst_util(true)
+    m_gst_util(true),
+    m_video_sink(nullptr)
     {
         init_callbacks();
     }
@@ -101,12 +105,12 @@ struct MediaControllerImpl
 
         GstEvent* seek_event;
         GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
-        if(fabsf(m_rate) > 2){ seek_flags = GstSeekFlags(seek_flags | GST_SEEK_FLAG_TRICKMODE); }
+//        if(fabsf(m_rate) > 2){ seek_flags = GstSeekFlags(seek_flags | GST_SEEK_FLAG_TRICKMODE); }
 
         if(m_rate > 0.0)
         {
             seek_event = gst_event_new_seek(m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, the_position_nanos,
-                                            GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
+                                            GST_SEEK_TYPE_NONE, 0);
         }
         else
         {
@@ -114,6 +118,17 @@ struct MediaControllerImpl
                                             GST_SEEK_TYPE_SET, the_position_nanos);
         }
         if(!gst_element_send_event(m_gst_util.pipeline(), seek_event)){ LOG_WARNING << "seek failed"; }
+    }
+
+    void send_step_event(uint32_t the_num_steps = 1)
+    {
+        if(!m_video_sink)
+        {
+            /* If we have not done so, obtain the sink through which we will send the step events */
+            g_object_get(m_gst_util.pipeline(), "video-sink", &m_video_sink, NULL);
+        }
+        gst_element_send_event(m_video_sink,
+                               gst_event_new_step(GST_FORMAT_BUFFERS, the_num_steps, std::fabs(m_rate), true, false));
     }
 
     gint64 current_time_nanos()
@@ -299,7 +314,7 @@ void MediaController::set_volume(float newVolume)
 
 bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
 {
-    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+    auto buf = m_impl->m_gst_util.new_buffer();
 
     if(buf)
     {
@@ -307,11 +322,11 @@ bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *he
         *height = m_impl->m_gst_util.video_info().height;
 
         // map the buffer for reading
-        gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+        gst_buffer_map(buf.get(), &m_impl->m_memory_map_info, GST_MAP_READ);
         uint8_t *buf_data = m_impl->m_memory_map_info.data;
         size_t num_bytes = m_impl->m_memory_map_info.size;
         data.assign(buf_data, buf_data + num_bytes);
-        gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+        gst_buffer_unmap(buf.get(), &m_impl->m_memory_map_info);
         return true;
     }
     return false;
@@ -321,7 +336,7 @@ bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *he
 
 bool MediaController::copy_frame_to_image(ImagePtr& the_image)
 {
-    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+    auto buf = m_impl->m_gst_util.new_buffer();
 
     if(buf)
     {
@@ -337,11 +352,11 @@ bool MediaController::copy_frame_to_image(ImagePtr& the_image)
         }
 
         // map the buffer for reading
-        gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+        gst_buffer_map(buf.get(), &m_impl->m_memory_map_info, GST_MAP_READ);
         uint8_t *buf_data = m_impl->m_memory_map_info.data;
         size_t num_bytes = m_impl->m_memory_map_info.size;
         memcpy(the_image->data(), buf_data, num_bytes);
-        gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+        gst_buffer_unmap(buf.get(), &m_impl->m_memory_map_info);
         return true;
     }
     return false;
@@ -351,11 +366,11 @@ bool MediaController::copy_frame_to_image(ImagePtr& the_image)
 
 bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 {
-    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+    auto buf = m_impl->m_gst_util.new_buffer();
 
     if(buf)
     {
-        GstMemory *mem = gst_buffer_peek_memory(buf, 0);
+        GstMemory *mem = gst_buffer_peek_memory(buf.get(), 0);
 
         if(mem && gst_is_gl_memory(mem))
         {
@@ -379,7 +394,25 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 
 bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
 {
-    return false;
+    //rewind
+    seek_to_time(0.0);
+
+    // pause
+    pause();
+
+    int32_t num_frames = fps() * duration();
+
+    // keep calling wait_for_new_buffer()
+    while(auto buf = m_impl->m_gst_util.wait_for_buffer())
+    {
+        // build up TextureArray slices with buffer_data
+        LOG_DEBUG << "frames remaining: " << num_frames--;
+
+        // step to next frame
+        m_impl->send_step_event();
+    }
+
+    return true;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -421,9 +454,17 @@ void MediaController::seek_to_time(double value)
     if(m_impl)
     {
         m_impl->m_seeking = true;
-//        m_impl->m_done = false;
         m_impl->send_seek_event(value * GST_SECOND);
     }
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaController::step_frame(int the_num_frames)
+{
+    // adjust rate to allow reverse stepping
+    if(kinski::sgn<float>(m_impl->m_rate) != kinski::sgn(the_num_frames)){ set_rate(-rate()); }
+    m_impl->send_step_event(std::abs(the_num_frames));
 }
 
 /////////////////////////////////////////////////////////////////

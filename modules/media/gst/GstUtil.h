@@ -63,7 +63,10 @@ public:
 
     GstClock* clock(){ return m_gst_clock.get(); }
 
-    GstBuffer* new_buffer();
+    std::shared_ptr<GstBuffer> new_buffer();
+
+    std::shared_ptr<GstBuffer> wait_for_buffer();
+
     const GstVideoInfo &video_info() const;
 
     bool is_playing() const;
@@ -75,11 +78,12 @@ public:
     const bool is_buffering() const;
     const bool has_new_frame() const;
     const float fps() const;
-    const bool is_done() const;
+    const bool is_eos() const;
     const bool is_paused() const;
 
     void set_on_load_cb(const std::function<void()> &the_cb);
     void set_on_end_cb(const std::function<void()> &the_cb);
+    void set_on_new_frame_cb(const std::function<void(std::shared_ptr<GstBuffer>)> &the_cb);
     void set_on_aysnc_done_cb(const std::function<void()> &the_cb);
 
 private:
@@ -98,11 +102,11 @@ private:
     std::atomic<bool> m_has_new_frame;
     std::atomic<bool> m_video_has_changed;
     std::atomic<float> m_fps;
-    std::atomic<bool> m_done;
+    std::atomic<bool> m_end_of_stream;
     std::atomic<bool> m_pause;
 
     std::function<void()> m_on_load_cb, m_on_end_cb, m_on_async_done_cb;
-    std::function<void(GstBuffer*)> m_on_new_frame_cb;
+    std::function<void(std::shared_ptr<GstBuffer>)> m_on_new_frame_cb;
 
     GstVideoInfo m_video_info;
 
@@ -139,6 +143,9 @@ private:
     // protect appsink callbacks
     std::mutex m_mutex;
 
+    // blocking stuff
+    std::condition_variable m_condition_new_frame;
+
     bool init_gstreamer();
 
     static GstBusSyncReply check_bus_messages_sync(GstBus* bus, GstMessage* message, gpointer userData);
@@ -146,6 +153,8 @@ private:
     static void on_gst_eos(GstAppSink* sink, gpointer userData);
     static GstFlowReturn on_gst_sample(GstAppSink* sink, gpointer userData);
     static GstFlowReturn on_gst_preroll(GstAppSink* sink, gpointer userData);
+
+    void set_eos();
 
     void process_sample(GstSample *sample);
 

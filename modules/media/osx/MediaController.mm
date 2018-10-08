@@ -549,6 +549,13 @@ namespace kinski{ namespace media{
 
 /////////////////////////////////////////////////////////////////
 
+    void MediaController::step_frame(int the_num_frames)
+    {
+        LOG_WARNING << "MediaController::step_frame not implemented";
+    }
+
+/////////////////////////////////////////////////////////////////
+
     void MediaController::seek_to_time(double value)
     {
         if(!is_loaded()){ return; }

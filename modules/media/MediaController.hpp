@@ -40,6 +40,7 @@ public:
     void pause();
     bool is_playing() const;
     void seek_to_time(double value);
+    void step_frame(int the_num_frames = 1);
     double duration() const;
     double current_time() const;
     double fps() const;
