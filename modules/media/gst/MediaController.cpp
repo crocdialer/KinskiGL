@@ -1,5 +1,6 @@
 #include "GstUtil.h"
 #include "gl/Texture.hpp"
+#include "gl/Buffer.hpp"
 #include "MediaController.hpp"
 
 namespace kinski{ namespace media
@@ -400,18 +401,58 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
     // pause
     pause();
 
-    int32_t num_frames = fps() * duration();
+    std::deque<std::shared_ptr<GstBuffer>> samples;
 
     // keep calling wait_for_new_buffer()
     while(auto buf = m_impl->m_gst_util.wait_for_buffer())
     {
-        // build up TextureArray slices with buffer_data
-        LOG_DEBUG << "frames remaining: " << num_frames--;
+        samples.push_back(buf);
 
         // step to next frame
         m_impl->send_step_event();
     }
 
+    int32_t num_frames = samples.size();
+    uint32_t width, height, i = 0;
+
+    if(num_frames)
+    {
+        width = m_impl->m_gst_util.video_info().width;
+        height = m_impl->m_gst_util.video_info().height;
+
+        // aquire gpu-memory for our frames
+        gl::Texture::Format fmt;
+        fmt.target = GL_TEXTURE_2D_ARRAY;
+        fmt.internal_format = compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
+        tex = gl::Texture(width, height, num_frames, fmt);
+        tex.set_flipped();
+        KINSKI_CHECK_GL_ERRORS();
+    }
+    else
+    {
+        LOG_ERROR << "no samples";
+        return false;
+    }
+
+    while(!samples.empty())
+    {
+        auto s = samples.front();
+        samples.pop_front();
+
+        // map the buffer for reading
+        gst_buffer_map(s.get(), &m_impl->m_memory_map_info, GST_MAP_READ);
+        uint8_t *buf_data = m_impl->m_memory_map_info.data;
+        size_t num_bytes = m_impl->m_memory_map_info.size;
+
+        // upload to texture
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, buf_data);
+
+        // unmap
+        gst_buffer_unmap(s.get(), &m_impl->m_memory_map_info);
+
+        // advance index
+        i++;
+    }
     return true;
 }
 
