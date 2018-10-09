@@ -412,13 +412,13 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
         m_impl->send_step_event();
     }
 
-    int32_t num_frames = samples.size();
+    uint32_t num_frames = samples.size();
     uint32_t width, height, i = 0;
 
     if(num_frames)
     {
-        width = m_impl->m_gst_util.video_info().width;
-        height = m_impl->m_gst_util.video_info().height;
+        width = (uint32_t)m_impl->m_gst_util.video_info().width;
+        height = (uint32_t)m_impl->m_gst_util.video_info().height;
 
         // aquire gpu-memory for our frames
         gl::Texture::Format fmt;
@@ -442,7 +442,6 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
         // map the buffer for reading
         gst_buffer_map(s.get(), &m_impl->m_memory_map_info, GST_MAP_READ);
         uint8_t *buf_data = m_impl->m_memory_map_info.data;
-        size_t num_bytes = m_impl->m_memory_map_info.size;
 
         // upload to texture
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, buf_data);

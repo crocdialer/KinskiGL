@@ -72,6 +72,10 @@ GstUtil::~GstUtil()
         // Reset the bus since the associated pipeline got resetted.
         reset_bus();
     }
+
+    // order is important here
+    m_g_main_loop.reset();
+    m_thread.reset();
 }
 
 bool GstUtil::init_gstreamer()
