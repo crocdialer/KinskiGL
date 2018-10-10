@@ -164,8 +164,18 @@ namespace kinski { namespace gl {
         for(const auto &p : m_queued_textures){ if(p.second.key == the_key){ return true; } }
         return m_textures.find(the_key) != std::end(m_textures);
     }
-    
-    gl::Texture Material::get_texture(Texture::Usage the_usage)
+
+    gl::Texture* Material::get_texture_ptr(Texture::Usage the_usage)
+    {
+        auto it = m_textures.find(static_cast<uint32_t>(the_usage));
+        if(it != std::end(m_textures))
+        {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    gl::Texture Material::get_texture(Texture::Usage the_usage) const
     {
         auto it = m_textures.find(static_cast<uint32_t>(the_usage));
         if(it != std::end(m_textures))

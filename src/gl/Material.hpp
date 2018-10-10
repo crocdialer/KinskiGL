@@ -61,8 +61,9 @@ namespace kinski { namespace gl {
         
         bool has_texture(Texture::Usage the_usage);
         bool has_texture(uint32_t the_key);
-        
-        gl::Texture get_texture(Texture::Usage the_usage);
+
+        gl::Texture* get_texture_ptr(Texture::Usage the_usage = Texture::Usage::COLOR);
+        gl::Texture get_texture(Texture::Usage the_usage = Texture::Usage::COLOR) const;
 
         glm::mat4 texture_matrix() const;
 
@@ -127,7 +128,7 @@ namespace kinski { namespace gl {
         uint32_t shadow_properties() const { return m_shadow_properties; }
         void set_shadow_properties(uint32_t the_value);
 
-        bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
+//        bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
         bool depth_test() const { return m_depth_test; };
         bool depth_write() const { return m_depth_write; };
         bool stencil_test() const { return m_stencil_test; };
