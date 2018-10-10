@@ -21,14 +21,16 @@ namespace kinski{ namespace gl{
     {
     public:
         
-        Blur();
+        Blur(const glm::vec2 &the_scale = glm::vec2(3.f));
         
         void render_output(const gl::Texture &the_texture);
+
+        glm::vec2 scale() const;
+        void set_scale(const glm::vec2 &the_scale);
         
     private:
-        
-        struct Impl;
-        std::shared_ptr<Impl> m_impl;
+
+        std::shared_ptr<struct BlurImpl> m_impl;
     };
     
     

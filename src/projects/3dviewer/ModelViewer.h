@@ -74,7 +74,10 @@ namespace kinski
         
         Property_<bool>::Ptr
         m_display_bones = Property_<bool>::create("display bones", false);
-        
+
+        Property_<gl::vec2>::Ptr
+        m_blur_amount = Property_<gl::vec2>::create("blur amount", gl::vec2(1.f));
+
         void build_skeleton(gl::BonePtr currentBone, const glm::mat4 start_transform,
                             vector<gl::vec3> &points, vector<string> &bone_names);
         

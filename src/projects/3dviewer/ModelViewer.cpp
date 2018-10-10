@@ -6,10 +6,11 @@
 //
 //
 
-#include <app/imgui/ImGuizmo.h>
+//#include <app/imgui/ImGuizmo.h>
 #include "core/Image.hpp"
 #include "ModelViewer.h"
 #include "assimp/assimp.hpp"
+#include "gl_post_process/Blur.hpp"
 
 using namespace std;
 using namespace kinski;
@@ -42,7 +43,8 @@ void ModelViewer::setup()
     register_property(m_ground_textures);
     register_property(m_ground_plane_texture_scale);
     register_property(m_enviroment_strength);
-    
+
+    register_property(m_blur_amount);
     register_property(m_focal_depth);
     register_property(m_focal_length);
     register_property(m_fstop);
@@ -211,6 +213,8 @@ void ModelViewer::draw()
         if(*m_use_post_process)
         {
             gl::draw_quad(gl::window_dimension(), m_post_process_mat);
+//            gl::Blur b(*m_blur_amount);
+//            b.render_output(m_post_process_fbo->texture());
             draw_fn();
         }
         else
