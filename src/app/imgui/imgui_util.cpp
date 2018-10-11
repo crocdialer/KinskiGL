@@ -297,10 +297,11 @@ void draw_textures_ui(const std::vector<gl::Texture*> &the_textures)
             bool is_flipped = t->flipped();
             if(ImGui::Checkbox("flip", &is_flipped)){ t->set_flipped(is_flipped); }
 
-            constexpr float w = 150;
+            const float w = ImGui::GetWindowContentRegionWidth();
+            const ImVec2 uv_0(0, 1), uv_1(1, 0);
+
             ImVec2 sz(w, w / t->aspect_ratio());
-            //TODO: wonky shit
-            ImGui::Image((ImTextureID)(t), sz);
+            ImGui::Image((ImTextureID)(t), sz, uv_0, uv_1);
         }
     }
 }
