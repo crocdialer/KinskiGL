@@ -97,7 +97,7 @@ void sort_render_bin(const RenderBinPtr &the_bin,
         bool opaque = true;
         for (const auto &material : item.mesh->materials())
         {
-            if(material->blending())
+            if(material->blending() && material->diffuse().a < 1.f)
             {
                 opaque = false;
                 break;

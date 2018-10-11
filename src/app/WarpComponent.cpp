@@ -288,7 +288,7 @@ void WarpComponent::key_press(const KeyEvent &e)
     m_show_cursor = e.is_alt_down();
 
     auto c = quad_warp().center();
-    gl::vec2 inc = 1.f / gl::window_dimension();
+    gl::vec2 inc = (e.is_shift_down() ? 10.f : 1.f) / gl::window_dimension();
     gl::ivec2 num_subs = quad_warp().num_subdivisions();
 
     switch(e.code())
