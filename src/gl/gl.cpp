@@ -575,11 +575,12 @@ namespace kinski { namespace gl {
             //mesh->geometry()->setPrimitiveType(GL_LINES_ADJACENCY);
             mesh->geometry()->set_primitive_type(GL_LINES);
         }
-
-        mesh->material() = (the_material ? the_material : material);
-        mesh->material()->uniform("u_window_size", window_dimension());
-        mesh->material()->uniform("u_line_thickness", line_thickness);
-        mesh->material()->set_line_width(line_thickness);
+        
+        auto mat = mesh->material();
+        mat = (the_material ? the_material : material);
+        mat->uniform("u_window_size", window_dimension());
+        mat->uniform("u_line_thickness", line_thickness);
+        mat->set_line_width(line_thickness);
 
         mesh->geometry()->append_vertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
@@ -668,7 +669,7 @@ namespace kinski { namespace gl {
             point_mesh->geometry()->set_primitive_type(GL_POINTS);
         }
 
-        point_mesh->material() = the_material;
+        point_mesh->materials()[0] = the_material;
         point_mesh->material()->set_point_size(the_point_size);
         point_mesh->geometry()->vertices() = the_points;
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
@@ -827,7 +828,7 @@ namespace kinski { namespace gl {
             quad_mesh->set_position(glm::vec3(0.5f, 0.5f , 0.f));
         }
         quad_mesh->geometry()->set_primitive_type(filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
-        quad_mesh->material() = theMaterial;
+        quad_mesh->materials()[0] = theMaterial;
         float scaleX = (x1 - x0) / g_viewport_dim[0];
         float scaleY = (y0 - y1) / g_viewport_dim[1];
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
@@ -1174,7 +1175,7 @@ void draw_circle(const glm::vec2 &center, float the_radius, const MaterialPtr &t
         if(solid){ solid_meshes[the_num_segments] = our_mesh; }
         else{ line_meshes[the_num_segments] = our_mesh; }
     }
-    our_mesh->material() = theMaterial ? theMaterial : default_mat;
+    our_mesh->materials()[0] = theMaterial ? theMaterial : default_mat;
     mat4 projectionMatrix = ortho(0.0f, g_viewport_dim[0], 0.0f, g_viewport_dim[1], 0.0f, 1.0f);
     mat4 modelView = glm::scale(mat4(), vec3(the_radius));
     modelView[3] = vec4(center.x, g_viewport_dim[1] - center.y, 0, modelView[3].w);

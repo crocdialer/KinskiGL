@@ -352,12 +352,7 @@ gl::OBB Mesh::obb() const
     return ret;
 }
 
-const MaterialConstPtr Mesh::material() const
-{
-    return material();
-}
-
-MaterialPtr& Mesh::material()
+const MaterialPtr Mesh::material() const
 {
     if(!entries().empty()){ return m_materials[entries().front().material_index]; }
     else{ return m_materials.front(); }

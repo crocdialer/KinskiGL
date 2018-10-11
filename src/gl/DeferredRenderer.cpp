@@ -402,7 +402,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             }
             else{ mat = m_mat_lighting; }
         }
-        m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
+        m_frustum_mesh->materials()[0] = m_mesh_sphere->materials()[0] = m_mesh_cone->materials()[0] = mat;
         float d = std::min(the_renderbin->camera->far() * 0.66f + l.transform[3].z, l.light->radius());
         d = std::max(d, 1.f);
 
@@ -464,8 +464,8 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             {
                 m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
                 m_mat_lighting_enviroment->uniform("u_env_light_strength", m_enviroment_light_strength);
-                m_frustum_mesh->material() = m_mat_lighting_enviroment;
-            }else{ m_frustum_mesh->material() = m_mat_stencil; }
+                m_frustum_mesh->materials()[0] = m_mat_lighting_enviroment;
+            }else{ m_frustum_mesh->materials()[0] = m_mat_stencil; }
             gl::load_identity(gl::MODEL_VIEW_MATRIX);
             gl::draw_mesh(m_frustum_mesh);
         }
