@@ -28,12 +28,8 @@ WarpComponent::WarpComponent()
 
     m_index = RangedProperty<int>::create("index", 0, 0, 9);
     m_enabled = Property_<bool>::create("enabled", false);
-    m_num_subdivisions_x = RangedProperty<int>::create("num subdivisions x", 1, 1,
-                                                            gl::Warp::s_max_num_subdivisions.x);
-    m_num_subdivisions_y = RangedProperty<int>::create("num subdivisions y", 1, 1,
-                                                            gl::Warp::s_max_num_subdivisions.y);
-    m_grid_resolution_x = RangedProperty<int>::create("grid resolution x", 32, 1, 160);
-    m_grid_resolution_y = RangedProperty<int>::create("grid resolution y", 18, 1, 160);
+    m_num_subdivisions = Property_<glm::ivec2>::create("num subdivisions", glm::ivec2(1));
+    m_grid_resolution = Property_<gl::ivec2>::create("grid resolution", gl::ivec2(32, 18));
     m_draw_grid = Property_<bool>::create("draw grid", false);
     m_draw_control_points = Property_<bool>::create("draw control points", false);
     m_perspective = Property_<bool>::create("perspective", true);
@@ -51,8 +47,7 @@ WarpComponent::WarpComponent()
 
     register_property(m_index);
     register_property(m_enabled);
-    register_property(m_num_subdivisions_x);
-    register_property(m_num_subdivisions_y);
+    register_property(m_num_subdivisions);
     register_property(m_draw_grid);
     register_property(m_draw_control_points);
     register_property(m_perspective);
@@ -61,8 +56,7 @@ WarpComponent::WarpComponent()
     register_property(m_corners);
     register_property(m_src_top_left);
     register_property(m_src_bottom_right);
-    register_property(m_grid_resolution_x);
-    register_property(m_grid_resolution_y);
+    register_property(m_grid_resolution);
     register_property(m_edges);
     register_property(m_edge_exponents);
 
@@ -129,15 +123,13 @@ void WarpComponent::set_from(gl::Warp &the_quadwarp, uint32_t the_index)
     *m_draw_control_points = m_params[the_index].display_points;
     *m_cubic_interpolation = the_quadwarp.cubic_interpolation();
     *m_perspective = the_quadwarp.perspective();
-    *m_num_subdivisions_x = the_quadwarp.num_subdivisions().x;
-    *m_num_subdivisions_y = the_quadwarp.num_subdivisions().y;
+    *m_num_subdivisions = the_quadwarp.num_subdivisions();
     *m_control_points = the_quadwarp.control_points();
     *m_corners = the_quadwarp.corners();
 
     *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
     *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
-    *m_grid_resolution_x = the_quadwarp.grid_resolution().x;
-    *m_grid_resolution_y = the_quadwarp.grid_resolution().y;
+    *m_grid_resolution = the_quadwarp.grid_resolution();
 
     auto edges = the_quadwarp.edges(), edge_exp = the_quadwarp.edge_exponents();
     *m_edges = {edges.x, edges.y, edges.z, edges.w};
@@ -210,13 +202,13 @@ void WarpComponent::update_property(const Property::ConstPtr &the_property)
     {
         m_quad_warp[*m_index].set_corners(m_corners->value());
     }
-    else if(the_property == m_num_subdivisions_x || the_property == m_num_subdivisions_y)
+    else if(the_property == m_num_subdivisions)
     {
-        m_quad_warp[*m_index].set_num_subdivisions(*m_num_subdivisions_x, *m_num_subdivisions_y);
+        m_quad_warp[*m_index].set_num_subdivisions(*m_num_subdivisions);
     }
-    else if(the_property == m_grid_resolution_x || the_property == m_grid_resolution_y)
+    else if(the_property == m_grid_resolution)
     {
-        m_quad_warp[*m_index].set_grid_resolution(*m_grid_resolution_x, *m_grid_resolution_y);
+        m_quad_warp[*m_index].set_grid_resolution(*m_grid_resolution);
     }
     else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
     {

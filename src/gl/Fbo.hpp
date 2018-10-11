@@ -112,6 +112,9 @@ class KINSKI_API Fbo
 
 	//! Returns a reference to the color texture of the FBO. \a attachment specifies which attachment in the case of multiple color buffers
 	Texture texture(int the_attachment = 0);
+
+	Texture* texture_ptr(int attachment = 0);
+
 	//! Returns a reference to the depth texture of the FBO.
 	Texture depth_texture();
 

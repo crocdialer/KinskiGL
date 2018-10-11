@@ -84,8 +84,8 @@ namespace kinski
         gl::Font m_font;
         
         Property_<int>::Ptr m_index;
-        Property_<int>::Ptr m_num_subdivisions_x, m_num_subdivisions_y;
-        Property_<int>::Ptr m_grid_resolution_x, m_grid_resolution_y;
+        Property_<gl::ivec2>::Ptr m_num_subdivisions;
+        Property_<gl::ivec2>::Ptr m_grid_resolution;
         Property_<bool>::Ptr m_enabled, m_draw_grid, m_draw_control_points, m_perspective,
                              m_cubic_interpolation;
         

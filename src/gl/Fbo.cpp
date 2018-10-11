@@ -533,6 +533,17 @@ Texture Fbo::texture(int attachment)
 	return gl::Texture();
 }
 
+Texture* Fbo::texture_ptr(int attachment)
+{
+    if(m_impl)
+    {
+        resolve_textures();
+        update_mipmaps(true, attachment);
+        return m_impl->m_color_textures.empty() ? nullptr : &m_impl->m_color_textures[attachment];
+    }
+    return nullptr;
+}
+
 Texture Fbo::depth_texture()
 {
 	return m_impl ? m_impl->m_depth_texture : gl::Texture();

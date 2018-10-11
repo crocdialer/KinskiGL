@@ -9,6 +9,7 @@
 #include "gl/gl.hpp"
 #include "app/App.hpp"
 #include "app/LightComponent.hpp"
+#include "app/WarpComponent.hpp"
 #include "imgui.h"
 
 // forward declared to avoid inclusion of App.h
@@ -29,6 +30,8 @@ void draw_material_ui(const gl::MaterialPtr &the_mat);
 void draw_materials_ui(const std::vector<gl::MaterialPtr> &the_materials);
 
 void draw_light_component_ui(const LightComponentPtr &the_component);
+
+void draw_warp_component_ui(const WarpComponentPtr &the_component);
 
 void draw_object3D_ui(const gl::Object3DPtr &the_object,
                       const gl::CameraConstPtr &the_camera = nullptr);

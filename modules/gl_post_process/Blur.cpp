@@ -25,6 +25,7 @@ m_impl(std::make_shared<BlurImpl>())
 void Blur::render_output(const gl::Texture &the_texture)
 {
     m_impl->m_material->uniform("u_poisson_radius", m_impl->m_scale);
+    m_impl->m_material->add_texture(the_texture);
     gl::draw_quad(gl::window_dimension(), m_impl->m_material);
 }
 
