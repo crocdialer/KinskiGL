@@ -11,11 +11,6 @@
 
 namespace kinski{ namespace gui{
 
-namespace
-{
-    char g_text_buf[512] = "\0";
-}
-
 const ImVec2& im_vec_cast(const gl::vec2 &the_vec)
 {
     return *reinterpret_cast<const ImVec2*>(&the_vec);
@@ -173,12 +168,15 @@ void draw_property_ui(const Property_<gl::Color>::Ptr &the_property)
 void draw_property_ui(const Property_<std::string>::Ptr &the_property)
 {
     std::string prop_name = the_property->name();
-    strcpy(g_text_buf, the_property->value().c_str());
+    size_t buf_size = the_property->value().size() + 4;
+    char text_buf[buf_size];
+    strcpy(text_buf, the_property->value().c_str());
 
-    if(ImGui::InputText(prop_name.c_str(), g_text_buf, IM_ARRAYSIZE(g_text_buf),
+
+    if(ImGui::InputText(prop_name.c_str(), text_buf, buf_size,
                         ImGuiInputTextFlags_EnterReturnsTrue))
     {
-        the_property->value(g_text_buf);
+        the_property->value(text_buf);
     }
 }
 
@@ -192,12 +190,15 @@ void draw_property_ui(const Property_<std::vector<std::string>>::Ptr &the_proper
     {
         for(size_t i = 0; i < array.size(); ++i)
         {
-            strcpy(g_text_buf, array[i].c_str());
+            size_t buf_size = array[i].size() + 4;
+            char text_buf[buf_size];
 
-            if(ImGui::InputText(to_string(i).c_str(), g_text_buf, IM_ARRAYSIZE(g_text_buf),
+            strcpy(text_buf, array[i].c_str());
+
+            if(ImGui::InputText(to_string(i).c_str(), text_buf, buf_size,
                                 ImGuiInputTextFlags_EnterReturnsTrue))
             {
-                array[i] = g_text_buf;
+                array[i] = text_buf;
                 the_property->notify_observers();
             }
         }
@@ -297,7 +298,7 @@ void draw_textures_ui(const std::vector<gl::Texture*> &the_textures)
             bool is_flipped = t->flipped();
             if(ImGui::Checkbox("flip", &is_flipped)){ t->set_flipped(is_flipped); }
 
-            const float w = ImGui::GetWindowContentRegionWidth();
+            const float w = ImGui::GetContentRegionAvailWidth();
             const ImVec2 uv_0(0, 1), uv_1(1, 0);
 
             ImVec2 sz(w, w / t->aspect_ratio());
@@ -494,7 +495,18 @@ void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPt
     ImGui::Separator();
 
     // name
-    ImGui::Text("name: %s", the_object->name().c_str());
+//    ImGui::Text("name: %s", the_object->name().c_str());
+
+    // tags
+    size_t buf_size = the_object->name().size() + 4;
+    char text_buf[buf_size];
+    strcpy(text_buf, the_object->name().c_str());
+
+    if(ImGui::InputText("name", text_buf, IM_ARRAYSIZE(text_buf),
+                        ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        the_object->set_name(text_buf);
+    }
 
     // cast to gl::MeshPtr
     auto mesh = std::dynamic_pointer_cast<gl::Mesh>(the_object);

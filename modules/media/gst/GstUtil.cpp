@@ -614,7 +614,7 @@ std::shared_ptr<GstBuffer> GstUtil::wait_for_buffer()
 
 void GstUtil::on_gst_eos(GstAppSink *sink, gpointer userData)
 {
-    LOG_DEBUG << "on_gst_eos";
+    LOG_TRACE_2 << "on_gst_eos";
     auto *self = static_cast<GstUtil*>(userData);
     self->set_eos();
 }
