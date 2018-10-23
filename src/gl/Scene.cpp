@@ -142,15 +142,31 @@ namespace kinski { namespace gl {
         }
         return ret;
     }
-
-    std::vector<gl::Object3DPtr> Scene::get_objects_by_tag(const std::string &the_tag) const
+    
+    gl::Object3DPtr Scene::get_object_by_name(const std::string &the_name) const
+    {
+        gl::SelectVisitor<gl::Object3D> sv({}, false);
+        root()->accept(sv);
+        for(gl::Object3D *o : sv.get_objects())
+        {
+            if(o->name() == the_name){ return o->shared_from_this(); }
+        }
+        return nullptr;
+    }
+    
+    std::vector<gl::Object3DPtr> Scene::get_objects_by_tags(const std::set<std::string> &the_tags) const
     {
         std::vector<gl::Object3DPtr> ret;
-        gl::SelectVisitor<gl::Object3D> sv({the_tag}, false);
+        gl::SelectVisitor<gl::Object3D> sv(the_tags, false);
         root()->accept(sv);
-
+        
         for(gl::Object3D *o : sv.get_objects()){ ret.push_back(o->shared_from_this()); }
         return ret;
+    }
+    
+    std::vector<gl::Object3DPtr> Scene::get_objects_by_tag(const std::string &the_tag) const
+    {
+        return get_objects_by_tags({the_tag});
     }
     
     void Scene::set_skybox(const gl::Texture& t)
