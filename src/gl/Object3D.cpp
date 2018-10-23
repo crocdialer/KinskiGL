@@ -206,7 +206,7 @@ namespace kinski { namespace gl {
         
         for(auto &c :children())
         {
-            ret += c->aabb();
+            if(c->enabled()){ ret += c->aabb(); }
         }
         return ret;
     }

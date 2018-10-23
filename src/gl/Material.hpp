@@ -59,7 +59,7 @@ namespace kinski { namespace gl {
         void clear_texture(Texture::Usage the_usage);
         void clear_texture(uint32_t the_key);
         
-        bool has_texture(Texture::Usage the_usage);
+        bool has_texture(Texture::Usage the_usage = Texture::Usage::COLOR);
         bool has_texture(uint32_t the_key);
 
         gl::Texture* get_texture_ptr(Texture::Usage the_usage = Texture::Usage::COLOR);
