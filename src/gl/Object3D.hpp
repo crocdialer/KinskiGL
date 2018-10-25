@@ -25,6 +25,7 @@ namespace kinski { namespace gl {
         virtual ~Object3D(){};
         
         inline uint32_t get_id() const {return m_id;};
+        inline void set_id(uint32_t the_id) { m_id = the_id; };
         inline const std::string name() const { return m_name; }
         inline void set_name(const std::string &the_name){ m_name = the_name; }
         inline const std::set<std::string>& tags() const { return m_tags; };

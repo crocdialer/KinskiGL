@@ -406,8 +406,9 @@ void Mesh::bind_vertex_array(const gl::ShaderPtr &the_shader)
 MeshPtr Mesh::copy()
 {
     MeshPtr ret = create(m_geometry, material());
+    auto id = ret->get_id();
     *ret = *this;
-
+    ret->set_id(id);
     //TODO: deep copy bones, rebuild animations
 
     return ret;

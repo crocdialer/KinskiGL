@@ -521,9 +521,12 @@ void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPt
     if(the_camera && current_gizmo)
     {
         bool is_ortho = std::dynamic_pointer_cast<const gl::OrthoCamera>(the_camera).get();
+        auto z_val = transform[3].z;
+
         ImGuizmo::SetOrthographic(is_ortho);
         ImGuizmo::Manipulate(glm::value_ptr(the_camera->view_matrix()), glm::value_ptr(the_camera->projection_matrix()),
                              ImGuizmo::OPERATION(current_gizmo), ImGuizmo::WORLD, glm::value_ptr(transform));
+        if(is_ortho){ transform[3].z = z_val; }
         the_object->set_global_transform(transform);
     }
 }
