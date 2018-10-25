@@ -30,7 +30,7 @@ namespace kinski { namespace gl {
         inline void set_name(const std::string &the_name){ m_name = the_name; }
         inline const std::set<std::string>& tags() const { return m_tags; };
         inline std::set<std::string>& tags() { return m_tags; };
-        inline bool has_tag(const std::string& the_tag) const;
+        inline bool has_tag(const std::string& the_tag) const { return m_tags.count(the_tag); };
         
         void add_tag(const std::string& the_tag, bool recursive = false);
         void remove_tag(const std::string& the_tag, bool recursive = false);

@@ -33,11 +33,6 @@ namespace kinski { namespace gl {
 
     }
     
-    bool Object3D::has_tag(const std::string& the_tag) const
-    {
-        return m_tags.find(the_tag) != m_tags.end();
-    }
-    
     void Object3D::set_rotation(const glm::quat &theRot)
     {
         glm::vec3 pos_tmp(position()), scale_tmp(scale());
