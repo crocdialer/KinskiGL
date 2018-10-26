@@ -471,7 +471,8 @@ namespace kinski { namespace gl {
             }
             auto line_mesh = create_mesh(l)->copy();
             line_mesh->set_position(vec3(line_offset.x, line_offset.y - line_aabb.height(), 0.f));
-            
+            line_mesh->material()->set_blending();
+
             // advance offset
             line_offset.y -= line_height();
             
