@@ -23,8 +23,12 @@ namespace kinski
     inline std::string to_string(const T &theObj, int precision = 0)
     {
         std::stringstream ss;
+
         if(precision > 0)
-            ss << std::fixed << std::setprecision(precision);
+        {
+            if(std::is_integral<T>()){ ss << std::setfill('0') << std::setw(precision); }
+            else if(std::is_floating_point<T>()){ ss << std::fixed << std::setprecision(precision); }
+        }
         ss << theObj;
         return ss.str();
     }
