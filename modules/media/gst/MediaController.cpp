@@ -250,8 +250,8 @@ bool MediaController::is_loaded() const
 
 void MediaController::unload()
 {
-    //m_impl.reset(new MediaControllerImpl);
-    m_impl->m_gst_util.reset_pipeline();
+    m_impl.reset(new MediaControllerImpl);
+//    m_impl->m_gst_util.reset_pipeline();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -395,8 +395,8 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 
 bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
 {
-    //rewind
-    seek_to_time(0.0);
+    // rewind + play
+    restart();
 
     // pause
     pause();
