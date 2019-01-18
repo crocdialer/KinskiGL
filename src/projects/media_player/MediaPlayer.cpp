@@ -7,11 +7,14 @@
 //
 
 #include "MediaPlayer.hpp"
+#include "json.hpp"
 #include <mutex>
+
 
 using namespace std;
 using namespace kinski;
 using namespace glm;
+using json = nlohmann::json;
 
 
 namespace
@@ -48,6 +51,8 @@ void MediaPlayer::setup()
     fonts()[1].load(fonts()[0].path(), 28);
     fonts()[2].load(fonts()[0].path(), 54);
     register_property(m_media_path);
+    register_property(m_playlist);
+    register_property(m_playlist_index);
     register_property(m_scale_to_fit);
     register_property(m_loop);
     register_property(m_auto_play);
@@ -187,8 +192,8 @@ void MediaPlayer::draw()
         // time + playlist position
         auto str = secs_to_time_str(m_media->current_time()) + " / " +
             secs_to_time_str(m_media->duration());
-        str += m_playlist.empty() ? "" : format(" (%d / %d)", m_current_playlist_index + 1,
-                                                m_playlist.size());
+        str += m_playlist->value().empty() ? "" : format(" (%d / %d)", *m_playlist_index + 1,
+                                                m_playlist->value().size());
         
         gl::draw_text_2D(str, fonts()[1], gl::COLOR_WHITE, gl::vec2(10, 40));
         
@@ -379,6 +384,24 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     {
         m_reload_media = true;
     }
+    else if(theProperty == m_playlist)
+    {
+        if(!m_playlist->value().empty())
+        {
+//            *m_media_path = m_playlist->value().front();
+            *m_playlist_index = 0;
+        }
+        else{ *m_playlist_index = -1; }
+    }
+    else if(theProperty == m_playlist_index)
+    {
+        const auto &playlist = m_playlist->value();
+
+        if(*m_playlist_index >= 0 && *m_playlist_index < (int)playlist.size())
+        {
+            *m_media_path = playlist[*m_playlist_index];
+        }
+    }
 #ifdef KINSKI_ARM
     else if(theProperty == m_use_warping)
     {
@@ -493,12 +516,12 @@ void MediaPlayer::reload_media()
                 send_network_cmd("restart");
                 begin_network_sync();
             }
-            else if(!m_playlist.empty())
+            else if(!m_playlist->value().empty())
             {
                 main_queue().submit([this]()
                 {
-                    m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
-                    *m_media_path = m_playlist[m_current_playlist_index];
+                    *m_playlist_index = (*m_playlist_index + 1) % m_playlist->value().size();
+//                    *m_media_path = m_playlist->value()[*m_playlist_index];
                 });
             }
         });
@@ -543,6 +566,36 @@ std::string MediaPlayer::secs_to_time_str(float the_secs) const
 {
     return format("%d:%02d:%04.1f", (int) the_secs / 3600, ((int) the_secs / 60) % 60,
                   fmodf(the_secs, 60));
+}
+
+/////////////////////////////////////////////////////////////////
+
+float MediaPlayer::time_str_to_secs(const std::string &the_str) const
+{
+    float secs = 0.f;
+    auto splits = split(the_str, ':');
+
+    switch(splits.size())
+    {
+        case 3:
+            secs = kinski::string_to<float>(splits[2]) +
+                   60.f * kinski::string_to<float>(splits[1]) +
+                   3600.f * kinski::string_to<float>(splits[0]) ;
+            break;
+
+        case 2:
+            secs = kinski::string_to<float>(splits[1]) +
+                   60.f * kinski::string_to<float>(splits[0]);
+            break;
+
+        case 1:
+            secs = kinski::string_to<float>(splits[0]);
+            break;
+
+        default:
+            break;
+    }
+    return secs;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -705,13 +758,13 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
     auto file_list = concat_containers<fs::path>(files[fs::FileType::MOVIE], files[fs::FileType::AUDIO]);
     std::sort(file_list.begin(), file_list.end());
     
-    if(file_list.size() != m_playlist.size())
+    if(file_list.size() != m_playlist->value().size())
     {
         main_queue().submit([this, file_list]()
         {
-            m_current_playlist_index = 0;
-            m_playlist = file_list;
-            *m_media_path = m_playlist[0];
+            *m_playlist_index = 0;
+            m_playlist->set(file_list);
+//            *m_media_path = m_playlist[0];
         });
     }
 }
@@ -720,10 +773,10 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
 
 void MediaPlayer::playlist_next()
 {
-    if(!m_playlist.empty())
+    if(!m_playlist->value().empty())
     {
-        m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
-        *m_media_path = m_playlist[m_current_playlist_index];
+        *m_playlist_index = (*m_playlist_index + 1) % m_playlist->value().size();
+//        *m_media_path = m_playlist->value()[*m_playlist_index];
     }
 }
 
@@ -731,12 +784,12 @@ void MediaPlayer::playlist_next()
 
 void MediaPlayer::playlist_prev()
 {
-    if(!m_playlist.empty())
+    if(!m_playlist->value().empty())
     {
-        int next_index = m_current_playlist_index - 1;
-        next_index += next_index < 0 ? m_playlist.size() : 0;
-        m_current_playlist_index = next_index;
-        *m_media_path = m_playlist[m_current_playlist_index];
+        int next_index = *m_playlist_index - 1;
+        next_index += next_index < 0 ? m_playlist->value().size() : 0;
+        *m_playlist_index = next_index;
+//        *m_media_path = m_playlist->value()[*m_playlist_index];
     }
 }
 
@@ -744,10 +797,10 @@ void MediaPlayer::playlist_prev()
 
 void MediaPlayer::playlist_track(size_t the_index)
 {
-    if(!m_playlist.empty())
+    if(!m_playlist->value().empty())
     {
-        m_current_playlist_index = clamp<size_t>(the_index, 0, m_playlist.size() - 1);
-        *m_media_path = m_playlist[m_current_playlist_index];
+        *m_playlist_index = clamp<size_t>(the_index, 0, m_playlist->value().size() - 1);
+//        *m_media_path = m_playlist->value()[*m_playlist_index];
     }
 }
 
@@ -777,6 +830,22 @@ void MediaPlayer::setup_rpc_interface()
         m_media->pause();
         m_sync_off_timer.cancel();
         if(*m_is_master){ send_network_cmd("pause"); }
+    });
+    remote_control().add_command("toggle_pause", [this](net::tcp_connection_ptr con,
+                                 const std::vector<std::string> &rpc_args)
+    {
+        if(m_media->is_playing())
+        {
+            m_media->pause();
+            m_sync_off_timer.cancel();
+            if(*m_is_master){ send_network_cmd("pause"); }
+        }
+        else
+        {
+            m_media->play();
+            m_sync_off_timer.cancel();
+            if(*m_is_master){ send_network_cmd("play"); }
+        }
     });
     remote_control().add_command("restart", [this](net::tcp_connection_ptr con,
                                                    const std::vector<std::string> &rpc_args)
@@ -844,31 +913,7 @@ void MediaPlayer::setup_rpc_interface()
     {
         if(!rpc_args.empty())
         {
-            float secs = 0.f;
-            auto split_list = split(rpc_args.front(), ':');
-            std::vector<std::string> splits(split_list.begin(), split_list.end());
-
-            switch (splits.size())
-            {
-                case 3:
-                    secs = kinski::string_to<float>(splits[2]) +
-                    60.f * kinski::string_to<float>(splits[1]) +
-                    3600.f * kinski::string_to<float>(splits[0]) ;
-                    break;
-
-                case 2:
-                    secs = kinski::string_to<float>(splits[1]) +
-                    60.f * kinski::string_to<float>(splits[0]);
-                    break;
-
-                case 1:
-                    secs = kinski::string_to<float>(splits[0]);
-                    break;
-
-                default:
-                    break;
-            }
-            sync_media_to_timestamp(secs);
+            sync_media_to_timestamp(time_str_to_secs(rpc_args.front()));
         }
     });
 
@@ -919,5 +964,20 @@ void MediaPlayer::setup_rpc_interface()
                                                  const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ playlist_track(string_to<size_t>(rpc_args[0])); }
+        else{ con->write(to_string(m_playlist_index->value())); }
+    });
+    remote_control().add_command("playstate", [this](net::tcp_connection_ptr con,
+                                                     const std::vector<std::string> &rpc_args)
+    {
+        ::json j =
+        {
+            {"movie_index", m_playlist_index->value()},
+            {"position", m_media->current_time()},
+            {"duration", m_media->duration()},
+            {"rate", m_media->rate()},
+            {"volume", m_media->volume()},
+            {"playing", m_media->is_playing()}
+        };
+        con->write(j.dump());
     });
 }

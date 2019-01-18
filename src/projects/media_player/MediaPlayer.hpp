@@ -35,10 +35,7 @@ namespace kinski
         net::udp_server m_udp_server;
         std::unordered_map<std::string, float> m_ip_timestamps;
         std::unordered_map<std::string, CircularBuffer<double>> m_ip_roundtrip;
-        
-        std::vector<string> m_playlist;
-        uint32_t m_current_playlist_index = 0;
-        
+
         std::string m_ip_adress;
         
         // properties
@@ -62,8 +59,16 @@ namespace kinski
         
         Property_<int>::Ptr
         m_broadcast_port = Property_<int>::create("discovery broadcast port", 55555);
-        
+
+        Property_<std::vector<string>>::Ptr
+        m_playlist = Property_<std::vector<string>>::create("playlist");
+
+        Property_<int>::Ptr
+        m_playlist_index = Property_<int>::create("playlist index", -1);
+
         std::string secs_to_time_str(float the_secs) const;
+        float time_str_to_secs(const std::string &the_str) const;
+
         void setup_rpc_interface();
         void reload_media();
         void sync_media_to_timestamp(double the_timestamp);
@@ -77,6 +82,8 @@ namespace kinski
         void playlist_next();
         void playlist_prev();
         void playlist_track(size_t the_index);
+        const std::vector<string>& playlist() const { return m_playlist->value(); }
+        void set_playlist(const std::vector<string> &the_playlist){ m_playlist->set(the_playlist); };
 
     public:
 
