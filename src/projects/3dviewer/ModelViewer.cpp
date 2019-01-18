@@ -346,7 +346,8 @@ void ModelViewer::key_press(const KeyEvent &e)
     switch(e.code())
     {
         case Key::_DELETE:
-            for(auto &obj : selected_objects()){ scene()->remove_object(obj); clear_selected_objects(); }
+            for(auto &obj : selected_objects()){ scene()->remove_object(obj); }
+            clear_selected_objects();
             break;
         default:
             break;
