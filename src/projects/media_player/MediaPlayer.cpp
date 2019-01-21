@@ -917,6 +917,15 @@ void MediaPlayer::setup_rpc_interface()
         }
     });
 
+    remote_control().add_command("skip", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty())
+        {
+            sync_media_to_timestamp(m_media->current_time() + string_to<float>(rpc_args.front()));
+        }
+    });
+
     remote_control().add_command("current_time", [this](net::tcp_connection_ptr con,
                                                         const std::vector<std::string> &rpc_args)
     {
@@ -971,6 +980,7 @@ void MediaPlayer::setup_rpc_interface()
     {
         ::json j =
         {
+            {"path", m_media->path()},
             {"movie_index", m_playlist_index->value()},
             {"position", m_media->current_time()},
             {"duration", m_media->duration()},
