@@ -32,10 +32,10 @@ namespace
     const double g_broadcast_interval = 2.0;
 
     //! minimum difference to remote media-clock for fine-tuning (secs)
-    double g_sync_thresh = 0.02;
+    double g_sync_thresh = 0.5;
     
     //! minimum difference to remote media-clock for scrubbing (secs)
-    const double g_scrub_thresh = 1.0;
+    const double g_scrub_thresh = 2.0;
     
     //! force reset of playback speed (secs)
     const double g_sync_duration = 1.0;
@@ -530,7 +530,7 @@ void MediaPlayer::reload_media()
         {
             if(m_media->has_video() && m_media->fps() > 0)
             {
-                g_sync_thresh = 1.0 / m_media->fps() / 2.0;
+//                g_sync_thresh = 1.0 / m_media->fps() / 2.0;
                 LOG_DEBUG << "media fps: " << to_string(m_media->fps(), 2);
             }
             m_media->set_rate(*m_playback_speed);
@@ -653,7 +653,7 @@ void MediaPlayer::send_sync_cmd()
     
     for(auto &pair : m_ip_roundtrip)
     {
-        double sync_delay = median(pair.second) * (use_udp ? 0.5 : 1.5);
+        double sync_delay = 0.0;//median(pair.second) * (use_udp ? 0.5 : 1.5);
         string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
         
         if(use_udp)
