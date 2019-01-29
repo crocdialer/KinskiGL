@@ -206,6 +206,27 @@ void draw_property_ui(const Property_<std::vector<std::string>>::Ptr &the_proper
     }
 }
 
+// std::vector<float>>
+void draw_property_ui(const Property_<std::vector<float>>::Ptr &the_property)
+{
+    std::string prop_name = the_property->name();
+    std::vector<float> &array = the_property->value();
+
+    if(ImGui::TreeNode(prop_name.c_str()))
+    {
+        for(size_t i = 0; i < array.size(); ++i)
+        {
+            if(ImGui::InputFloat(std::to_string(i).c_str(), &array[i], 0.f, 0.f,
+                                 (std::abs(array[i]) < 1.f) ? 5 : 2,
+                                 ImGuiInputTextFlags_EnterReturnsTrue))
+            {
+                the_property->notify_observers();
+            }
+        }
+        ImGui::TreePop();
+    }
+}
+
 // generic
 void draw_property_ui(const Property::Ptr &the_property)
 {
@@ -281,6 +302,11 @@ void draw_component_ui(const ComponentConstPtr &the_component)
         else if(p->is_of_type<std::vector<std::string>>())
         {
             auto cast_prop = std::dynamic_pointer_cast<Property_<std::vector<std::string>>>(p);
+            draw_property_ui(cast_prop);
+        }
+        else if(p->is_of_type<std::vector<float>>())
+        {
+            auto cast_prop = std::dynamic_pointer_cast<Property_<std::vector<float>>>(p);
             draw_property_ui(cast_prop);
         }
         else{ draw_property_ui(p); }
