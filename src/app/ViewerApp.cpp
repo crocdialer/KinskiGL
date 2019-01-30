@@ -347,7 +347,7 @@ namespace kinski {
         {
             for (const auto &search_path : m_search_paths->value())
             {
-                fs::add_search_path(search_path);
+                fs::add_search_path(search_path, 1);
             }
         }
         else if(theProperty == m_logger_severity)
