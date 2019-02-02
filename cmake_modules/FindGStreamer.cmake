@@ -140,6 +140,7 @@ FIND_GSTREAMER_COMPONENT(GSTREAMER_FFT gstreamer-fft-1.0 gst/fft/gstfft.h gstfft
 FIND_GSTREAMER_COMPONENT(GSTREAMER_PBUTILS gstreamer-pbutils-1.0 gst/pbutils/pbutils.h gstpbutils-1.0)
 FIND_GSTREAMER_COMPONENT(GSTREAMER_VIDEO gstreamer-video-1.0 gst/video/video.h gstvideo-1.0)
 FIND_GSTREAMER_COMPONENT(GSTREAMER_GL gstreamer-gl-1.0 gst/gl/gl.h gstgl-1.0)
+FIND_GSTREAMER_COMPONENT(GSTREAMER_NET gstreamer-net-1.0 gst/net/gstnet.h gstnet-1.0)
 
 # ------------------------------------------------
 # 3. Process the COMPONENTS passed to FIND_PACKAGE

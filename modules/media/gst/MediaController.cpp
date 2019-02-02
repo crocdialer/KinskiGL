@@ -3,6 +3,8 @@
 #include "gl/Buffer.hpp"
 #include "MediaController.hpp"
 
+#include <gst/net/gstnet.h>
+
 namespace kinski{ namespace media
 {
 
@@ -25,6 +27,9 @@ struct MediaControllerImpl
 
     // handle for the pipeline's videosink element
     GstElement *m_video_sink;
+
+    // provides our clock-time for remote synching
+    std::shared_ptr<GstNetTimeProvider> m_net_time_provider;
 
     std::weak_ptr<MediaController> m_media_controller;
     MediaController::callback_t m_on_load_cb, m_on_end_cb;
@@ -209,6 +214,10 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     // construct a pipeline
     m_impl->m_gst_util.use_pipeline(gst_element_factory_make("playbin", "playbinsink"));
     m_impl->m_gst_util.set_pipeline_state(GST_STATE_READY);
+
+    // net time provider
+    auto ntp = gst_net_time_provider_new(m_impl->m_gst_util.clock(), nullptr, 0);
+    m_impl->m_net_time_provider = std::shared_ptr<GstNetTimeProvider>(ntp, &gst_object_unref);
 
     std::string uri_path = filePath;
 
