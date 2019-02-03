@@ -405,6 +405,7 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 
 bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
 {
+#if !defined(KINSKI_GLES)
     // rewind + play
     restart();
 
@@ -463,6 +464,8 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
         i++;
     }
     return true;
+#endif
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////
