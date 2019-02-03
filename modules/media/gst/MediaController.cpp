@@ -29,7 +29,7 @@ struct MediaControllerImpl
     GstElement *m_video_sink;
 
     // provides our clock-time for remote synching
-    std::shared_ptr<GstNetTimeProvider> m_net_time_provider;
+    std::unique_ptr<GstNetTimeProvider, void(*)(gpointer)> m_net_time_provider;
 
     std::weak_ptr<MediaController> m_media_controller;
     MediaController::callback_t m_on_load_cb, m_on_end_cb;
@@ -47,7 +47,8 @@ struct MediaControllerImpl
     m_stream(false),
     m_loop(false),
     m_gst_util(true),
-    m_video_sink(nullptr)
+    m_video_sink(nullptr),
+    m_net_time_provider(nullptr, &g_object_unref)
     {
         init_callbacks();
     }
@@ -217,7 +218,7 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
 
     // net time provider
     auto ntp = gst_net_time_provider_new(m_impl->m_gst_util.clock(), nullptr, 0);
-    m_impl->m_net_time_provider = std::shared_ptr<GstNetTimeProvider>(ntp, &gst_object_unref);
+    m_impl->m_net_time_provider.reset(ntp);
 
     std::string uri_path = filePath;
 
@@ -461,6 +462,16 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
         // advance index
         i++;
     }
+    return true;
+}
+
+/////////////////////////////////////////////////////////////////
+
+bool MediaController::use_net_time_provider(const std::string &the_ip, uint16_t the_port)
+{
+    auto clock = gst_net_client_clock_new("remote clock", the_ip.c_str(), the_port,
+                                          gst_clock_get_time(m_impl->m_gst_util.clock()));
+    m_impl->m_gst_util.set_clock(clock);
     return true;
 }
 

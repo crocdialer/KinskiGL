@@ -253,6 +253,12 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
     add_bus_watch(m_pipeline);
 }
 
+void GstUtil::set_clock(GstClock* the_clock)
+{
+    gst_pipeline_set_clock(GST_PIPELINE(m_pipeline), the_clock);
+    m_gst_clock = std::shared_ptr<GstClock>(the_clock, &gst_object_unref);
+}
+
 void GstUtil::set_eos()
 {
     {

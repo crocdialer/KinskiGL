@@ -61,6 +61,8 @@ public:
 
     GstElement* pipeline(){ return m_pipeline; }
 
+    void set_clock(GstClock* the_clock);
+
     GstClock* clock(){ return m_gst_clock.get(); }
 
     std::shared_ptr<GstBuffer> new_buffer();

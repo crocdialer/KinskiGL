@@ -90,6 +90,11 @@ public:
      */
     bool copy_frames_offline(gl::Texture &tex, bool compress = false);
 
+    /*!
+     *
+     */
+    bool use_net_time_provider(const std::string &the_ip, uint16_t the_port = 0);
+
 private:
 
     MediaController();
