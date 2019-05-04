@@ -10,7 +10,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "core/file_functions.hpp"
+#include <crocore/filesystem.hpp>
 #include "gl/gl.hpp"
 
 #include <gst/gst.h>
@@ -35,13 +35,14 @@
 
 #if defined(KINSKI_ARM)
 #include <gst/gl/egl/gstgldisplay_egl.h>
-#elif defined(KINSKI_LINUX)
+#elif defined(linux) || defined(__linux) || defined(__linux__)
+#define GST_UTIL_LINUX
 #include <gst/gl/x11/gstgldisplay_x11.h>
 #include "GLFW/glfw3.h"
 #define GLFW_EXPOSE_NATIVE_X11
 #define GLFW_EXPOSE_NATIVE_GLX
 #include "GLFW/glfw3native.h"
-#elif defined(KINSKI_MAC)
+#elif defined(__APPLE__)
 #include <gst/gl/cocoa/gstgldisplay_cocoa.h>
 #endif
 

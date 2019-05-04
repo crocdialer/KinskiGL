@@ -18,6 +18,8 @@
 
 #include "media/media.h"
 
+using namespace crocore;
+
 namespace kinski
 {
     class MediaPlayer : public ViewerApp
@@ -31,7 +33,7 @@ namespace kinski
         bool m_reload_media = false, m_needs_redraw = true;
         int m_is_syncing = 0;
         Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer, m_scan_media_timer, m_check_ip_timer;
-        
+
         net::udp_server m_udp_server;
         std::unordered_map<std::string, float> m_ip_timestamps;
         std::unordered_map<std::string, CircularBuffer<double>> m_ip_roundtrip;
@@ -39,9 +41,9 @@ namespace kinski
         std::string m_ip_adress;
         
         // properties
-        Property_<string>::Ptr
-        m_media_path = Property_<string>::create("media path", ""),
-        m_text_overlay = Property_<string>::create("text overlay", "");
+        Property_<std::string>::Ptr
+        m_media_path = Property_<std::string>::create("media path", ""),
+        m_text_overlay = Property_<std::string>::create("text overlay", "");
         
         Property_<bool>::Ptr
         m_scale_to_fit = Property_<bool>::create("scale_to_fit", false),
@@ -60,8 +62,8 @@ namespace kinski
         Property_<int>::Ptr
         m_broadcast_port = Property_<int>::create("discovery broadcast port", 55555);
 
-        Property_<std::vector<string>>::Ptr
-        m_playlist = Property_<std::vector<string>>::create("playlist");
+        Property_<std::vector<std::string>>::Ptr
+        m_playlist = Property_<std::vector<std::string>>::create("playlist");
 
         Property_<int>::Ptr
         m_playlist_index = Property_<int>::create("playlist index", -1);
@@ -82,8 +84,8 @@ namespace kinski
         void playlist_next();
         void playlist_prev();
         void playlist_track(size_t the_index);
-        const std::vector<string>& playlist() const { return m_playlist->value(); }
-        void set_playlist(const std::vector<string> &the_playlist){ m_playlist->set(the_playlist); };
+        const std::vector<std::string>& playlist() const { return m_playlist->value(); }
+        void set_playlist(const std::vector<std::string> &the_playlist){ m_playlist->set(the_playlist); };
 
     public:
 
@@ -104,7 +106,7 @@ namespace kinski
         void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches) override;
         void file_drop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void teardown() override;
-        void update_property(const Property::ConstPtr &theProperty) override;
+        void update_property(const PropertyConstPtr &theProperty) override;
         
         bool needs_redraw() const override;
 

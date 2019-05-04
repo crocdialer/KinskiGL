@@ -49,7 +49,7 @@ namespace kinski{ namespace media{
          * @return true if a new frame has been copied successfully,
          * false otherwise
          */
-        bool copy_frame_to_image(ImagePtr& the_image);
+        bool copy_frame_to_image(crocore::ImagePtr& the_image);
         
         /*!
          * upload the current frame to a gl::Texture object

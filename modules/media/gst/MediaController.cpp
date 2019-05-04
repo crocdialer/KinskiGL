@@ -1,3 +1,5 @@
+#include <deque>
+
 #include "GstUtil.h"
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
@@ -191,11 +193,11 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
                            RenderTarget the_render_target, AudioTarget the_audio_target)
 {
     std::string found_path;
-    if(fs::is_uri(filePath)){ found_path = filePath; }
+    if(crocore::fs::is_uri(filePath)){ found_path = filePath; }
     else
     {
-        try{ found_path = fs::search_file(filePath); }
-        catch(fs::FileNotFoundException &e)
+        try{ found_path = crocore::fs::search_file(filePath); }
+        catch(crocore::fs::FileNotFoundException &e)
         {
             LOG_ERROR << e.what();
             return;
@@ -222,7 +224,7 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
 
     std::string uri_path = filePath;
 
-    if(fs::is_uri(filePath)){ m_impl->m_stream = true; }
+    if(crocore::fs::is_uri(filePath)){ m_impl->m_stream = true; }
     else
     {
         GError* err = nullptr;
@@ -315,7 +317,7 @@ void MediaController::set_volume(float newVolume)
 {
     if(m_impl && m_impl->m_gst_util.pipeline())
     {
-        newVolume = clamp(newVolume, 0.f, 1.f);
+        newVolume = crocore::clamp(newVolume, 0.f, 1.f);
         m_impl->m_volume = newVolume;
         g_object_set(G_OBJECT(m_impl->m_gst_util.pipeline()), "volume", (gdouble)newVolume, nullptr);
     }
@@ -345,7 +347,7 @@ bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *he
 
 /////////////////////////////////////////////////////////////////
 
-bool MediaController::copy_frame_to_image(ImagePtr& the_image)
+bool MediaController::copy_frame_to_image(crocore::ImagePtr& the_image)
 {
     auto buf = m_impl->m_gst_util.new_buffer();
 
@@ -358,8 +360,8 @@ bool MediaController::copy_frame_to_image(ImagePtr& the_image)
         if(!the_image || the_image->width() != w || the_image->height() != h ||
            the_image->num_components() != num_channels)
         {
-            auto img = Image_<uint8_t >::create(w, h, num_channels);
-            img->m_type = Image::Type::RGBA;
+            auto img = crocore::Image_<uint8_t >::create(w, h, num_channels);
+            img->m_type = crocore::Image::Type::RGBA;
         }
 
         // map the buffer for reading
@@ -526,7 +528,7 @@ void MediaController::seek_to_time(double value)
 void MediaController::step_frame(int the_num_frames)
 {
     // adjust rate to allow reverse stepping
-    if(kinski::sgn<float>(m_impl->m_rate) != kinski::sgn(the_num_frames)){ set_rate(-rate()); }
+    if(crocore::sgn<float>(m_impl->m_rate) != crocore::sgn(the_num_frames)){ set_rate(-rate()); }
     m_impl->send_step_event(std::abs(the_num_frames));
 }
 

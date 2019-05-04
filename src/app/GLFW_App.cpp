@@ -223,12 +223,12 @@ void GLFW_App::init()
     crocore::fs::add_search_path("../Resources", true);
 
     //---------------------------------
-#if defined(KINSKI_MAC)
-    fs::add_search_path("/Library/Fonts");
-    fs::add_search_path("~/Library/Fonts");
-#elif defined(KINSKI_LINUX)
-    fs::add_search_path("~/.local/share/fonts");
-    fs::add_search_path("/usr/local/share/fonts");
+#if defined(__APPLE__)
+    crocore::fs::add_search_path("/Library/Fonts");
+    crocore::fs::add_search_path("~/Library/Fonts");
+#elif defined(linux) || defined(__linux) || defined(__linux__)
+    crocore::fs::add_search_path("~/.local/share/fonts");
+    crocore::fs::add_search_path("/usr/local/share/fonts");
 #endif
     //---------------------------------
 
@@ -654,7 +654,7 @@ void GLFW_App::s_file_drop_func(GLFWwindow *window, int num_files, const char **
     GLFW_App *app = static_cast<GLFW_App *>(glfwGetWindowUserPointer(window));
     std::vector<std::string> files(num_files);
 
-    for(uint32_t i = 0; i < num_files; i++){ files[i] = paths[i]; }
+    for(int32_t i = 0; i < num_files; i++){ files[i] = paths[i]; }
     uint32_t initiator, keyModifiers, bothMods;
     s_get_modifiers(window, initiator, keyModifiers);
     bothMods = initiator | keyModifiers;

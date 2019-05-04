@@ -139,7 +139,7 @@ void EmptySample::teardown()
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::update_property(const Property::ConstPtr &the_property)
+void EmptySample::update_property(const crocore::PropertyConstPtr &the_property)
 {
     ViewerApp::update_property(the_property);
 }

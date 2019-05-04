@@ -6,16 +6,13 @@
 //
 //
 
+#include <nlohmann/json.hpp>
 #include "MediaPlayer.hpp"
-#include "json.hpp"
 #include <mutex>
-
 
 using namespace std;
 using namespace kinski;
 using namespace glm;
-using json = nlohmann::json;
-
 
 namespace
 {
@@ -377,7 +374,7 @@ void MediaPlayer::teardown()
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
+void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
 {
     ViewerApp::update_property(theProperty);
 
@@ -579,18 +576,18 @@ float MediaPlayer::time_str_to_secs(const std::string &the_str) const
     switch(splits.size())
     {
         case 3:
-            secs = kinski::string_to<float>(splits[2]) +
-                   60.f * kinski::string_to<float>(splits[1]) +
-                   3600.f * kinski::string_to<float>(splits[0]) ;
+            secs = crocore::string_to<float>(splits[2]) +
+                   60.f * crocore::string_to<float>(splits[1]) +
+                   3600.f * crocore::string_to<float>(splits[0]) ;
             break;
 
         case 2:
-            secs = kinski::string_to<float>(splits[1]) +
-                   60.f * kinski::string_to<float>(splits[0]);
+            secs = crocore::string_to<float>(splits[1]) +
+                   60.f * crocore::string_to<float>(splits[0]);
             break;
 
         case 1:
-            secs = kinski::string_to<float>(splits[0]);
+            secs = crocore::string_to<float>(splits[0]);
             break;
 
         default:
@@ -738,7 +735,7 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
             << (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])) << " ms";
         
 //        ptr->close();
-        con->set_tcp_receive_cb();
+        con->set_tcp_receive_cb(net::tcp_connection::tcp_receive_cb_t());
     };
     con->set_connect_cb([this](ConnectionPtr the_con){ the_con->write("echo ping"); });
     con->set_tcp_receive_cb(receive_func);
@@ -800,7 +797,7 @@ void MediaPlayer::playlist_track(size_t the_index)
 {
     if(!m_playlist->value().empty())
     {
-        *m_playlist_index = clamp<size_t>(the_index, 0, m_playlist->value().size() - 1);
+        *m_playlist_index = crocore::clamp<size_t>(the_index, 0, m_playlist->value().size() - 1);
 //        *m_media_path = m_playlist->value()[*m_playlist_index];
     }
 }
@@ -873,39 +870,39 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("set_volume");
     register_function("set_volume", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_volume = kinski::string_to<float>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_volume = crocore::string_to<float>(rpc_args.front()); }
     });
 
     remote_control().add_command("volume", [this](net::tcp_connection_ptr con,
                                                   const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_volume = kinski::string_to<float>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_volume = crocore::string_to<float>(rpc_args.front()); }
         else{ con->write(to_string(m_media->volume())); }
     });
 
     remote_control().add_command("brightness", [this](net::tcp_connection_ptr con,
                                                       const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_brightness = kinski::string_to<float>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_brightness = crocore::string_to<float>(rpc_args.front()); }
         else{ con->write(to_string(m_brightness->value())); }
     });
 
     remote_control().add_command("set_brightness", [this](net::tcp_connection_ptr con,
                                                           const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_brightness = kinski::string_to<float>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_brightness = crocore::string_to<float>(rpc_args.front()); }
     });
 
     remote_control().add_command("set_rate");
     register_function("set_rate", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_playback_speed = kinski::string_to<float>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_playback_speed = crocore::string_to<float>(rpc_args.front()); }
     });
 
     remote_control().add_command("rate", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_playback_speed = kinski::string_to<float>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_playback_speed = crocore::string_to<float>(rpc_args.front()); }
         con->write(to_string(m_media->rate()));
     });
 
@@ -942,13 +939,13 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("set_loop");
     register_function("set_loop", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_loop = kinski::string_to<bool>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_loop = crocore::string_to<bool>(rpc_args.front()); }
     });
 
     remote_control().add_command("loop", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_loop = kinski::string_to<bool>(rpc_args.front()); }
+        if(!rpc_args.empty()){ *m_loop = crocore::string_to<bool>(rpc_args.front()); }
         con->write(to_string(m_media->loop()));
     });
 
@@ -979,7 +976,7 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("playstate", [this](net::tcp_connection_ptr con,
                                                      const std::vector<std::string> &rpc_args)
     {
-        ::json j =
+        json j =
         {
             {"path", m_media->path()},
             {"movie_index", m_playlist_index->value()},

@@ -67,7 +67,7 @@ void CameraController::start_capture()
                 "decodebin !"
                 "videoconvert !"
                 "appsink name=%s enable-last-sample=0 caps=\"video/x-raw,format=RGB\"";
-        pipeline_str = format(pipeline_str, m_impl->m_device_id, w, h, fps_nom, fps_denom, app_sink_name);
+        pipeline_str = crocore::format(pipeline_str, m_impl->m_device_id, w, h, fps_nom, fps_denom, app_sink_name);
         GError *error = nullptr;
 
         // construct a pipeline
@@ -122,7 +122,7 @@ bool CameraController::copy_frame(std::vector<uint8_t>& out_data, int *width, in
 
 /////////////////////////////////////////////////////////////////
 
-bool CameraController::copy_frame_to_image(ImagePtr& the_image)
+bool CameraController::copy_frame_to_image(crocore::ImagePtr& the_image)
 {
     auto buf = m_impl->m_gst_util.new_buffer();
 
@@ -135,8 +135,8 @@ bool CameraController::copy_frame_to_image(ImagePtr& the_image)
         if(!the_image || the_image->width() != w || the_image->height() != h ||
            the_image->num_components() != num_channels)
         {
-            auto img = Image_<uint8_t>::create(w, h, num_channels);
-            img->m_type = Image::Type::RGB;
+            auto img = crocore::Image_<uint8_t>::create(w, h, num_channels);
+            img->m_type = crocore::Image::Type::RGB;
             the_image = img;
         }
 
