@@ -32,7 +32,7 @@ namespace kinski
         gl::FboPtr m_offscreen_fbo;
         
         // properties
-        Property_<float>::Ptr m_circle_radius = Property_<float>::create("circle radius", 65.f);
+        crocore::Property_<float>::Ptr m_circle_radius = crocore::Property_<float>::create("circle radius", 65.f);
         
     public:
         TouchSample(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};
@@ -52,13 +52,13 @@ namespace kinski
         void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches) override;
         void file_drop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void teardown() override;
-        void update_property(const Property::ConstPtr &theProperty) override;
+        void update_property(const crocore::PropertyConstPtr &theProperty) override;
     };
 }// namespace kinski
 
 int main(int argc, char *argv[])
 {
     auto theApp = std::make_shared<kinski::TouchSample>(argc, argv);
-    LOG_INFO<<"local ip: " << kinski::net::local_ip();
+    LOG_INFO << "local ip: " << crocore::net::local_ip();
     return theApp->run();
 }

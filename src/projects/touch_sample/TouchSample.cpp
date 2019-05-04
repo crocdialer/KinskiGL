@@ -176,7 +176,7 @@ void TouchSample::teardown()
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::update_property(const Property::ConstPtr &theProperty)
+void TouchSample::update_property(const crocore::PropertyConstPtr &theProperty)
 {
     ViewerApp::update_property(theProperty);
 }
