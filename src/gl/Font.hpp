@@ -13,12 +13,12 @@
 
 #pragma once
 
+#include <crocore/Image.hpp>
 #include "gl/gl.hpp"
-#include "core/Image.hpp"
 
 namespace kinski { namespace gl {
     
-class KINSKI_API Font
+class Font
 {
 public:
 
@@ -33,7 +33,7 @@ public:
 
     gl::AABB create_aabb(const std::string &theText) const;
 
-    ImagePtr create_image(const std::string &theText, const vec4 &theColor = vec4(1)) const;
+    crocore::ImagePtr create_image(const std::string &theText, const vec4 &theColor = vec4(1)) const;
     Texture create_texture(const std::string &theText, const vec4 &theColor = vec4(1)) const;
     gl::MeshPtr create_mesh(const std::string &theText, const vec4 &theColor = vec4(1)) const;
 

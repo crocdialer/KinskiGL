@@ -81,4 +81,9 @@ if(${CMAKE_BUILD_TYPE} IN_LIST RELEASE_BUILDS)
     list(APPEND CXX_FLAGS "-O3")
 endif()
 
-ADD_SUBDIRECTORY("src")
+#crocore
+add_subdirectory("crocore")
+include_directories(${crocore_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${crocore_LIBRARIES})
+
+add_subdirectory("src")

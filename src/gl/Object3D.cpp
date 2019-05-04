@@ -26,7 +26,7 @@ namespace kinski { namespace gl {
     
     Object3D::Object3D():
     m_id(s_id_pool++),
-    m_name("Object3D_" + to_string(m_id)),
+    m_name("Object3D_" + std::to_string(m_id)),
     m_enabled(true),
     m_billboard(false)
     {

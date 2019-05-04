@@ -2,7 +2,7 @@
 // Created by Fabian on 02.05.17.
 //
 
-#include "core/ThreadPool.hpp"
+#include <crocore/ThreadPool.hpp>
 #include "Mesh.hpp"
 #include "Camera.hpp"
 #include "Light.hpp"
@@ -478,7 +478,8 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
 gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 {
 #if !defined(KINSKI_GLES_2)
-    auto task = Task::create("cubemap diffuse convolution");
+    auto task = crocore::Task::create("cubemap diffuse convolution");
+
     constexpr uint32_t conv_size = 64;
     constexpr GLenum data_type = GL_FLOAT;
 
@@ -517,7 +518,7 @@ gl::Texture DeferredRenderer::create_env_diff(const gl::Texture &the_env_tex)
 gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 {
 #if !defined(KINSKI_GLES_2)
-    auto task = Task::create("cubemap specular convolution");
+    auto task = crocore::Task::create("cubemap specular convolution");
     constexpr uint32_t conv_size = 256;
     constexpr uint32_t num_color_components = 3;
     constexpr GLenum data_type = GL_FLOAT;
@@ -598,7 +599,7 @@ gl::Texture DeferredRenderer::create_env_spec(const gl::Texture &the_env_tex)
 gl::Texture DeferredRenderer::create_brdf_lut()
 {
 #if !defined(KINSKI_GLES_2)
-    auto task = Task::create("BRDF-lut baking");
+    auto task = crocore::Task::create("BRDF-lut baking");
     constexpr uint32_t tex_size = 512;
     gl::Fbo::Format fmt;
     fmt.color_internal_format = GL_RG32F;

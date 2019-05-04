@@ -17,6 +17,7 @@
 #include "gl/SerializerGL.hpp"
 #include "RemoteControl.hpp"
 
+using namespace crocore;
 using namespace kinski;
 
 RemoteControl::RemoteControl(io_service_t &io, const std::list<ComponentPtr> &the_list)
@@ -31,14 +32,14 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
     m_tcp_server.start_listen(tcp_port);
     m_tcp_server.set_connection_callback(std::bind(&RemoteControl::new_connection_cb,
                                                    this, std::placeholders::_1));
-    
-    add_command("request_state", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
+
+    add_command("request_state", [this](net::tcp_connection_ptr con, const std::vector<std::string> &)
     {
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL(), true));
+        con->write(serializer::serialize(components(), PropertyIO_GL(), true));
     });
-    
-    add_command("load_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
+
+    add_command("load_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string> &)
     {
         for(auto &comp : components())
         {
@@ -46,10 +47,10 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         }
 
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL(), true));
+        con->write(serializer::serialize(components(), PropertyIO_GL(), true));
     });
-    
-    add_command("save_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
+
+    add_command("save_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string> &)
     {
         for(auto &comp : components())
         {
@@ -57,55 +58,59 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         }
 
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL(), true));
+        con->write(serializer::serialize(components(), PropertyIO_GL(), true));
     });
-    
+
     add_command("log_stream", [](net::tcp_connection_ptr con,
-                                     const std::vector<std::string>& the_args)
+                                 const std::vector<std::string> &the_args)
     {
         LOG_TRACE << "adding log_stream: " << con->remote_ip();
         Logger::get()->add_outstream(con);
     });
-    
-    add_command("echo", [](net::tcp_connection_ptr con, const std::vector<std::string>& the_args)
+
+    add_command("echo", [](net::tcp_connection_ptr con, const std::vector<std::string> &the_args)
     {
         // send an echo
         if(!the_args.empty()){ con->write(the_args.front()); }
     });
-    
+
     add_command("generate_snapshot", [this](net::tcp_connection_ptr con,
-                                            const std::vector<std::string>& the_args)
+                                            const std::vector<std::string> &the_args)
     {
         for(auto &comp : components())
         {
             if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
             {
                 ptr->main_queue().submit([con, ptr]()
-                {
-                    LOG_DEBUG << "generate_snapshot ...";
-                    Stopwatch timer;
-                    timer.start();
+                                         {
+                                             LOG_DEBUG << "generate_snapshot ...";
+                                             Stopwatch timer;
+                                             timer.start();
 
-                    ImagePtr img;
+                                             ImagePtr img;
 
-                    if(false)
-                    {
-                        ptr->generate_snapshot();
-                        img = gl::create_image_from_framebuffer(ptr->snapshot_fbo());
-                    }
-                    else{ img = gl::create_image_from_framebuffer(); }
+                                             if(false)
+                                             {
+                                                 ptr->generate_snapshot();
+                                                 img = gl::create_image_from_framebuffer(ptr->snapshot_fbo());
+                                             }else{ img = gl::create_image_from_framebuffer(); }
 
-                    ptr->background_queue().submit([con, img]()
-                    {
-                        LOG_DEBUG << "compressing snapshot data ...";
-                        auto compressed_data = encode_jpg(img);
-                        auto message = std::vector<uint8_t>(4);
-                        *(uint32_t*)(&message[0]) = compressed_data.size();
-                        message.insert(message.end(), compressed_data.begin(), compressed_data.end());
-                        con->write(message);
-                        LOG_DEBUG << "sending snapshot: " << compressed_data.size() << " bytes";
-                    });
-                });
+                                             ptr->background_queue().submit([con, img]()
+                                                                            {
+                                                                                LOG_DEBUG
+                                                                                << "compressing snapshot data ...";
+                                                                                auto compressed_data = encode_jpg(img);
+                                                                                auto message = std::vector<uint8_t>(4);
+                                                                                *(uint32_t *)(&message[0]) = compressed_data.size();
+                                                                                message.insert(message.end(),
+                                                                                               compressed_data.begin(),
+                                                                                               compressed_data.end());
+                                                                                con->write(message);
+                                                                                LOG_DEBUG << "sending snapshot: "
+                                                                                          << compressed_data.size()
+                                                                                          << " bytes";
+                                                                            });
+                                         });
 
 
                 return;
@@ -113,18 +118,20 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         }
 
         // send the state string via tcp
-        con->write(json::serialize(components(), PropertyIO_GL(), true));
+        con->write(serializer::serialize(components(), PropertyIO_GL(), true));
     });
-    
+
     m_udp_server.start_listen(udp_port);
-    m_udp_server.set_receive_function([this](const std::vector<uint8_t>& the_data,
-                                             const std::string& the_ip,
+    m_udp_server.set_receive_function([this](const std::vector<uint8_t> &the_data,
+                                             const std::string &the_ip,
                                              uint16_t the_port)
-    {
-        LOG_TRACE_2 << "incoming udp(" << m_udp_server.listening_port() << "): " << the_ip
-            << ": " << the_port << "\n" <<string(the_data.begin(), the_data.end());
-        receive_cb(nullptr, the_data);
-    });
+                                      {
+                                          LOG_TRACE_2 << "incoming udp(" << m_udp_server.listening_port() << "): "
+                                                      << the_ip
+                                                      << ": " << the_port << "\n"
+                                                      << std::string(the_data.begin(), the_data.end());
+                                          receive_cb(nullptr, the_data);
+                                      });
 }
 
 uint16_t RemoteControl::tcp_port() const
@@ -137,7 +144,7 @@ uint16_t RemoteControl::udp_port() const
     return m_udp_server.listening_port();
 }
 
-void RemoteControl::set_components(const std::list<ComponentPtr>& the_components)
+void RemoteControl::set_components(const std::list<ComponentPtr> &the_components)
 {
     m_components.assign(the_components.begin(), the_components.end());
 }
@@ -150,46 +157,46 @@ void RemoteControl::stop_listen()
 
 void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
 {
-    LOG_TRACE << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
-    << " : " << con->remote_port();
-    
+    LOG_TRACE << "port: " << con->port() << " -- new connection with: " << con->remote_ip()
+              << " : " << con->remote_port();
+
     // manage existing tcp connections
     std::vector<net::tcp_connection_ptr> tmp;
-    
-    for (auto &con : m_tcp_connections)
+
+    for(auto &con : m_tcp_connections)
     {
         if(con->is_open()){ tmp.push_back(con); }
     }
     m_tcp_connections = tmp;
     m_tcp_connections.push_back(con);
-    
+
     con->set_tcp_receive_cb(std::bind(&RemoteControl::receive_cb, this, std::placeholders::_1,
                                       std::placeholders::_2));
 }
 
 void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
-                               const std::vector<uint8_t>& response)
+                               const std::vector<uint8_t> &response)
 {
     auto lines = split(std::string(response.begin(), response.end()), '\n');
     bool cmd_found = false;
-    
+
     for(const auto &l : lines)
     {
         auto tokens = split(l, ' ');
-        
+
         if(!tokens.empty())
         {
             auto iter = m_command_map.find(tokens.front());
-            
+
             if(iter != m_command_map.end())
             {
                 std::vector<std::string> args(++tokens.begin(), tokens.end());
-                
+
                 LOG_TRACE_1 << "Executing command: " << iter->first;
                 cmd_found = true;
-                
+
                 for(const auto &a : args){ LOG_TRACE_1 << "arg: " << a; }
-                
+
                 // call the function object
                 iter->second(rec_con, args);
             }
@@ -199,13 +206,13 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
     {
         try
         {
-            string str(response.begin(), response.end());
-            
-            if(json::is_valid(str))
+            std::string str(response.begin(), response.end());
+
+            if(serializer::is_valid_json(str))
             {
-                json::apply_state(components(), str, PropertyIO_GL());
+                serializer::apply_state(components(), str, PropertyIO_GL());
             }
-        } catch (std::exception &e){ LOG_ERROR << e.what(); }
+        }catch(std::exception &e) { LOG_ERROR << e.what(); }
     }
 }
 
@@ -214,7 +221,7 @@ RemoteControl::components()
 {
     std::list<ComponentPtr> ret;
     std::list<ComponentWeakPtr> weak_comps;
-    
+
     for(auto &weak_comp : m_components)
     {
         ComponentPtr ptr = weak_comp.lock();
@@ -247,6 +254,6 @@ void RemoteControl::add_command(const std::string &the_cmd, remote_cb_t the_cb)
 void RemoteControl::remove_command(const std::string &the_cmd)
 {
     auto iter = m_command_map.find(the_cmd);
-    
+
     if(iter != m_command_map.end()){ m_command_map.erase(iter); }
 }

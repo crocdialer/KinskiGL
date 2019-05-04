@@ -15,7 +15,7 @@
 
 namespace kinski{ namespace gl{
 
-struct KINSKI_API Face3
+struct Face3
 {
     Face3():a(0), b(0), c(0){};
     Face3(index_t theA, index_t theB, index_t theC):
@@ -30,7 +30,7 @@ struct KINSKI_API Face3
 };
 
 // each vertex can reference up to 4 bones
-struct KINSKI_API BoneVertexData
+struct BoneVertexData
 {
     ivec4 indices;
     vec4 weights;
@@ -54,7 +54,7 @@ struct HalfEdge
 
 std::vector<HalfEdge> compute_half_edges(gl::GeometryPtr the_geom);
 
-class KINSKI_API Geometry
+class Geometry
 {
 public:
     

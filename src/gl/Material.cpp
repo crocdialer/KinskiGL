@@ -40,7 +40,7 @@ namespace kinski { namespace gl {
     m_depth_test(true),
     m_depth_write(true),
     m_stencil_test(false),
-    m_scissor_rect(Area_<uint32_t>()),
+    m_scissor_rect(crocore::Area_<uint32_t>()),
     m_blending(false),
     m_blend_src(GL_SRC_ALPHA), m_blend_dst(GL_ONE_MINUS_SRC_ALPHA),
     m_blend_equation(GL_FUNC_ADD),
@@ -215,7 +215,7 @@ namespace kinski { namespace gl {
         m_queued_textures[the_texture_path] = {the_key, nullptr, AssetLoadStatus::NOT_LOADED};
     }
 
-    void Material::enqueue_texture(const std::string &the_texture_path, ImagePtr the_image, uint32_t the_key)
+    void Material::enqueue_texture(const std::string &the_texture_path, crocore::ImagePtr the_image, uint32_t the_key)
     {
         if(the_image){ m_queued_textures[the_texture_path] = {the_key, the_image, AssetLoadStatus::IMAGE_LOADED}; }
         else{ enqueue_texture(the_texture_path, the_key); }

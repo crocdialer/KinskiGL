@@ -4,25 +4,25 @@
 
 namespace kinski{ namespace gui {
 
-KINSKI_API bool init(kinski::App *the_app);
+bool init(kinski::App *the_app);
 
-KINSKI_API void shutdown();
+void shutdown();
 
-KINSKI_API void new_frame();
+void new_frame();
 
-KINSKI_API void end_frame();
+void end_frame();
 
-KINSKI_API void render();
+void render();
 
-KINSKI_API void invalidate_device_objects();
+void invalidate_device_objects();
 
-KINSKI_API bool create_device_objects();
+bool create_device_objects();
 
-KINSKI_API void mouse_press(const MouseEvent &e);
-KINSKI_API void mouse_wheel(const MouseEvent &e);
+void mouse_press(const MouseEvent &e);
+void mouse_wheel(const MouseEvent &e);
 
-KINSKI_API void key_press(const KeyEvent &e);
-KINSKI_API void key_release(const KeyEvent &e);
-KINSKI_API void char_callback(uint32_t c);
+void key_press(const KeyEvent &e);
+void key_release(const KeyEvent &e);
+void char_callback(uint32_t c);
 
 }}// namespace

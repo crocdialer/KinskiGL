@@ -16,6 +16,8 @@
 #include "app/ViewerApp.hpp"
 #include "gl/DeferredRenderer.hpp"
 
+using namespace crocore;
+
 namespace kinski
 {
     class ModelViewer : public ViewerApp
@@ -78,8 +80,8 @@ namespace kinski
         Property_<gl::vec2>::Ptr
         m_blur_amount = Property_<gl::vec2>::create("blur amount", gl::vec2(1.f));
 
-        void build_skeleton(gl::BonePtr currentBone, const glm::mat4 start_transform,
-                            vector<gl::vec3> &points, vector<string> &bone_names);
+        void build_skeleton(gl::BonePtr currentBone, const glm::mat4 &start_transform,
+                            std::vector<glm::vec3> &points, std::vector<std::string> &bone_names);
         
         //! asset loading routine
         gl::MeshPtr load_asset(const std::string &the_path);
@@ -115,7 +117,7 @@ namespace kinski
         void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches) override;
         void file_drop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void teardown() override;
-        void update_property(const Property::ConstPtr &theProperty) override;
+        void update_property(const crocore::PropertyConstPtr &theProperty) override;
 
         void update_fbos();
     };

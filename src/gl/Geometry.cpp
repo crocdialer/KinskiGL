@@ -8,7 +8,9 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include <unordered_map>
-#include "core/Timer.hpp"
+
+#include <crocore/Timer.hpp>
+
 #include "Geometry.hpp"
 
 using namespace std;
@@ -23,7 +25,7 @@ namespace
 
 std::vector<HalfEdge> compute_half_edges(gl::GeometryPtr the_geom)
 {
-    Stopwatch timer;
+    crocore::Stopwatch timer;
     timer.start();
     
     std::vector<HalfEdge> ret(3 * the_geom->faces().size());

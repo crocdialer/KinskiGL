@@ -248,7 +248,7 @@ void Texture::set_roi(int the_x, int the_y, uint32_t the_width, uint32_t the_hei
     m_textureMatrix = translate(mat4(), offset) * scale(mat4(), sc);
 }
     
-void Texture::set_roi(const Area_<uint32_t> &the_roi)
+void Texture::set_roi(const crocore::Area_<uint32_t> &the_roi)
 {
     set_roi(the_roi.x0, the_roi.y0, the_roi.width(), the_roi.height());
 }

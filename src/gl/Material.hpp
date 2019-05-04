@@ -20,7 +20,7 @@ namespace kinski { namespace gl {
     
     DEFINE_CLASS_PTR(Material);
     
-    class KINSKI_API Material
+    class Material
     {
     public:
         
@@ -43,7 +43,7 @@ namespace kinski { namespace gl {
         struct texture_load_status_t
         {
             uint32_t key;
-            ImagePtr image;
+            crocore::ImagePtr image;
             AssetLoadStatus status;
         };
         using texture_load_map_t = std::map<std::string, texture_load_status_t>;
@@ -90,7 +90,7 @@ namespace kinski { namespace gl {
         
         void enqueue_texture(const std::string &the_texture_path, uint32_t the_key);
 
-        void enqueue_texture(const std::string &the_texture_path, ImagePtr the_image, uint32_t the_key);
+        void enqueue_texture(const std::string &the_texture_path, crocore::ImagePtr the_image, uint32_t the_key);
 
         void enqueue_shader(gl::ShaderType the_type);
         
@@ -118,8 +118,8 @@ namespace kinski { namespace gl {
 
         void set_stencil_test(bool b = true) { m_stencil_test = b;};
 
-        const Area_<uint32_t> scissor_rect() const { return m_scissor_rect; };
-        void set_scissor_rect(const Area_<uint32_t> &the_rect) { m_scissor_rect = the_rect; };
+        const crocore::Area_<uint32_t> scissor_rect() const { return m_scissor_rect; };
+        void set_scissor_rect(const crocore::Area_<uint32_t> &the_rect) { m_scissor_rect = the_rect; };
 
         //! bitmask with values from CULL_FRONT, CULL_BACK
         uint32_t culling() const { return m_cull_value; }
@@ -170,7 +170,7 @@ namespace kinski { namespace gl {
         bool m_depth_test;
         bool m_depth_write;
         bool m_stencil_test;
-        Area_<uint32_t> m_scissor_rect;
+        crocore::Area_<uint32_t> m_scissor_rect;
         bool m_blending;
         GLenum m_blend_src, m_blend_dst, m_blend_equation;
 

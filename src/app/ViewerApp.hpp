@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include "core/Timer.hpp"
-#include "core/Animation.hpp"
-#include "core/CircularBuffer.hpp"
+#include <crocore/Timer.hpp>
+#include <crocore/CircularBuffer.hpp>
+
 #include "app/RemoteControl.hpp"
 #include "app/LightComponent.hpp"
 #include "app/WarpComponent.hpp"
@@ -52,9 +52,9 @@ namespace kinski {
         void resize(int w, int h) override;
         
         // Property observer callback
-        void update_property(const Property::ConstPtr &theProperty) override;
-        
-        Property_<std::vector<std::string> >::Ptr search_paths(){return m_search_paths;}
+        void update_property(const crocore::PropertyConstPtr &theProperty) override;
+
+        crocore::Property_<std::vector<std::string> >::Ptr search_paths(){return m_search_paths;}
         bool draw_grid() const { return *m_draw_grid; };
         const gl::Color& clear_color(){ return *m_clear_color; };
         void clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
@@ -77,9 +77,6 @@ namespace kinski {
         
         std::vector<gl::Font>& fonts() { return m_fonts; };
         const std::vector<gl::Font>& fonts() const { return m_fonts; };
-        
-        std::vector<animation::AnimationPtr>& animations() { return m_animations; };
-        const std::vector<animation::AnimationPtr>& animations() const { return m_animations; };
         
         const gl::ScenePtr& scene() const { return m_scene; };
         gl::ScenePtr& scene() { return m_scene; };
@@ -128,8 +125,6 @@ namespace kinski {
         std::vector<gl::Texture> m_textures {16};
         gl::Texture m_snapshot_texture;
         
-        std::vector<animation::AnimationPtr> m_animations{10};
-        
         bool m_precise_selection;
         bool m_center_selected;
         glm::vec3 m_look_at_tmp;
@@ -137,33 +132,33 @@ namespace kinski {
         gl::FboPtr m_snapshot_fbo;
         
         std::string m_default_config_path = "./";
-        
-        Property_<std::vector<std::string> >::Ptr m_search_paths;
-        RangedProperty<int>::Ptr m_logger_severity;
-        Property_<bool>::Ptr m_show_tweakbar;
-        Property_<bool>::Ptr m_hide_cursor;
-        Property_<glm::vec2>::Ptr m_window_size;
-        Property_<bool>::Ptr m_fullscreen;
-        Property_<bool>::Ptr m_v_sync;
+
+        crocore::Property_<std::vector<std::string> >::Ptr m_search_paths;
+        crocore::RangedProperty<int>::Ptr m_logger_severity;
+        crocore::Property_<bool>::Ptr m_show_tweakbar;
+        crocore::Property_<bool>::Ptr m_hide_cursor;
+        crocore::Property_<glm::vec2>::Ptr m_window_size;
+        crocore::Property_<bool>::Ptr m_fullscreen;
+        crocore::Property_<bool>::Ptr m_v_sync;
 
         bool m_dirty_cam = true;
-        RangedProperty<float>::Ptr m_distance;
-        Property_<glm::mat3>::Ptr m_rotation;
-        Property_<float>::Ptr m_camera_fov;
-        Property_<glm::vec3>::Ptr m_look_at;
-        
-        RangedProperty<float>::Ptr m_rotation_speed;
-        Property_<glm::vec3>::Ptr m_rotation_axis;
-        Property_<bool>::Ptr m_draw_grid;
-        Property_<bool>::Ptr m_use_warping;
-        Property_<gl::Color>::Ptr m_clear_color;
+        crocore::RangedProperty<float>::Ptr m_distance;
+        crocore::Property_<glm::mat3>::Ptr m_rotation;
+        crocore::Property_<float>::Ptr m_camera_fov;
+        crocore::Property_<glm::vec3>::Ptr m_look_at;
+
+        crocore::RangedProperty<float>::Ptr m_rotation_speed;
+        crocore::Property_<glm::vec3>::Ptr m_rotation_axis;
+        crocore::Property_<bool>::Ptr m_draw_grid;
+        crocore::Property_<bool>::Ptr m_use_warping;
+        crocore::Property_<gl::Color>::Ptr m_clear_color;
         
         // mouse rotation control
         glm::vec2 m_clickPos, m_dragPos, m_inertia;
         float m_rotation_damping;
         bool m_mouse_down;
         glm::mat3 m_lastTransform;
-        CircularBuffer<gl::vec2> m_drag_buffer;
+        crocore::CircularBuffer<gl::vec2> m_drag_buffer;
         
         // control module for light objects
         LightComponentPtr m_light_component;

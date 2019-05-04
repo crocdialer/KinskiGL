@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <stack>
 #include "Mesh.hpp"
 #include "Light.hpp"
 #include "Camera.hpp"
@@ -53,7 +54,7 @@ namespace kinski { namespace gl {
         {
             for(const auto &t : obj_tags)
             {
-                if(kinski::contains(filter_tags, t)){ return true; }
+                if(crocore::contains(filter_tags, t)){ return true; }
             }
             return filter_tags.empty();
         }

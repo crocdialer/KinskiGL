@@ -21,7 +21,7 @@ namespace kinski{ namespace gl{
     
 DEFINE_CLASS_PTR(RenderBin);
 
-class KINSKI_API RenderBin
+class RenderBin
 {
 public:
 
@@ -59,7 +59,7 @@ void sort_render_bin(const RenderBinPtr &the_bin,
 
 DEFINE_CLASS_PTR(SceneRenderer);
 
-class KINSKI_API SceneRenderer
+class SceneRenderer
 {
 public:
 

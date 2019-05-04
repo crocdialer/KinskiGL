@@ -34,14 +34,14 @@ struct ray_triangle_intersection;
 
 /********************************** Ray intersection tests ****************************************/
 
-KINSKI_API ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray);
-KINSKI_API ray_triangle_intersection intersect(const Triangle &theTri, const Ray &theRay);
-KINSKI_API ray_intersection intersect(const Sphere &theSphere, const Ray &theRay);
-KINSKI_API ray_intersection intersect(const AABB &theAABB, const Ray& theRay);
-KINSKI_API ray_intersection intersect(const OBB &theOBB, const Ray& theRay);
+ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray);
+ray_triangle_intersection intersect(const Triangle &theTri, const Ray &theRay);
+ray_intersection intersect(const Sphere &theSphere, const Ray &theRay);
+ray_intersection intersect(const AABB &theAABB, const Ray& theRay);
+ray_intersection intersect(const OBB &theOBB, const Ray& theRay);
 
-KINSKI_API gl::AABB compute_aabb(const std::vector<vec3> &theVertices);
-KINSKI_API vec3 calculate_centroid(const std::vector<vec3> &theVertices);
+gl::AABB compute_aabb(const std::vector<vec3> &theVertices);
+vec3 calculate_centroid(const std::vector<vec3> &theVertices);
 
 /**
  *    A  +-------------+  B
@@ -50,9 +50,9 @@ KINSKI_API vec3 calculate_centroid(const std::vector<vec3> &theVertices);
  *    /                   \
  * D +-------------------- +  C
  */
-KINSKI_API gl::mat4 calculate_homography(const vec2 src[4], const vec2 dst[4]);
+gl::mat4 calculate_homography(const vec2 src[4], const vec2 dst[4]);
     
-struct KINSKI_API Ray
+struct Ray
 {
     vec3 origin;
 	vec3 direction;
@@ -83,7 +83,7 @@ struct KINSKI_API Ray
 /*!
  * Encapsulates type of intersection and distance along the ray.
  */
-struct KINSKI_API ray_intersection
+struct ray_intersection
 {
     intersection_type type;
     float distance;
@@ -97,7 +97,7 @@ struct KINSKI_API ray_intersection
  * Encapsulates type of intersection and distance along the ray.
  * Additionally adds the coordinates within the triangle.
  */
-struct KINSKI_API ray_triangle_intersection : public ray_intersection
+struct ray_triangle_intersection : public ray_intersection
 {
     float u, v;
     
@@ -106,7 +106,7 @@ struct KINSKI_API ray_triangle_intersection : public ray_intersection
     :ray_intersection(theType, theDistance), u(theU), v(theV){}
 };
 
-struct KINSKI_API Plane
+struct Plane
 {
     // Ax + By + Cz + D = 0
     vec4 coefficients;
@@ -142,7 +142,7 @@ struct KINSKI_API Plane
     }
 };
 
-struct KINSKI_API Triangle
+struct Triangle
 {
 	vec3 v0 ;
 	vec3 v1 ;
@@ -177,7 +177,7 @@ struct KINSKI_API Triangle
     };
 };
 
-struct KINSKI_API Sphere
+struct Sphere
 {
 
 	vec3 center;
@@ -220,7 +220,7 @@ struct KINSKI_API Sphere
 /*
  *simple Axis aligned bounding box (AABB) structure
  */
-struct KINSKI_API AABB
+struct AABB
 {	
 	vec3 min;
 	vec3 max;
@@ -302,7 +302,7 @@ struct KINSKI_API AABB
 	uint32_t intersect(const Triangle& t) const ;
 };
     
-struct KINSKI_API OBB
+struct OBB
 {
     vec3 center;
     vec3 axis[3];
@@ -334,7 +334,7 @@ struct KINSKI_API OBB
     };
 };
 
-struct KINSKI_API Frustum
+struct Frustum
 {
 	Plane planes [6];
 

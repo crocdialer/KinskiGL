@@ -65,7 +65,7 @@ uint8_t* Buffer::map(GLenum mode)
     uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_impl->target, mode);
 #endif
     
-    if(!ptr) throw Exception("Could not map gl::Buffer");
+    if(!ptr) throw std::runtime_error("Could not map gl::Buffer");
     
     glBindBuffer(m_impl->target, 0);
     return ptr;
@@ -83,7 +83,7 @@ const uint8_t* Buffer::map(GLenum mode) const
     const uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_impl->target, mode);
 #endif
     
-    if(!ptr) throw Exception("Could not map gl::Buffer");
+    if(!ptr) throw std::runtime_error("Could not map gl::Buffer");
     
     glBindBuffer(m_impl->target, 0);
     return ptr;

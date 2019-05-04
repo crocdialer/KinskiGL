@@ -14,7 +14,7 @@
 
 namespace kinski{ namespace gl{
 
-class KINSKI_API Buffer
+class Buffer
 {
  public:
     

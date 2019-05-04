@@ -6,8 +6,6 @@
 //
 //
 
-//#include <app/imgui/ImGuizmo.h>
-#include "core/Image.hpp"
 #include "ModelViewer.h"
 #include "assimp/assimp.hpp"
 #include "gl_post_process/Blur.hpp"
@@ -80,7 +78,6 @@ void ModelViewer::setup()
     ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
     ground_mesh->add_tag(tag_ground_plane);
     scene()->add_object(ground_mesh);
-
     load_settings();
 
     // initial fbo setup
@@ -283,7 +280,7 @@ void ModelViewer::update_fbos()
         {
             gl::Fbo::Format fmt;
             try{ m_offscreen_fbo = gl::Fbo::create(sz, fmt); }
-            catch(Exception &e){ LOG_WARNING << e.what(); }
+            catch(std::exception &e){ LOG_WARNING << e.what(); }
         }
     }
     if(*m_use_post_process)
@@ -292,7 +289,7 @@ void ModelViewer::update_fbos()
         {
             gl::Fbo::Format fmt;
             try{ m_post_process_fbo = gl::Fbo::create(sz, fmt); }
-            catch(Exception &e){ LOG_WARNING << e.what(); }
+            catch(std::exception &e){ LOG_WARNING << e.what(); }
         }
 
         // check material
@@ -302,7 +299,7 @@ void ModelViewer::update_fbos()
             {
                 gl::ShaderPtr shader = create_shader(gl::ShaderType::DEPTH_OF_FIELD);
                 m_post_process_mat = gl::Material::create(shader);
-            }catch(Exception &e){ LOG_WARNING << e.what(); }
+            }catch(std::exception &e){ LOG_WARNING << e.what(); }
         }
 
         camera()->set_clipping(0.1f, 5000.f);
@@ -462,7 +459,7 @@ void ModelViewer::teardown()
 
 /////////////////////////////////////////////////////////////////
 
-void ModelViewer::update_property(const Property::ConstPtr &theProperty)
+void ModelViewer::update_property(const PropertyConstPtr &theProperty)
 {
     ViewerApp::update_property(theProperty);
 
@@ -592,7 +589,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
 
 /////////////////////////////////////////////////////////////////
 
-void ModelViewer::build_skeleton(gl::BonePtr currentBone, const glm::mat4 start_transform,
+void ModelViewer::build_skeleton(gl::BonePtr currentBone, const glm::mat4 &start_transform,
                                  vector<gl::vec3> &points, vector<string> &bone_names)
 {
     if(!currentBone) return;
@@ -735,7 +732,7 @@ void ModelViewer::update_shader()
         }
 
         try{ shader = gl::create_shader(type); }
-        catch(Exception &e){ LOG_WARNING << e.what(); }
+        catch(std::exception &e){ LOG_WARNING << e.what(); }
 
         auto t = (uint32_t)gl::Texture::Usage::NORMAL;
 

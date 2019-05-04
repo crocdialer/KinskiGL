@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "core/CircularBuffer.hpp"
+#include <crocore/CircularBuffer.hpp>
 #include "gl/gl.hpp"
 #include "gl/Font.hpp"
 #include "gl/Fbo.hpp"
@@ -28,7 +28,7 @@ namespace kinski{ namespace gl{
         explicit OutstreamGL(const gl::Font &the_font, uint32_t max_lines = 11);
         virtual ~OutstreamGL();
         
-        const CircularBuffer<std::string>& lines() const { return m_lines; };
+        const crocore::CircularBuffer<std::string>& lines() const { return m_lines; };
         uint32_t max_lines() const { return m_lines.capacity(); }
         void set_max_lines(uint32_t ml){ m_lines.set_capacity(ml); }
         
@@ -46,7 +46,7 @@ namespace kinski{ namespace gl{
         
         gl::Font m_font;
         gl::Color m_color;
-        CircularBuffer<std::string> m_lines;
+        crocore::CircularBuffer<std::string> m_lines;
         gl::FboPtr m_fbo;
         gl::ScenePtr m_gui_scene;
         gl::MaterialPtr m_blend_material;

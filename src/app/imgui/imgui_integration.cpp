@@ -3,12 +3,13 @@
 #include "app/imgui/imgui_util.h"
 #include "imgui_integration.h"
 
-namespace kinski{ namespace gui {
+namespace kinski {
+namespace gui {
 
 // app instance
 static kinski::App *g_app = nullptr;
 static double g_Time = 0.0f;
-static bool g_mouse_pressed[3] = { false, false, false };
+static bool g_mouse_pressed[3] = {false, false, false};
 
 // gl assets
 static kinski::gl::MeshPtr g_mesh;
@@ -20,8 +21,8 @@ void render()
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO &io = ImGui::GetIO();
-    int fb_width = (int) (io.DisplaySize.x * io.DisplayFramebufferScale.x);
-    int fb_height = (int) (io.DisplaySize.y * io.DisplayFramebufferScale.y);
+    int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+    int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
     if(fb_width == 0 || fb_height == 0){ return; }
 
     ImGui::Render();
@@ -55,8 +56,8 @@ void render()
             {
                 auto &tex = *reinterpret_cast<kinski::gl::Texture *>(pcmd->TextureId);
                 g_mesh->material()->add_texture(tex);
-                auto rect = kinski::Area_<uint32_t>(pcmd->ClipRect.x, pcmd->ClipRect.y,
-                                                    pcmd->ClipRect.z, pcmd->ClipRect.w);
+                auto rect = crocore::Area_<uint32_t>(pcmd->ClipRect.x, pcmd->ClipRect.y,
+                                                     pcmd->ClipRect.z, pcmd->ClipRect.w);
                 g_mesh->material()->set_scissor_rect(rect);
                 entry.num_indices = pcmd->ElemCount;
                 kinski::gl::draw_mesh(g_mesh);
@@ -103,7 +104,7 @@ void key_release(const KeyEvent &e)
 void char_callback(uint32_t c)
 {
     ImGuiIO &io = ImGui::GetIO();
-    if(c > 0 && c < 0x10000){ io.AddInputCharacter((unsigned short) c); }
+    if(c > 0 && c < 0x10000){ io.AddInputCharacter((unsigned short)c); }
 }
 
 bool create_device_objects()
@@ -139,7 +140,7 @@ bool create_device_objects()
     fmt.internal_format = tex_format;
     g_font_texture = gl::Texture(luminance_alpha_data.get(), tex_format, width, height, fmt);
 #else
-    auto font_img = kinski::Image_<uint8_t>::create(pixels, width, height, num_components, true);
+    auto font_img = crocore::Image_<uint8_t>::create(pixels, width, height, num_components, true);
     g_font_texture = kinski::gl::create_texture_from_image(font_img, false, false);
     g_font_texture.set_flipped(false);
     g_font_texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
@@ -261,12 +262,12 @@ void new_frame()
 
     // Setup time step
     double current_time = g_app->get_application_time();
-    io.DeltaTime = g_Time > 0.0 ? (float) (current_time - g_Time) : (float) (1.0f / 60.0f);
+    io.DeltaTime = g_Time > 0.0 ? (float)(current_time - g_Time) : (float)(1.0f / 60.0f);
     g_Time = current_time;
 
     // Setup inputs
     if(g_app->display_gui()){ io.MousePos = kinski::gui::im_vec_cast(g_app->cursor_position()); }
-    else{ io.MousePos = ImVec2(-FLT_MAX,-FLT_MAX); }
+    else{ io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX); }
 
     // If a mouse press event came, always pass it as "mouse held this frame"
     // so we don't miss click-release events that are shorter than 1 frame.
@@ -290,4 +291,5 @@ void end_frame()
     ImGui::EndFrame();
 }
 
-}}//namespace
+}
+}//namespace

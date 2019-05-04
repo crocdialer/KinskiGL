@@ -9,33 +9,34 @@
 
 #pragma once
 
-#include "core/json.hpp"
+#include <crocore/serializer.hpp>
 #include "gl/gl.hpp"
 
-namespace kinski
+namespace kinski {
+/*!
+ * Delegate object to handle all known types
+ * Can be provided by user to add support for arbitrary data formats
+ */
+class PropertyIO_GL : public crocore::PropertyIO
 {
-    /*!
-     * Delegate object to handle all known types
-     * Can be provided by user to add support for arbitrary data formats
-     */
-    class KINSKI_API PropertyIO_GL : public PropertyIO
-    {
-    public:
-        static const std::string PROPERTY_TYPE_VEC2;
-        static const std::string PROPERTY_TYPE_VEC3;
-        static const std::string PROPERTY_TYPE_VEC4;
-        static const std::string PROPERTY_TYPE_QUAT;
-        static const std::string PROPERTY_TYPE_MAT3;
-        static const std::string PROPERTY_TYPE_MAT4;
-        static const std::string PROPERTY_TYPE_IVEC2;
-        
-        static const std::string PROPERTY_TYPE_VEC2_ARRAY;
-        
-        virtual ~PropertyIO_GL(){};
-        virtual bool read_property(const Property::ConstPtr &theProperty,
-                                       Json::Value &theJsonValue) const;
-        virtual bool write_property(Property::Ptr &theProperty,
-                                        const Json::Value &theJsonValue) const;
-    };
-    
+public:
+    static const std::string PROPERTY_TYPE_VEC2;
+    static const std::string PROPERTY_TYPE_VEC3;
+    static const std::string PROPERTY_TYPE_VEC4;
+    static const std::string PROPERTY_TYPE_QUAT;
+    static const std::string PROPERTY_TYPE_MAT3;
+    static const std::string PROPERTY_TYPE_MAT4;
+    static const std::string PROPERTY_TYPE_IVEC2;
+
+    static const std::string PROPERTY_TYPE_VEC2_ARRAY;
+
+    virtual ~PropertyIO_GL() {};
+
+    virtual bool read_property(const crocore::PropertyConstPtr &theProperty,
+                               crocore::json &theJsonValue) const;
+
+    virtual bool write_property(crocore::PropertyPtr &theProperty,
+                                const crocore::json &theJsonValue) const;
+};
+
 }//namespace

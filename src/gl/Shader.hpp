@@ -14,7 +14,7 @@
 namespace kinski { namespace gl {
 
 //! Represents an OpenGL GLSL program.
-class KINSKI_API Shader
+class Shader
 {
   public:
 
@@ -85,7 +85,7 @@ class KINSKI_API Shader
 };
     
 
-class ShaderCompileExc : public Exception
+class ShaderCompileExc : public std::runtime_error
 {
  public:	
 	ShaderCompileExc( const std::string &log, GLint aShaderType );
@@ -99,17 +99,17 @@ class ShaderCompileExc : public Exception
 	GLint	m_ShaderType;
 };
     
-class ShaderLinkException : public Exception
+class ShaderLinkException : public std::runtime_error
 {
 public:
     ShaderLinkException(const std::string &linkLog):
-        Exception("GLSL: Shader did not link correctly: " + linkLog){};
+            std::runtime_error("GLSL: Shader did not link correctly: " + linkLog){};
 };
 
-class ShaderNullProgramExc : public Exception
+class ShaderNullProgramExc : public std::runtime_error
 {
  public:	
-    ShaderNullProgramExc(): Exception("GLSL: Attempt to use null shader"){};
+    ShaderNullProgramExc(): std::runtime_error("GLSL: Attempt to use null shader"){};
 };
 
 }}//namespace

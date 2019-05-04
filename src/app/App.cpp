@@ -16,17 +16,18 @@
 using namespace std;
 
 // 1 double per second
-typedef std::chrono::duration<double> duration_t;
+using duration_t = std::chrono::duration<double>;
+
+// explicit template instantiation for some vec types
+template class crocore::Property_<glm::vec2>;
+template class crocore::Property_<glm::vec3>;
+template class crocore::Property_<glm::vec4>;
 
 namespace kinski
 {
-// explicit template instantiation for some vec types
-template class Property_<gl::vec2>;
-template class Property_<gl::vec3>;
-template class Property_<gl::vec4>;
 
 App::App(int argc, char *argv[]):
-Component(argc ? fs::get_filename_part(argv[0]) : "KinskiApp"),
+Component(argc ? crocore::fs::get_filename_part(argv[0]) : "KinskiApp"),
 m_framesDrawn(0),
 m_lastMeasurementTimeStamp(0.0),
 m_framesPerSec(0.f),
@@ -135,7 +136,7 @@ void App::timing(double timeStamp)
 
 bool App::is_loading() const
 {
-    return Task::num_tasks();
+    return crocore::Task::num_tasks();
 }
 
 /////////////////////////// Joystick ///////////////////////////////////////

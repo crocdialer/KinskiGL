@@ -9,7 +9,9 @@
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
-#include "core/file_functions.hpp"
+
+#include <crocore/filesystem.hpp>
+
 #include "gl/Mesh.hpp"
 #include "gl/Scene.hpp"
 #include "assimp.hpp"
@@ -119,7 +121,7 @@ gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
     for(uint32_t i = 0; i < aMesh->mNumFaces; ++i)
     {
         const aiFace &f = aMesh->mFaces[i];
-        if(f.mNumIndices != 3) throw Exception("Non triangle mesh loaded");
+        if(f.mNumIndices != 3) throw std::runtime_error("Non triangle mesh loaded");
         indices.insert(indices.end(), f.mIndices, f.mIndices + 3);
     }
     geom->faces().resize(aMesh->mNumFaces);
@@ -286,7 +288,7 @@ gl::CameraPtr create_camera(const aiCamera* the_cam)
 /////////////////////////////////////////////////////////////////
     
 gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
-                                std::map<std::string, ImagePtr> *the_img_map = nullptr)
+                                std::map<std::string, crocore::ImagePtr> *the_img_map = nullptr)
 {
     gl::MaterialPtr theMaterial = gl::Material::create();
     theMaterial->set_blending(true);
@@ -350,9 +352,9 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         theMaterial->set_two_sided(two_sided);
     }
 
-    auto create_tex_image = [the_scene, the_img_map](const std::string the_path) -> ImagePtr
+    auto create_tex_image = [the_scene, the_img_map](const std::string the_path) -> crocore::ImagePtr
     {
-        ImagePtr img;
+        crocore::ImagePtr img;
 
         if(the_img_map)
         {
@@ -363,16 +365,16 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
         {
             if(!the_path.empty() && the_path[0] == '*')
             {
-                size_t tex_index = string_to<size_t>(the_path.substr(1));
+                size_t tex_index = crocore::string_to<size_t>(the_path.substr(1));
                 const aiTexture* ai_tex = the_scene->mTextures[tex_index];
 
                 // compressed image -> decode
                 if(ai_tex->mHeight == 0)
                 {
-                    img = kinski::create_image_from_data((uint8_t*)ai_tex->pcData, ai_tex->mWidth);
+                    img = crocore::create_image_from_data((uint8_t*)ai_tex->pcData, ai_tex->mWidth);
                 }
             }
-            else{ img = kinski::create_image_from_file(the_path); }
+            else{ img = crocore::create_image_from_file(the_path); }
             if(the_img_map){ (*the_img_map)[the_path] = img; }
         }
         return img;
@@ -486,8 +488,8 @@ gl::MeshPtr load_model(const std::string &theModelPath)
 {
     Assimp::Importer importer;
     std::string found_path;
-    try { found_path = fs::search_file(theModelPath); }
-    catch(fs::FileNotFoundException &e)
+    try { found_path = crocore::fs::search_file(theModelPath); }
+    catch(crocore::fs::FileNotFoundException &e)
     {
         LOG_ERROR << e.what();
         return gl::MeshPtr();
@@ -514,7 +516,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         BoneMap bonemap;
         WeightMap weightmap;
         std::vector<gl::Mesh::Entry> entries;
-        std::map<std::string, ImagePtr> mat_image_cache;
+        std::map<std::string, crocore::ImagePtr> mat_image_cache;
 
         for (uint32_t i = 0; i < theScene->mNumMeshes; i++)
         {
@@ -573,7 +575,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         }
 
         // extract model name from filename
-        mesh->set_name(fs::get_filename_part(found_path));
+        mesh->set_name(crocore::fs::get_filename_part(found_path));
 
         LOG_DEBUG<<"loaded model: " << geom->vertices().size()<<" vertices - " <<
         geom->faces().size()<<" faces - " << mesh->num_bones() << " bones";
@@ -596,8 +598,8 @@ gl::ScenePtr load_scene(const std::string &the_path)
 
     Assimp::Importer importer;
     std::string found_path;
-    try { found_path = fs::search_file(the_path); }
-    catch(fs::FileNotFoundException &e)
+    try { found_path = crocore::fs::search_file(the_path); }
+    catch(crocore::fs::FileNotFoundException &e)
     {
         LOG_ERROR << e.what();
         return ret;
@@ -858,8 +860,8 @@ size_t add_animations_to_mesh(const std::string &thePath, gl::MeshPtr m)
     std::string found_path;
     const aiScene *theScene = nullptr;
     
-    try { theScene = importer.ReadFile(fs::search_file(thePath), 0); }
-    catch (fs::FileNotFoundException &e)
+    try { theScene = importer.ReadFile(crocore::fs::search_file(thePath), 0); }
+    catch (crocore::fs::FileNotFoundException &e)
     {
         LOG_WARNING << e.what();
         return 0;

@@ -28,17 +28,17 @@ namespace kinski{ namespace physics{
     typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
     typedef std::shared_ptr<btIDebugDraw> btIDebugDrawPtr;
     
-    KINSKI_API btVector3 type_cast(const glm::vec3 &the_vec);
-    KINSKI_API btTransform type_cast(const glm::mat4 &the_transform);
-    KINSKI_API glm::vec3 type_cast(const btVector3 &the_vec);
-    KINSKI_API glm::mat4 type_cast(const btTransform &the_transform);
-    KINSKI_API btCollisionShapePtr create_collision_shape(const gl::MeshPtr &the_mesh,
+    btVector3 type_cast(const glm::vec3 &the_vec);
+    btTransform type_cast(const glm::mat4 &the_transform);
+    glm::vec3 type_cast(const btVector3 &the_vec);
+    glm::mat4 type_cast(const btTransform &the_transform);
+    btCollisionShapePtr create_collision_shape(const gl::MeshPtr &the_mesh,
                                                           const glm::vec3 &the_scale = glm::vec3(1));
-    KINSKI_API btCollisionShapePtr
+    btCollisionShapePtr
     create_convex_collision_shape(const gl::MeshPtr &the_mesh,
                                   const glm::vec3 &the_scale = glm::vec3(1));
     
-    KINSKI_API class BulletDebugDrawer : public btIDebugDraw
+    class BulletDebugDrawer : public btIDebugDraw
     {
     public:
         
@@ -104,7 +104,7 @@ namespace kinski{ namespace physics{
         int m_draw_mode;
     };
     
-    KINSKI_API class physics_context
+    class physics_context
     {
      public:
         

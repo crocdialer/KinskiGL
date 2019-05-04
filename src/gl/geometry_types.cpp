@@ -96,14 +96,14 @@ ray_intersection intersect(const OBB &theOBB, const Ray& theRay)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-vec3 calculate_centroid(const vector<vec3> &theVertices)
+vec3 calculate_centroid(const std::vector<vec3> &theVertices)
 {
     if(theVertices.empty())
     {
         LOG_TRACE << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
         return vec3(0);
     }
-    return kinski::mean<vec3>(theVertices);
+    return crocore::mean<vec3>(theVertices);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

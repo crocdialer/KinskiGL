@@ -5,9 +5,6 @@ OPTION (BUILD_APPLIB "Build App framework" ON)
 OPTION (BUILD_CVLIB "Build CV framework" OFF)
 set(PROJECT_DIRS "${CMAKE_SOURCE_DIR}/src/projects" CACHE PROJECT_DIRS "Project directories")
 
-ADD_SUBDIRECTORY("core")
-SET(LIBS ${LIBS} "core")
-
 ##### GLM
 INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/blocks/glm/include")
 

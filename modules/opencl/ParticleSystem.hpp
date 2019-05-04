@@ -16,7 +16,7 @@ namespace kinski{ namespace gl{
 
 DEFINE_CLASS_PTR(ParticleSystem);
 
-KINSKI_API class ParticleSystem : public Object3D
+class ParticleSystem : public Object3D
 {
 public:
 

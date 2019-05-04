@@ -9,6 +9,8 @@
 #include "gl/Scene.hpp"
 #include "ImGuizmo.h"
 
+using namespace crocore;
+
 namespace kinski{ namespace gui{
 
 const ImVec2& im_vec_cast(const gl::vec2 &the_vec)
@@ -228,7 +230,7 @@ void draw_property_ui(const Property_<std::vector<float>>::Ptr &the_property)
 }
 
 // generic
-void draw_property_ui(const Property::Ptr &the_property)
+void draw_property_ui(const PropertyPtr &the_property)
 {
     std::string prop_name = the_property->name();
 

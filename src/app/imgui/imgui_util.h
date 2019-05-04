@@ -5,7 +5,7 @@
 #ifndef KINSKIGL_IMGUI_UTIL_H
 #define KINSKIGL_IMGUI_UTIL_H
 
-#include "core/Component.hpp"
+#include <crocore/Component.hpp>
 #include "gl/gl.hpp"
 #include "app/App.hpp"
 #include "app/LightComponent.hpp"
@@ -22,7 +22,7 @@ const ImVec4& im_vec_cast(const gl::vec4 &the_vec);
 const ImVec4 im_vec_cast(const gl::vec3 &the_vec);
 
 //! draw a generic kinski::Component using ImGui
-void draw_component_ui(const ComponentConstPtr &the_component);
+void draw_component_ui(const crocore::ComponentConstPtr &the_component);
 
 void draw_textures_ui(const std::vector<gl::Texture*> &the_textures);
 

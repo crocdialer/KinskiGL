@@ -49,7 +49,7 @@ public:
         glm::mat4 model_view = transform_stack().top() * theNode.transform();
         gl::AABB boundingBox = theNode.aabb();
 
-        if(m_frustum.intersect(boundingBox) || kinski::contains(theNode.tags(), gl::SceneRenderer::TAG_NO_CULL))
+        if(m_frustum.intersect(boundingBox) || crocore::contains(theNode.tags(), gl::SceneRenderer::TAG_NO_CULL))
         {
             RenderBin::item item;
             item.mesh = std::dynamic_pointer_cast<gl::Mesh>(theNode.shared_from_this());
@@ -360,7 +360,7 @@ void SceneRenderer::set_light_uniforms(MaterialPtr &the_mat,
     
     for (const auto &l : light_list)
     {
-        std::string light_str = std::string("u_lights") + "[" + to_string(light_count) + "]";
+        std::string light_str = std::string("u_lights") + "[" + std::to_string(light_count) + "]";
         
         the_mat->uniform(light_str + ".type", (int)l.light->type());
         the_mat->uniform(light_str + ".position", l.transform[3].xyz());

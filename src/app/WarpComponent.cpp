@@ -15,6 +15,8 @@
 #include "app/App.hpp"
 #include "WarpComponent.hpp"
 
+using namespace crocore;
+
 namespace kinski
 {
 
@@ -176,7 +178,7 @@ uint32_t WarpComponent::num_warps() const
     return m_quad_warp.size();
 }
 
-void WarpComponent::update_property(const Property::ConstPtr &the_property)
+void WarpComponent::update_property(const PropertyConstPtr &the_property)
 {
     if(the_property == m_index)
     {

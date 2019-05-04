@@ -14,11 +14,10 @@
 #pragma once
 
 #include "gl/gl.hpp"
-#include "core/Area.hpp"
 
 namespace kinski{ namespace gl{
     
-    class KINSKI_API Warp
+    class Warp
     {
     public:
         
@@ -53,8 +52,8 @@ namespace kinski{ namespace gl{
         void flip_content(bool horizontal = true);
         void rotate_content(bool clock_wise = true);
         
-        const Area_<float>& src_area() const;
-        void set_src_area(const Area_<float>& the_src_area);
+        const crocore::Area_<float>& src_area() const;
+        void set_src_area(const crocore::Area_<float>& the_src_area);
         
         const gl::vec2 control_point(int the_x, int the_y) const;
         const gl::vec2 control_point(int the_index) const;

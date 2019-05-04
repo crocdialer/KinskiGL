@@ -142,7 +142,7 @@ namespace kinski { namespace gl{
             -gl::Z_AXIS, -gl::Y_AXIS
         };
         auto p = global_position();
-        the_face = clamp<uint32_t>(the_face, 0, 5);
+        the_face = crocore::clamp<uint32_t>(the_face, 0, 5);
         return glm::lookAt(p, p + vals[2 * the_face], vals[2 * the_face + 1]);
     }
 

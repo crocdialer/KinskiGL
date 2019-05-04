@@ -17,7 +17,7 @@
 
 namespace kinski{ namespace gl{
     
-    class KINSKI_API DepthOfField
+    class DepthOfField
     {
     public:
         

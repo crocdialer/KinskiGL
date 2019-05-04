@@ -358,7 +358,7 @@ GLint Shader::attrib_location(const std::string &name) const
 //////////////////////////////////////////////////////////////////////////
 // ShaderCompileExc
 ShaderCompileExc::ShaderCompileExc(const std::string &log, GLint aShaderType):
-    Exception(""),
+        std::runtime_error(""),
     m_ShaderType( aShaderType )
 {
 	if( m_ShaderType == GL_VERTEX_SHADER )

@@ -13,7 +13,7 @@
 
 namespace kinski { namespace gl{
 
-class KINSKI_API Camera : public Object3D
+class Camera : public Object3D
 {
 public:
     
@@ -41,7 +41,7 @@ private:
     mat4 m_projectionMatrix;
 };
    
-class KINSKI_API OrthoCamera : public Camera
+class OrthoCamera : public Camera
 {
 public:
     
@@ -103,7 +103,7 @@ private:
     float m_left, m_right, m_bottom, m_top, m_near, m_far;
 };
     
-class KINSKI_API PerspectiveCamera : public Camera
+class PerspectiveCamera : public Camera
 {
     
 public:
@@ -140,7 +140,7 @@ private:
     float m_aspect;
 };
     
-class KINSKI_API CubeCamera : public Camera
+class CubeCamera : public Camera
 {
 public:
     

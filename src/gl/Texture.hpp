@@ -9,13 +9,13 @@
 
 #pragma once
 
-#include "core/Image.hpp"
+#include <crocore/Image.hpp>
 #include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
 
     /** \brief Represents an OpenGL Texture. \ImplShared*/
-    class KINSKI_API Texture
+    class Texture
     {
     public:
 
@@ -147,7 +147,7 @@ namespace kinski{ namespace gl{
         void set_roi(int the_x, int the_y, uint32_t the_width, uint32_t the_height);
 
         //!	set a region of interest (subimage), this function will alter the texture matrix appropriately
-        void set_roi(const Area_<uint32_t> &the_roi);
+        void set_roi(const crocore::Area_<uint32_t> &the_roi);
 
         /**	\brief Enables the Texture's target and binds its associated texture.
          Equivalent to calling \code glEnable(target); glBindTexture(target, textureID); \endcode **/
@@ -186,10 +186,10 @@ namespace kinski{ namespace gl{
         void reset() { m_impl.reset(); }
     };
 
-    class TextureDataExc : public Exception
+class TextureDataExc : public std::runtime_error
     {
     public:
-        TextureDataExc(const std::string &log):Exception("TextureData Error: " + log){};
+        TextureDataExc(const std::string &log):std::runtime_error("TextureData Error: " + log){};
     };
 
 }}// namespace

@@ -33,7 +33,7 @@
 
 namespace kinski{ namespace gl {
 
-template<int D, typename T> class KINSKI_API BSpline
+template<int D, typename T> class BSpline
 {
   public:
     
@@ -136,9 +136,9 @@ template<int D, typename T> class KINSKI_API BSpline
     int m_replicate;
 };
     
-extern template class KINSKI_API BSpline<2, float>;
-extern template class KINSKI_API BSpline<3, float>;
-extern template class KINSKI_API BSpline<4, float>;
+extern template class BSpline<2, float>;
+extern template class BSpline<3, float>;
+extern template class BSpline<4, float>;
     
 using BSpline2f = BSpline<2, float>;
 using BSpline3f = BSpline<3, float>;

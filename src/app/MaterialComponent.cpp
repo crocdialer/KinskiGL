@@ -11,8 +11,11 @@
 //
 //  Created by Fabian Schmidton 6/28/13.
 
-#include "core/file_functions.hpp"
+#include <crocore/filesystem.hpp>
+
 #include "MaterialComponent.hpp"
+
+using namespace crocore;
 
 namespace kinski
 {
@@ -50,7 +53,7 @@ namespace kinski
     
     MaterialComponent::~MaterialComponent(){}
     
-    void MaterialComponent::update_property(const Property::ConstPtr &theProperty)
+    void MaterialComponent::update_property(const PropertyConstPtr &theProperty)
     {
         gl::MaterialPtr active_mat = m_materials.empty() ? gl::MaterialPtr() : m_materials[*m_index];
         if(!active_mat) return;
@@ -95,7 +98,7 @@ namespace kinski
                 {
                     if(!fe.file_name().empty()) LOG_DEBUG << fe.what();
                 }
-                catch(Exception &e)
+                catch(std::exception &e)
                 {
                     LOG_ERROR << e.what();
                     return;

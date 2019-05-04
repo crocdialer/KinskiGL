@@ -10,7 +10,7 @@ namespace kinski{ namespace gl {
 
 DEFINE_CLASS_PTR(DeferredRenderer);
 
-class KINSKI_API DeferredRenderer : public SceneRenderer
+class DeferredRenderer : public SceneRenderer
 {
 public:
 

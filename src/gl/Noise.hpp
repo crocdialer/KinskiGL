@@ -13,12 +13,12 @@
 
 #pragma once
 
-#include "core/Image.hpp"
+#include <crocore/Image.hpp>
 #include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
 
-class KINSKI_API Noise
+class Noise
 {
  public:
     
@@ -26,7 +26,7 @@ class KINSKI_API Noise
     
     gl::Texture simplex(const float the_seed);
     
-    ImagePtr create_simplex_image(const float the_seed);
+    crocore::ImagePtr create_simplex_image(const float the_seed);
     
     const ivec2& tex_size() const;
     const vec2& scale() const;

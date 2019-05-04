@@ -13,16 +13,15 @@
 
 #pragma once
 
-#include "core/core.hpp"
-#include "core/Component.hpp"
-#include "core/networking.hpp"
+#include <crocore/Component.hpp>
+#include <crocore/networking.hpp>
 
 namespace kinski
 {
     class RemoteControl;
     typedef std::unique_ptr<RemoteControl> RemoteControlPtr;
     
-    typedef std::function<void(net::tcp_connection_ptr, const std::vector<std::string>&)> remote_cb_t;
+    typedef std::function<void(crocore::net::tcp_connection_ptr, const std::vector<std::string>&)> remote_cb_t;
     typedef std::map<std::string, remote_cb_t> CommandMap;
     
     class RemoteControl
@@ -30,7 +29,7 @@ namespace kinski
     public:
         
         RemoteControl(){};
-        RemoteControl(io_service_t &io, const std::list<ComponentPtr> &the_list);
+        RemoteControl(crocore::io_service_t &io, const std::list<crocore::ComponentPtr> &the_list);
         
         void start_listen(uint16_t tcp_port = 33333, uint16_t udp_port = 33334);
         void stop_listen();
@@ -43,13 +42,13 @@ namespace kinski
         const CommandMap& command_map() const { return m_command_map; }
         CommandMap& command_map() { return m_command_map; }
         
-        std::list<ComponentPtr> components();
-        void set_components(const std::list<ComponentPtr>& the_components);
+        std::list<crocore::ComponentPtr> components();
+        void set_components(const std::list<crocore::ComponentPtr>& the_components);
         
     private:
         
-        void new_connection_cb(net::tcp_connection_ptr con);
-        void receive_cb(net::tcp_connection_ptr rec_con,
+        void new_connection_cb(crocore::net::tcp_connection_ptr con);
+        void receive_cb(crocore::net::tcp_connection_ptr rec_con,
                         const std::vector<uint8_t>& response);
         
         
@@ -57,15 +56,15 @@ namespace kinski
         CommandMap m_command_map;
         
         //!
-        net::tcp_server m_tcp_server;
+        crocore::net::tcp_server m_tcp_server;
         
         //!
-        net::udp_server m_udp_server;
+        crocore::net::udp_server m_udp_server;
         
         //!
-        std::list<ComponentWeakPtr> m_components;
+        std::list<crocore::ComponentWeakPtr> m_components;
         
         //!
-        std::vector<net::tcp_connection_ptr> m_tcp_connections;
+        std::vector<crocore::net::tcp_connection_ptr> m_tcp_connections;
     };
 }

@@ -15,87 +15,89 @@
 #include "gl/Fbo.hpp"
 #include "gl/Material.hpp"
 
-namespace kinski{ namespace gl{
+namespace kinski {
+namespace gl {
 
-    struct NoiseImpl
-    {
-        gl::FboPtr m_fbo;
-        gl::MaterialPtr m_material;
-        
-        vec2 m_scale;
-        ivec2 m_tex_size;
-    };
+struct NoiseImpl
+{
+    gl::FboPtr m_fbo;
+    gl::MaterialPtr m_material;
 
-    Noise::Noise(const vec2 &the_scale, const ivec2 &the_tex_size):
-    m_impl(new NoiseImpl)
+    vec2 m_scale;
+    ivec2 m_tex_size;
+};
+
+Noise::Noise(const vec2 &the_scale, const ivec2 &the_tex_size) :
+        m_impl(new NoiseImpl)
+{
+    m_impl->m_scale = the_scale;
+    m_impl->m_tex_size = the_tex_size;
+}
+
+gl::Texture Noise::simplex(const float the_seed)
+{
+    gl::Texture noise_tex;
+
+    if(!m_impl->m_fbo || m_impl->m_fbo->size() != m_impl->m_tex_size)
     {
-        m_impl->m_scale = the_scale;
-        m_impl->m_tex_size = the_tex_size;
-    }
-    
-    gl::Texture Noise::simplex(const float the_seed)
-    {
-        gl::Texture noise_tex;
-        
-        if(!m_impl->m_fbo || m_impl->m_fbo->size() != m_impl->m_tex_size)
-        {
-            gl::Fbo::Format fmt;
+        gl::Fbo::Format fmt;
 #if !defined(KINSKI_GLES)
-            fmt.color_internal_format = GL_R32F;
+        fmt.color_internal_format = GL_R32F;
 #endif
-            m_impl->m_fbo = gl::Fbo::create(m_impl->m_tex_size, fmt);
-        }
-        if(!m_impl->m_material)
-        {
-            m_impl->m_material = gl::Material::create(gl::ShaderType::NOISE_3D);
-            m_impl->m_material->set_depth_test(false);
-            m_impl->m_material->set_depth_write(false);
-        }
-        m_impl->m_material->uniform("u_scale", m_impl->m_scale);
-        m_impl->m_material->uniform("u_seed", the_seed);
-        
-        noise_tex = gl::render_to_texture(m_impl->m_fbo, [this]()
-        {
-            KINSKI_CHECK_GL_ERRORS();
-            gl::draw_quad(m_impl->m_tex_size, m_impl->m_material);
-        });
+        m_impl->m_fbo = gl::Fbo::create(m_impl->m_tex_size, fmt);
+    }
+    if(!m_impl->m_material)
+    {
+        m_impl->m_material = gl::Material::create(gl::ShaderType::NOISE_3D);
+        m_impl->m_material->set_depth_test(false);
+        m_impl->m_material->set_depth_write(false);
+    }
+    m_impl->m_material->uniform("u_scale", m_impl->m_scale);
+    m_impl->m_material->uniform("u_seed", the_seed);
+
+    noise_tex = gl::render_to_texture(m_impl->m_fbo, [this]()
+    {
         KINSKI_CHECK_GL_ERRORS();
-        return noise_tex;
-    }
-    
-    ImagePtr Noise::create_simplex_image(const float the_seed)
+        gl::draw_quad(m_impl->m_tex_size, m_impl->m_material);
+    });
+    KINSKI_CHECK_GL_ERRORS();
+    return noise_tex;
+}
+
+crocore::ImagePtr Noise::create_simplex_image(const float the_seed)
+{
+    int w = m_impl->m_tex_size.x, h = m_impl->m_tex_size.y;
+    auto ret = crocore::Image_<uint8_t>::create(w, h, 1);
+
+    for(int i = 0; i < h; ++i)
     {
-        int w = m_impl->m_tex_size.x, h = m_impl->m_tex_size.y;
-        auto ret = Image_<uint8_t>::create(w, h, 1);
-    
-        for (int i = 0; i < h; ++i)
+        for(int j = 0; j < w; ++j)
         {
-            for (int j = 0; j < w; ++j)
-            {
-                ret->m_data[i * h + j] =
-                255 * (glm::simplex(vec3(vec2(i, j) * m_impl->m_scale, the_seed)) + 1.f) / 2.f;
-            }
+            ret->m_data[i * h + j] =
+                    255 * (glm::simplex(vec3(vec2(i, j) * m_impl->m_scale, the_seed)) + 1.f) / 2.f;
         }
-        return ret;
     }
-    
-    const ivec2& Noise::tex_size() const
-    {
-        return m_impl->m_tex_size;
-    }
-    
-    const vec2& Noise::scale() const
-    {
-        return m_impl->m_scale;
-    }
-    
-    void Noise::set_tex_size(const ivec2 &the_tex_size)
-    {
-        m_impl->m_tex_size = the_tex_size;
-    }
-    
-    void Noise::set_scale(const vec2 &the_scale)
-    {
-        m_impl->m_scale = the_scale;
-    }
-}}
+    return ret;
+}
+
+const ivec2 &Noise::tex_size() const
+{
+    return m_impl->m_tex_size;
+}
+
+const vec2 &Noise::scale() const
+{
+    return m_impl->m_scale;
+}
+
+void Noise::set_tex_size(const ivec2 &the_tex_size)
+{
+    m_impl->m_tex_size = the_tex_size;
+}
+
+void Noise::set_scale(const vec2 &the_scale)
+{
+    m_impl->m_scale = the_scale;
+}
+}
+}

@@ -787,8 +787,8 @@ T BSpline<D,T>::speed(float t) const
 }
 
 // explicit template instantiations
-template class KINSKI_API BSpline<2, float>;
-template class KINSKI_API BSpline<3, float>;
-template class KINSKI_API BSpline<4, float>;
+template class BSpline<2, float>;
+template class BSpline<3, float>;
+template class BSpline<4, float>;
 
 }} // namespaces

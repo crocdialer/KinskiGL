@@ -14,7 +14,7 @@
 
 namespace kinski { namespace gl {
 
-    class KINSKI_API Object3D : public std::enable_shared_from_this<Object3D>
+    class Object3D : public std::enable_shared_from_this<Object3D>
     {
     public:
         

@@ -58,7 +58,7 @@ namespace kinski { namespace gl {
 
     uint32_t num_bones_in_hierarchy(const BonePtr &the_root);
 
-    class KINSKI_API Mesh : public Object3D
+    class Mesh : public Object3D
     {
     public:
         

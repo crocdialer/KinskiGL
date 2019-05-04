@@ -19,7 +19,7 @@ namespace kinski { namespace gl {
     
     DEFINE_CLASS_PTR(Scene);
     
-    class KINSKI_API Scene : public std::enable_shared_from_this<Scene>
+    class Scene : public std::enable_shared_from_this<Scene>
     {
     public:
         
