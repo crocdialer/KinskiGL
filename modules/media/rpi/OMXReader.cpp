@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include "linux/XMemUtils.h"
-#include "core/Logger.hpp"
+#include <crocore/Logger.hpp>
 
 extern "C"
 {

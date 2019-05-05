@@ -7,7 +7,7 @@ extern "C"
 }
 #undef countof
 
-#include "core/file_functions.hpp"
+#include <crocore/filesystem.hpp>
 #include "gl/Texture.hpp"
 
 #include "OMXClock.h"
@@ -20,6 +20,8 @@ extern "C"
 
 // when we repeatedly seek, rather than play continuously
 #define TRICKPLAY(speed) (speed < 0 || speed > 4 * DVD_PLAYSPEED_NORMAL)
+
+using namespace crocore;
 
 namespace kinski{ namespace media
 {
@@ -183,8 +185,8 @@ namespace kinski{ namespace media
                         break;
                     }
 
-                    kinski::log(Severity::TRACE_1, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
-                                startpts, m_av_clock->OMXMediaTime());
+                    crocore::log(Severity::TRACE_1, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
+                                 startpts, m_av_clock->OMXMediaTime());
 
                     m_av_clock->OMXPause();
 
@@ -208,8 +210,8 @@ namespace kinski{ namespace media
                     if(m_omx_reader.SeekTime((int)seek_pos, m_av_clock->OMXPlaySpeed() < 0, &startpts))
                     ; //FlushStreams(DVD_NOPTS_VALUE);
 
-                    kinski::log(Severity::TRACE_1, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
-                                startpts, m_av_clock->OMXMediaTime());
+                    crocore::log(Severity::TRACE_1, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
+                                 startpts, m_av_clock->OMXMediaTime());
                     m_packet_after_seek = false;
                 }
 
@@ -264,7 +266,7 @@ namespace kinski{ namespace media
                     {
                         if(m_av_clock->OMXIsPaused())
                         {
-                            kinski::log(Severity::TRACE_1, "Resume %.2f,%.2f (%d,%d,%d,%d) EOF:%d PKT:%p",
+                            crocore::log(Severity::TRACE_1, "Resume %.2f,%.2f (%d,%d,%d,%d) EOF:%d PKT:%p",
                                         audio_fifo, video_fifo, audio_fifo_low, video_fifo_low,
                                         audio_fifo_high, video_fifo_high, m_omx_reader.IsEof(),
                                         m_omx_pkt);
@@ -276,7 +278,7 @@ namespace kinski{ namespace media
                         if(!m_av_clock->OMXIsPaused())
                         {
                             if(!m_pause){ m_threshold = std::min(2.0f * m_threshold, 16.0f); }
-                            kinski::log(Severity::TRACE_1, "Pause %.2f,%.2f (%d,%d,%d,%d) %.2f",
+                            crocore::log(Severity::TRACE_1, "Pause %.2f,%.2f (%d,%d,%d,%d) %.2f",
                                         audio_fifo, video_fifo, audio_fifo_low, video_fifo_low,
                                         audio_fifo_high, video_fifo_high, m_threshold);
                             m_av_clock->OMXPause();
@@ -285,7 +287,7 @@ namespace kinski{ namespace media
                 }
                 if(!sentStarted)
                 {
-                    kinski::log(Severity::TRACE_1, "COMXPlayer::HandleMessages - player started RESET");
+                    crocore::log(Severity::TRACE_1, "COMXPlayer::HandleMessages - player started RESET");
                     m_av_clock->OMXReset(m_has_video, m_has_audio);
                     sentStarted = true;
                 }
@@ -632,7 +634,7 @@ namespace kinski{ namespace media
     void MediaController::set_volume(float newVolume)
     {
         if(!is_loaded() || !m_impl->m_has_audio){ return; }
-        m_impl->m_volume = clamp(newVolume, 0.f, 1.f);
+        m_impl->m_volume = crocore::clamp(newVolume, 0.f, 1.f);
         m_impl->m_player_audio->SetVolume(m_impl->m_volume);
     }
 
@@ -645,7 +647,7 @@ namespace kinski{ namespace media
 
 /////////////////////////////////////////////////////////////////
 
-    bool MediaController::copy_frame_to_image(ImagePtr& the_image)
+    bool MediaController::copy_frame_to_image(crocore::ImagePtr& the_image)
     {
         return false;
     }
@@ -700,7 +702,7 @@ namespace kinski{ namespace media
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            m_impl->m_incr = -current_time() + clamp<double>(value, -10.0, duration());
+            m_impl->m_incr = -current_time() + crocore::clamp<double>(value, -10.0, duration());
         }
     }
 

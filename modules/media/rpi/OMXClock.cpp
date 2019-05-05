@@ -18,7 +18,7 @@
  *
  */
 #include "OMXClock.h"
-#include "core/Logger.hpp"
+#include <crocore/Logger.hpp>
 
 #define OMX_PRE_ROLL 200
 #define TP(speed) ((speed) < 0 || (speed) > 4*DVD_PLAYSPEED_NORMAL)

@@ -24,7 +24,7 @@
 #endif
 
 #include <cassert>
-#include "core/Logger.hpp"
+#include <crocore/Logger.hpp>
 #include "BitstreamConverter.h"
 
 void CBitstreamConverter::bits_reader_set( bits_reader_t *br, uint8_t *buf, int len )

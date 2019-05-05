@@ -24,7 +24,7 @@
 #include <unistd.h>
 
 #include "linux/XMemUtils.h"
-#include "core/Logger.hpp"
+#include <crocore/Logger.hpp>
 
 OMXPlayerAudio::OMXPlayerAudio()
 {

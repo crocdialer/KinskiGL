@@ -28,7 +28,7 @@
 #endif
 
 #include <algorithm>
-#include "core/Logger.hpp"
+#include <crocore/Logger.hpp>
 
 using namespace std;
 
@@ -116,7 +116,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_decoder.GetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_decoder GetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_decoder GetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
 
@@ -130,11 +130,11 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_mixer.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_mixer SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_mixer SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
 
-    kinski::log(kinski::Severity::TRACE_1, "%s::%s - Output bps %d samplerate %d channels %d buffer size %d bytes per second %d",
+    crocore::log(crocore::Severity::TRACE_1, "%s::%s - Output bps %d samplerate %d channels %d buffer size %d bytes per second %d",
         CLASSNAME, __func__, (int)m_pcm_output.nBitPerSample, (int)m_pcm_output.nSamplingRate, (int)m_pcm_output.nChannels, m_BufferLen, m_BytesPerSec);
     PrintPCM(&m_pcm_output, std::string("output"));
 
@@ -144,7 +144,7 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_splitter.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
 
@@ -152,14 +152,14 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_splitter.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
       m_pcm_output.nPortIndex = m_omx_splitter.GetOutputPort() + 1;
       omx_err = m_omx_splitter.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
     }
@@ -170,7 +170,7 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_render_analog.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_render_analog SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_render_analog SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
     }
@@ -181,7 +181,7 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_render_hdmi.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_render_hdmi SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_render_hdmi SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
     }
@@ -194,7 +194,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_clock_analog.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_clock_analog.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_clock_analog.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
     m_omx_render_analog.ResetEos();
@@ -207,7 +207,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_clock_hdmi.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_clock_hdmi.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_clock_hdmi.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
     m_omx_render_hdmi.ResetEos();
@@ -232,7 +232,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_analog.SetConfig(OMX_IndexConfigBrcmAudioDestination, &audioDest);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_analog.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_render_analog.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -255,7 +255,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_hdmi.SetConfig(OMX_IndexConfigBrcmAudioDestination, &audioDest);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_hdmi.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_render_hdmi.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -266,7 +266,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_splitter_analog.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_analog.Establish 0x%08x", omx_err);
+      crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_analog.Establish 0x%08x", omx_err);
       return false;
     }
 
@@ -274,7 +274,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_splitter_hdmi.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_hdmi.Establish 0x%08x", omx_err);
+      crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_hdmi.Establish 0x%08x", omx_err);
       return false;
     }
   }
@@ -296,7 +296,7 @@ bool COMXAudio::PortSettingsChanged()
         m_omx_tunnel_mixer.Initialize(&m_omx_mixer, m_omx_mixer.GetOutputPort(), &m_omx_render_hdmi, m_omx_render_hdmi.GetInputPort());
       }
     }
-    kinski::log(kinski::Severity::TRACE_1, "%s::%s - bits:%d mode:%d channels:%d srate:%d nopassthrough", CLASSNAME, __func__,
+    crocore::log(crocore::Severity::TRACE_1, "%s::%s - bits:%d mode:%d channels:%d srate:%d nopassthrough", CLASSNAME, __func__,
             (int)m_pcm_input.nBitPerSample, m_pcm_input.ePCMMode, (int)m_pcm_input.nChannels, (int)m_pcm_input.nSamplingRate);
   }
   else
@@ -309,14 +309,14 @@ bool COMXAudio::PortSettingsChanged()
     {
       m_omx_tunnel_decoder.Initialize(&m_omx_decoder, m_omx_decoder.GetOutputPort(), &m_omx_render_hdmi, m_omx_render_hdmi.GetInputPort());
     }
-    kinski::log(kinski::Severity::TRACE_1, "%s::%s - bits:%d mode:%d channels:%d srate:%d passthrough", CLASSNAME, __func__,
+    crocore::log(crocore::Severity::TRACE_1, "%s::%s - bits:%d mode:%d channels:%d srate:%d passthrough", CLASSNAME, __func__,
             0, 0, 0, 0);
   }
 
   omx_err = m_omx_tunnel_decoder.Establish();
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
   }
 
@@ -324,7 +324,7 @@ bool COMXAudio::PortSettingsChanged()
   {
     omx_err = m_omx_mixer.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone) {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_mixer OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_mixer OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -334,7 +334,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_mixer.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -344,7 +344,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_splitter.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_splitter OMX_StateExecuting 0x%08x", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_splitter OMX_StateExecuting 0x%08x", CLASSNAME, __func__, omx_err);
      return false;
     }
   }
@@ -353,7 +353,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_analog.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_analog OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_render_analog OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -362,7 +362,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_hdmi.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_hdmi OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_render_hdmi OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -483,7 +483,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamBrcmDecoderPassThrough, &boolType);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error OMX_IndexParamBrcmDecoderPassThrough 0x%08x", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize - Error OMX_IndexParamBrcmDecoderPassThrough 0x%08x", omx_err);
     printf("OMX_IndexParamBrcmDecoderPassThrough omx_err(0x%08x)", omx_err);
     return false;
   }
@@ -496,7 +496,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (input) omx_err(0x%08x)", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (input) omx_err(0x%08x)", omx_err);
     return false;
   }
 
@@ -507,7 +507,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (intput) omx_err(0x%08x)", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (intput) omx_err(0x%08x)", omx_err);
     return false;
   }
 
@@ -518,7 +518,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (output) omx_err(0x%08x)", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (output) omx_err(0x%08x)", omx_err);
     return false;
   }
 
@@ -527,7 +527,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (output) omx_err(0x%08x)", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (output) omx_err(0x%08x)", omx_err);
     return false;
   }
 
@@ -541,7 +541,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
     omx_err = m_omx_decoder.SetParameter(OMX_IndexParamAudioPortFormat, &formatType);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error OMX_IndexParamAudioPortFormat omx_err(0x%08x)", omx_err);
+      crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize error OMX_IndexParamAudioPortFormat omx_err(0x%08x)", omx_err);
       return false;
     }
   }
@@ -549,13 +549,13 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.AllocInputBuffers();
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error alloc buffers 0x%08x", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize - Error alloc buffers 0x%08x", omx_err);
     return false;
   }
 
     omx_err = m_omx_decoder.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone) {
-      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error setting OMX_StateExecuting 0x%08x", omx_err);
+      crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize - Error setting OMX_StateExecuting 0x%08x", omx_err);
       return false;
     }
 
@@ -565,7 +565,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
     OMX_BUFFERHEADERTYPE *omx_buffer = m_omx_decoder.GetInputBuffer();
     if(omx_buffer == NULL)
     {
-      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - buffer error 0x%08x", omx_err);
+      crocore::log(crocore::Severity::ERROR, "COMXAudio::Initialize - buffer error 0x%08x", omx_err);
       return false;
     }
 
@@ -579,7 +579,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
     omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
       m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
       return false;
     }
@@ -593,7 +593,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
 
       if(omx_buffer == NULL)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
         return false;
       }
 
@@ -607,7 +607,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
       omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
       if (omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
         m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
         return false;
       }
@@ -638,10 +638,10 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   m_submitted     = 0.0f;
   m_maxLevel      = 0.0f;
 
-  kinski::log(kinski::Severity::TRACE_1, "COMXAudio::Initialize Input bps %d samplerate %d channels %d buffer size %d bytes per second %d",
+  crocore::log(crocore::Severity::TRACE_1, "COMXAudio::Initialize Input bps %d samplerate %d channels %d buffer size %d bytes per second %d",
       (int)m_pcm_input.nBitPerSample, (int)m_pcm_input.nSamplingRate, (int)m_pcm_input.nChannels, m_BufferLen, m_InputBytesPerSec);
   PrintPCM(&m_pcm_input, std::string("input"));
-  kinski::log(kinski::Severity::TRACE_1, "COMXAudio::Initialize device %s passthrough %d hwdecode %d",
+  crocore::log(crocore::Severity::TRACE_1, "COMXAudio::Initialize device %s passthrough %d hwdecode %d",
       m_config.device.c_str(), m_config.passthrough, m_config.hwdecode);
 
   return true;
@@ -796,7 +796,7 @@ bool COMXAudio::ApplyVolume(void)
     omx_err = m_omx_decoder.SetConfig(OMX_IndexConfigBrcmAudioDownmixCoefficients8x8, &mix);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - error setting decoder OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x",
+      crocore::log(crocore::Severity::ERROR, "%s::%s - error setting decoder OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x",
             CLASSNAME, __func__, omx_err);
       return false;
     }
@@ -808,11 +808,11 @@ bool COMXAudio::ApplyVolume(void)
   omx_err = m_omx_mixer.SetConfig(OMX_IndexConfigBrcmAudioDownmixCoefficients8x8, &mix);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - error setting mixer OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x",
+    crocore::log(crocore::Severity::ERROR, "%s::%s - error setting mixer OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x",
               CLASSNAME, __func__, omx_err);
     return false;
   }
-  kinski::log(kinski::Severity::TRACE_2, "%s::%s - Volume=%.2f (* %.2f * %.2f)", CLASSNAME, __func__, fVolume, m_amplification, m_attenuation);
+  crocore::log(crocore::Severity::TRACE_2, "%s::%s - Volume=%.2f (* %.2f * %.2f)", CLASSNAME, __func__, fVolume, m_amplification, m_attenuation);
   return true;
 }
 
@@ -830,7 +830,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
 
   if(!m_Initialized)
   {
-    kinski::log(kinski::Severity::ERROR,"COMXAudio::AddPackets - sanity failed. no valid play handle!");
+    crocore::log(crocore::Severity::ERROR,"COMXAudio::AddPackets - sanity failed. no valid play handle!");
     return len;
   }
 
@@ -850,7 +850,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
 
     if(omx_buffer == NULL)
     {
-      kinski::log(kinski::Severity::ERROR, "COMXAudio::Decode timeout");
+      crocore::log(crocore::Severity::ERROR, "COMXAudio::Decode timeout");
       printf("COMXAudio::Decode timeout");
       return len;
     }
@@ -875,7 +875,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
       const unsigned int frame_samples  = frame_size / pitch;
       const unsigned int plane_size     = frame_samples * sample_pitch;
       const unsigned int out_plane_size = samples * sample_pitch;
-      //kinski::log(kinski::Severity::TRACE_1, "%s::%s samples:%d/%d ps:%d ops:%d fs:%d pitch:%d filled:%d frames=%d", CLASSNAME, __func__, samples, demuxer_samples, plane_size, out_plane_size, frame_size, pitch, omx_buffer
+      //crocore::log(crocore::Severity::TRACE_1, "%s::%s samples:%d/%d ps:%d ops:%d fs:%d pitch:%d filled:%d frames=%d", CLASSNAME, __func__, samples, demuxer_samples, plane_size, out_plane_size, frame_size, pitch, omx_buffer
       for (unsigned int sample = 0; sample < samples; )
       {
         unsigned int frame = (demuxer_samples_sent + sample) / frame_samples;
@@ -885,7 +885,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
         uint8_t *dst = (uint8_t *)omx_buffer->pBuffer + sample * sample_pitch;
         for (unsigned int channel = 0; channel < m_InputChannels; channel++)
         {
-          //kinski::log(kinski::Severity::TRACE_1, "%s::%s copy(%d,%d,%d) (s:%d f:%d sin:%d c:%d)", CLASSNAME, __func__, dst-(uint8_t *)omx_buffer->pBuffer, src-demuxer_content, out_remaining, sample, frame, sample_in_frame
+          //crocore::log(crocore::Severity::TRACE_1, "%s::%s copy(%d,%d,%d) (s:%d f:%d sin:%d c:%d)", CLASSNAME, __func__, dst-(uint8_t *)omx_buffer->pBuffer, src-demuxer_content, out_remaining, sample, frame, sample_in_frame
           memcpy(dst, src, out_remaining * sample_pitch);
           src += plane_size;
           dst += out_plane_size;
@@ -908,7 +908,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
 
       m_last_pts = pts;
 
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::Decode ADec : setStartTime %f", (float)val / DVD_TIME_BASE);
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::Decode ADec : setStartTime %f", (float)val / DVD_TIME_BASE);
       m_setStartTime = false;
     }
     else
@@ -941,19 +941,19 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
     omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
       printf("%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
       m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
       return 0;
     }
-    //kinski::log(kinski::Severity::TRACE_2, "AudiD: dts:%.0f pts:%.0f size:%d", dts, pts, len);
+    //crocore::log(crocore::Severity::TRACE_2, "AudiD: dts:%.0f pts:%.0f size:%d", dts, pts, len);
 
     omx_err = m_omx_decoder.WaitForEvent(OMX_EventPortSettingsChanged, 0);
     if (omx_err == OMX_ErrorNone)
     {
       if(!PortSettingsChanged())
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - error PortSettingsChanged omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - error PortSettingsChanged omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       }
     }
   }
@@ -1050,13 +1050,13 @@ float COMXAudio::GetDelay()
   if (stamp != DVD_NOPTS_VALUE)
   {
     ret = (m_last_pts - stamp) * (1.0 / DVD_TIME_BASE);
-    //kinski::log(kinski::Severity::TRACE_2, "%s::%s - %.2f %.0f %.0f", CLASSNAME, __func__, ret, stamp, m_last_pts);
+    //crocore::log(crocore::Severity::TRACE_2, "%s::%s - %.2f %.0f %.0f", CLASSNAME, __func__, ret, stamp, m_last_pts);
   }
   else // just measure the input fifo
   {
     unsigned int used = m_omx_decoder.GetInputBufferSize() - m_omx_decoder.GetInputBufferSpace();
     ret = m_InputBytesPerSec ? (float)used / (float)m_InputBytesPerSec : 0.0f;
-    //kinski::log(kinski::Severity::TRACE_2, "%s::%s - %.2f %d, %d, %d", CLASSNAME, __func__, ret, used, m_omx_decoder.GetInputBufferSize(), m_omx_decoder.GetInputBufferSpace());
+    //crocore::log(crocore::Severity::TRACE_2, "%s::%s - %.2f %d, %d, %d", CLASSNAME, __func__, ret, used, m_omx_decoder.GetInputBufferSize(), m_omx_decoder.GetInputBufferSpace());
   }
   return ret;
 }
@@ -1097,7 +1097,7 @@ unsigned int COMXAudio::GetAudioRenderingLatency()
 
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x",
+      crocore::log(crocore::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x",
         CLASSNAME, __func__, omx_err);
       return 0;
     }
@@ -1110,7 +1110,7 @@ unsigned int COMXAudio::GetAudioRenderingLatency()
 
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x",
+      crocore::log(crocore::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x",
         CLASSNAME, __func__, omx_err);
       return 0;
     }
@@ -1136,7 +1136,7 @@ float COMXAudio::GetMaxLevel(double &pts)
 
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigBrcmAudioMaxSample error 0x%08x",
+      crocore::log(crocore::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigBrcmAudioMaxSample error 0x%08x",
         CLASSNAME, __func__, omx_err);
       return 0;
     }
@@ -1160,7 +1160,7 @@ void COMXAudio::SubmitEOS()
 
   if(omx_buffer == NULL)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
     m_failed_eos = true;
     return;
   }
@@ -1174,11 +1174,11 @@ void COMXAudio::SubmitEOS()
   omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
   if (omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)", CLASSNAME, __func__, omx_err);
     m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
     return;
   }
-  kinski::log(kinski::Severity::TRACE_2, "%s::%s", CLASSNAME, __func__);
+  crocore::log(crocore::Severity::TRACE_2, "%s::%s", CLASSNAME, __func__);
 }
 
 bool COMXAudio::IsEOS()
@@ -1193,7 +1193,7 @@ bool COMXAudio::IsEOS()
 
   if (m_submitted_eos)
   {
-    kinski::log(kinski::Severity::TRACE_2, "%s::%s", CLASSNAME, __func__);
+    crocore::log(crocore::Severity::TRACE_2, "%s::%s", CLASSNAME, __func__);
     m_submitted_eos = false;
   }
   return true;
@@ -1204,16 +1204,16 @@ void COMXAudio::SetCodingType(AVCodecID codec)
   switch(codec)
   {
     case AV_CODEC_ID_DTS:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::SetCodingType OMX_AUDIO_CodingDTS");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::SetCodingType OMX_AUDIO_CodingDTS");
       m_eEncoding = OMX_AUDIO_CodingDTS;
       break;
     case AV_CODEC_ID_AC3:
     case AV_CODEC_ID_EAC3:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::SetCodingType OMX_AUDIO_CodingDDP");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::SetCodingType OMX_AUDIO_CodingDDP");
       m_eEncoding = OMX_AUDIO_CodingDDP;
       break;
     default:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::SetCodingType OMX_AUDIO_CodingPCM");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::SetCodingType OMX_AUDIO_CodingPCM");
       m_eEncoding = OMX_AUDIO_CodingPCM;
       break;
   }
@@ -1225,35 +1225,35 @@ bool COMXAudio::CanHWDecode(AVCodecID codec)
   {
     /*
     case AV_CODEC_ID_VORBIS:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingVORBIS");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingVORBIS");
       m_eEncoding = OMX_AUDIO_CodingVORBIS;
       m_config.hwdecode = true;
       break;
     case AV_CODEC_ID_AAC:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingAAC");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingAAC");
       m_eEncoding = OMX_AUDIO_CodingAAC;
       m_config.hwdecode = true;
       break;
     */
     case AV_CODEC_ID_MP2:
     case AV_CODEC_ID_MP3:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingMP3");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingMP3");
       m_eEncoding = OMX_AUDIO_CodingMP3;
       m_config.hwdecode = true;
       break;
     case AV_CODEC_ID_DTS:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDTS");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDTS");
       m_eEncoding = OMX_AUDIO_CodingDTS;
       m_config.hwdecode = true;
       break;
     case AV_CODEC_ID_AC3:
     case AV_CODEC_ID_EAC3:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDDP");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDDP");
       m_eEncoding = OMX_AUDIO_CodingDDP;
       m_config.hwdecode = true;
       break;
     default:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingPCM");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::CanHWDecode OMX_AUDIO_CodingPCM");
       m_eEncoding = OMX_AUDIO_CodingPCM;
       m_config.hwdecode = false;
       break;
@@ -1270,26 +1270,26 @@ bool COMXAudio::HWDecode(AVCodecID codec)
   {
     /*
     case AV_CODEC_ID_VORBIS:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_VORBIS");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_VORBIS");
       ret = true;
       break;
     case AV_CODEC_ID_AAC:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_AAC");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_AAC");
       ret = true;
       break;
     */
     case AV_CODEC_ID_MP2:
     case AV_CODEC_ID_MP3:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_MP2 / AV_CODEC_ID_MP3");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_MP2 / AV_CODEC_ID_MP3");
       ret = true;
       break;
     case AV_CODEC_ID_DTS:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_DTS");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_DTS");
       ret = true;
       break;
     case AV_CODEC_ID_AC3:
     case AV_CODEC_ID_EAC3:
-      kinski::log(kinski::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_AC3 / AV_CODEC_ID_EAC3");
+      crocore::log(crocore::Severity::TRACE_1, "COMXAudio::HWDecode AV_CODEC_ID_AC3 / AV_CODEC_ID_EAC3");
       ret = true;
       break;
     default:
@@ -1307,31 +1307,31 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
     switch(eChannelMapping[i])
     {
       case OMX_AUDIO_ChannelLF:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLF");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelLF");
         break;
       case OMX_AUDIO_ChannelRF:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelRF");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelRF");
         break;
       case OMX_AUDIO_ChannelCF:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelCF");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelCF");
         break;
       case OMX_AUDIO_ChannelLS:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLS");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelLS");
         break;
       case OMX_AUDIO_ChannelRS:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelRS");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelRS");
         break;
       case OMX_AUDIO_ChannelLFE:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLFE");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelLFE");
         break;
       case OMX_AUDIO_ChannelCS:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelCS");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelCS");
         break;
       case OMX_AUDIO_ChannelLR:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLR");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelLR");
         break;
       case OMX_AUDIO_ChannelRR:
-        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelRR");
+        crocore::log(crocore::Severity::TRACE_2, "OMX_AUDIO_ChannelRR");
         break;
       case OMX_AUDIO_ChannelNone:
       case OMX_AUDIO_ChannelKhronosExtensions:
@@ -1345,15 +1345,15 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
 
 void COMXAudio::PrintPCM(OMX_AUDIO_PARAM_PCMMODETYPE *pcm, std::string direction)
 {
-  kinski::log(kinski::Severity::TRACE_2, "pcm->direction      : %s", direction.c_str());
-  kinski::log(kinski::Severity::TRACE_2, "pcm->nPortIndex     : %d", (int)pcm->nPortIndex);
-  kinski::log(kinski::Severity::TRACE_2, "pcm->eNumData       : %d", pcm->eNumData);
-  kinski::log(kinski::Severity::TRACE_2, "pcm->eEndian        : %d", pcm->eEndian);
-  kinski::log(kinski::Severity::TRACE_2, "pcm->bInterleaved   : %d", (int)pcm->bInterleaved);
-  kinski::log(kinski::Severity::TRACE_2, "pcm->nBitPerSample  : %d", (int)pcm->nBitPerSample);
-  kinski::log(kinski::Severity::TRACE_2, "pcm->ePCMMode       : %d", pcm->ePCMMode);
-  kinski::log(kinski::Severity::TRACE_2, "pcm->nChannels      : %d", (int)pcm->nChannels);
-  kinski::log(kinski::Severity::TRACE_2, "pcm->nSamplingRate  : %d", (int)pcm->nSamplingRate);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->direction      : %s", direction.c_str());
+  crocore::log(crocore::Severity::TRACE_2, "pcm->nPortIndex     : %d", (int)pcm->nPortIndex);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->eNumData       : %d", pcm->eNumData);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->eEndian        : %d", pcm->eEndian);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->bInterleaved   : %d", (int)pcm->bInterleaved);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->nBitPerSample  : %d", (int)pcm->nBitPerSample);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->ePCMMode       : %d", pcm->ePCMMode);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->nChannels      : %d", (int)pcm->nChannels);
+  crocore::log(crocore::Severity::TRACE_2, "pcm->nSamplingRate  : %d", (int)pcm->nSamplingRate);
 
   PrintChannels(pcm->eChannelMapping);
 }

@@ -21,10 +21,11 @@
 #include <sys/time.h>
 #include <cassert>
 
+#include <crocore/Logger.hpp>
+
 #include "OMXCore.h"
 #include "OMXClock.h"
 #include "linux/XMemUtils.h"
-#include "core/Logger.hpp"
 
 //#define OMX_DEBUG_EVENTS
 //#define OMX_DEBUG_EVENTHANDLER

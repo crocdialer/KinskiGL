@@ -51,7 +51,7 @@ namespace kinski{ namespace media{
         return false;
     }
 
-    bool CameraController::copy_frame_to_image(ImagePtr& the_image)
+    bool CameraController::copy_frame_to_image(crocore::ImagePtr& the_image)
     {
         return false;
     }

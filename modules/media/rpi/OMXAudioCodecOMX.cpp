@@ -23,7 +23,7 @@
 #include "utils/PCMRemap.h"
 #include "linux/XMemUtils.h"
 
-#include "core/Logger.hpp"
+#include <crocore/Logger.hpp>
 
 // the size of the audio_render output port buffers
 #define AUDIO_DECODE_OUTPUT_BUFFER (32*1024)

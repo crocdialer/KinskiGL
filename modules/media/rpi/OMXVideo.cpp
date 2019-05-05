@@ -26,7 +26,7 @@
 #include <sys/time.h>
 #include <inttypes.h>
 
-#include "core/Logger.hpp"
+#include <crocore/Logger.hpp>
 
 #ifdef CLASSNAME
 #undef CLASSNAME
@@ -99,7 +99,7 @@ bool COMXVideo::SendDecoderConfig()
 
     if(omx_buffer == NULL)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
       return false;
     }
 
@@ -113,7 +113,7 @@ bool COMXVideo::SendDecoderConfig()
     omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
       m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
       return false;
     }
@@ -138,7 +138,7 @@ bool COMXVideo::NaluFormatStartCodes(enum AVCodecID codec, uint8_t *in_extradata
 
 void COMXVideo::PortSettingsChangedLogger(OMX_PARAM_PORTDEFINITIONTYPE port_image, int interlaceEMode)
 {
-  kinski::log(kinski::Severity::TRACE_1, "%s::%s - %dx%d@%.2f interlace:%d deinterlace:%d anaglyph:%d par:%.2f display:%d layer:%d alpha:%d aspectMode:%d", CLASSNAME, __func__,
+  crocore::log(crocore::Severity::TRACE_1, "%s::%s - %dx%d@%.2f interlace:%d deinterlace:%d anaglyph:%d par:%.2f display:%d layer:%d alpha:%d aspectMode:%d", CLASSNAME, __func__,
       port_image.format.video.nFrameWidth, port_image.format.video.nFrameHeight,
       port_image.format.video.xFramerate / (float)(1<<16), interlaceEMode, m_deinterlace, m_config.anaglyph, m_pixel_aspect, m_config.display,
       m_config.layer, m_config.alpha, m_config.aspectMode);
@@ -165,7 +165,7 @@ bool COMXVideo::PortSettingsChanged()
   omx_err = m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition, &port_image);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition) omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition) omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
   }
 
   OMX_CONFIG_POINTTYPE pixel_aspect;
@@ -174,7 +174,7 @@ bool COMXVideo::PortSettingsChanged()
   omx_err = m_omx_decoder.GetParameter(OMX_IndexParamBrcmPixelAspectRatio, &pixel_aspect);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_decoder.GetParameter(OMX_IndexParamBrcmPixelAspectRatio) omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - error m_omx_decoder.GetParameter(OMX_IndexParamBrcmPixelAspectRatio) omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
   }
 
   if (pixel_aspect.nX && pixel_aspect.nY && !m_config.hints.forced_aspect)
@@ -234,7 +234,7 @@ bool COMXVideo::PortSettingsChanged()
       omx_err = m_omx_render.SetConfig(OMX_IndexConfigDisplayRegion, &configDisplay);
       if(omx_err != OMX_ErrorNone)
       {
-          kinski::log(kinski::Severity::WARNING, "%s::%s - could not set transform : %d", CLASSNAME, __func__, m_transform);
+          crocore::log(crocore::Severity::WARNING, "%s::%s - could not set transform : %d", CLASSNAME, __func__, m_transform);
           return false;
       }
   }
@@ -257,7 +257,7 @@ bool COMXVideo::PortSettingsChanged()
     omx_err = m_omx_render.SetConfig(OMX_IndexConfigLatencyTarget, &latencyTarget);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_IndexConfigLatencyTarget omx_err(0%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_IndexConfigLatencyTarget omx_err(0%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -276,7 +276,7 @@ bool COMXVideo::PortSettingsChanged()
       omx_err = m_omx_image_fx.SetParameter(OMX_IndexParamBrcmExtraBuffers, &extra_buffers);
       if(omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s error OMX_IndexParamBrcmExtraBuffers omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s error OMX_IndexParamBrcmExtraBuffers omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
     }
@@ -306,7 +306,7 @@ bool COMXVideo::PortSettingsChanged()
     omx_err = m_omx_image_fx.SetConfig(OMX_IndexConfigCommonImageFilterParameters, &image_filter);
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_IndexConfigCommonImageFilterParameters omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_IndexConfigCommonImageFilterParameters omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -326,14 +326,14 @@ bool COMXVideo::PortSettingsChanged()
   omx_err = m_omx_tunnel_clock.Establish();
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_clock.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_clock.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
   }
 
   omx_err = m_omx_tunnel_decoder.Establish();
   if (omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
   }
 
@@ -342,14 +342,14 @@ bool COMXVideo::PortSettingsChanged()
     omx_err = m_omx_tunnel_image_fx.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_image_fx.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_image_fx.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
 
     omx_err = m_omx_image_fx.SetStateForComponent(OMX_StateExecuting);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_image_fx.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_image_fx.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -357,14 +357,14 @@ bool COMXVideo::PortSettingsChanged()
   omx_err = m_omx_tunnel_sched.Establish();
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_sched.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_tunnel_sched.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
   }
 
   omx_err = m_omx_sched.SetStateForComponent(OMX_StateExecuting);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_sched.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_sched.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
   }
 
@@ -396,7 +396,7 @@ bool COMXVideo::PortSettingsChanged()
   omx_err = m_omx_render.SetStateForComponent(OMX_StateExecuting);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - m_omx_render.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
   }
 
@@ -567,7 +567,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   omx_err = m_omx_decoder.SetStateForComponent(OMX_StateIdle);
   if (omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open m_omx_decoder.SetStateForComponent\n");
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open m_omx_decoder.SetStateForComponent\n");
     return false;
   }
 
@@ -596,7 +596,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   omx_err = m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition, &portParam);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open error OMX_IndexParamPortDefinition omx_err(0x%08x)\n", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open error OMX_IndexParamPortDefinition omx_err(0x%08x)\n", omx_err);
     return false;
   }
 
@@ -609,7 +609,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamPortDefinition, &portParam);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open error OMX_IndexParamPortDefinition omx_err(0x%08x)\n", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open error OMX_IndexParamPortDefinition omx_err(0x%08x)\n", omx_err);
     return false;
   }
 
@@ -623,7 +623,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   omx_err = m_omx_decoder.SetParameter((OMX_INDEXTYPE)OMX_IndexConfigRequestCallback, &notifications);
   if (omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open OMX_IndexConfigRequestCallback error (0%08x)\n", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open OMX_IndexConfigRequestCallback error (0%08x)\n", omx_err);
     return false;
   }
 
@@ -637,7 +637,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamBrcmVideoDecodeErrorConcealment, &concanParam);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open error OMX_IndexParamBrcmVideoDecodeErrorConcealment omx_err(0x%08x)\n", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open error OMX_IndexParamBrcmVideoDecodeErrorConcealment omx_err(0x%08x)\n", omx_err);
     return false;
   }
 
@@ -651,7 +651,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
     omx_err = m_omx_decoder.SetParameter((OMX_INDEXTYPE)OMX_IndexParamNalStreamFormatSelect, &nalStreamFormat);
     if (omx_err != OMX_ErrorNone)
     {
-      kinski::log(kinski::Severity::ERROR, "COMXVideo::Open OMX_IndexParamNalStreamFormatSelect error (0%08x)\n", omx_err);
+      crocore::log(crocore::Severity::ERROR, "COMXVideo::Open OMX_IndexParamNalStreamFormatSelect error (0%08x)\n", omx_err);
       return false;
     }
   }
@@ -660,14 +660,14 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   omx_err = m_omx_decoder.AllocInputBuffers();
   if (omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open AllocOMXInputBuffers error (0%08x)\n", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open AllocOMXInputBuffers error (0%08x)\n", omx_err);
     return false;
   }
 
   omx_err = m_omx_decoder.SetStateForComponent(OMX_StateExecuting);
   if (omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open error m_omx_decoder.SetStateForComponent\n");
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open error m_omx_decoder.SetStateForComponent\n");
     return false;
   }
 
@@ -710,7 +710,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   if(m_omx_decoder.BadState())
     return false;
 
-  kinski::log(kinski::Severity::TRACE_1,
+  crocore::log(crocore::Severity::TRACE_1,
     "%s::%s - decoder_component(0x%p), input_port(0x%x), output_port(0x%x) deinterlace %d hdmiclocksync %d\n",
     CLASSNAME, __func__, m_omx_decoder.GetComponent(), m_omx_decoder.GetInputPort(), m_omx_decoder.GetOutputPort(),
     m_config.deinterlace, m_config.hdmi_clock_sync);
@@ -780,7 +780,7 @@ int COMXVideo::Decode(uint8_t *pData, int iSize, double dts, double pts)
     if(m_setStartTime)
     {
       nFlags |= OMX_BUFFERFLAG_STARTTIME;
-      kinski::log(kinski::Severity::TRACE_1, "OMXVideo::Decode VDec : setStartTime %f\n", (pts == DVD_NOPTS_VALUE ? 0.0 : pts) / DVD_TIME_BASE);
+      crocore::log(crocore::Severity::TRACE_1, "OMXVideo::Decode VDec : setStartTime %f\n", (pts == DVD_NOPTS_VALUE ? 0.0 : pts) / DVD_TIME_BASE);
       m_setStartTime = false;
     }
     if (pts == DVD_NOPTS_VALUE && dts == DVD_NOPTS_VALUE)
@@ -794,7 +794,7 @@ int COMXVideo::Decode(uint8_t *pData, int iSize, double dts, double pts)
       OMX_BUFFERHEADERTYPE *omx_buffer = m_omx_decoder.GetInputBuffer(500);
       if(omx_buffer == NULL)
       {
-        kinski::log(kinski::Severity::ERROR, "OMXVideo::Decode timeout\n");
+        crocore::log(crocore::Severity::ERROR, "OMXVideo::Decode timeout\n");
         printf("COMXVideo::Decode timeout\n");
         return false;
       }
@@ -814,19 +814,19 @@ int COMXVideo::Decode(uint8_t *pData, int iSize, double dts, double pts)
       omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
       if (omx_err != OMX_ErrorNone)
       {
-        kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
+        crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
         printf("%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
         m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
         return false;
       }
-      //kinski::log(kinski::Severity::TRACE, "VideD: dts:%.0f pts:%.0f size:%d)\n", dts, pts, iSize);
+      //crocore::log(crocore::Severity::TRACE, "VideD: dts:%.0f pts:%.0f size:%d)\n", dts, pts, iSize);
 
       omx_err = m_omx_decoder.WaitForEvent(OMX_EventPortSettingsChanged, 0);
       if (omx_err == OMX_ErrorNone)
       {
         if(!PortSettingsChanged())
         {
-          kinski::log(kinski::Severity::ERROR, "%s::%s - error PortSettingsChanged omx_err(0x%08x)\n", CLASSNAME, __func__, omx_err);
+          crocore::log(crocore::Severity::ERROR, "%s::%s - error PortSettingsChanged omx_err(0x%08x)\n", CLASSNAME, __func__, omx_err);
           return false;
         }
       }
@@ -835,7 +835,7 @@ int COMXVideo::Decode(uint8_t *pData, int iSize, double dts, double pts)
       {
         if(!PortSettingsChanged())
         {
-          kinski::log(kinski::Severity::ERROR, "%s::%s - error PortSettingsChanged (EventParamOrConfigChanged) omx_err(0x%08x)\n", CLASSNAME, __func__, omx_err);
+          crocore::log(crocore::Severity::ERROR, "%s::%s - error PortSettingsChanged (EventParamOrConfigChanged) omx_err(0x%08x)\n", CLASSNAME, __func__, omx_err);
         }
       }
     }
@@ -918,7 +918,7 @@ void COMXVideo::SetVideoRect()
 
   omx_err = m_omx_render.SetConfig(OMX_IndexConfigDisplayRegion, &configDisplay);
   if (omx_err != OMX_ErrorNone) {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::Open error OMX_IndexConfigDisplayRegion omx_err(0x%08x)\n", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::Open error OMX_IndexConfigDisplayRegion omx_err(0x%08x)\n", omx_err);
   }
 }
 
@@ -939,7 +939,7 @@ void COMXVideo::SetAlpha(int alpha)
   omx_err = m_omx_render.SetConfig(OMX_IndexConfigDisplayRegion, &configDisplay);
   if(omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "COMXVideo::ALPHA::Open error OMX_IndexConfigDisplayRegion omx_err(0x%08x)\n", omx_err);
+    crocore::log(crocore::Severity::ERROR, "COMXVideo::ALPHA::Open error OMX_IndexConfigDisplayRegion omx_err(0x%08x)\n", omx_err);
   }
 
 }
@@ -968,7 +968,7 @@ void COMXVideo::SubmitEOS()
 
   if(omx_buffer == NULL)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
     m_failed_eos = true;
     return;
   }
@@ -982,11 +982,11 @@ void COMXVideo::SubmitEOS()
   omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
   if (omx_err != OMX_ErrorNone)
   {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
+    crocore::log(crocore::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
     m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
     return;
   }
-  kinski::log(kinski::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
+  crocore::log(crocore::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
 }
 
 bool COMXVideo::IsEOS()
@@ -998,7 +998,7 @@ bool COMXVideo::IsEOS()
     return false;
   if (m_submitted_eos)
   {
-    kinski::log(kinski::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
+    crocore::log(crocore::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
     m_submitted_eos = false;
   }
   return true;

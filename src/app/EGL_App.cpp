@@ -5,11 +5,13 @@
 #include <linux/input.h>
 #include "esUtil.h"
 #undef countof
-#include "core/file_functions.hpp"
+
+#include <crocore/filesystem.hpp>
 #include "app/imgui/imgui_integration.h"
 #include "EGL_App.hpp"
 
 using namespace std;
+using namespace crocore;
 
 void blank_background();
 std::string find_mouse_handler();
@@ -240,9 +242,9 @@ void EGL_App::set_lcd_backlight(bool b) const
     {
         std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +
         " >  " + bl_path + "\"";
-        kinski::syscall(cmd);
+        crocore::syscall(cmd);
     }
-    kinski::syscall("setterm --blank 0");//--powersave off --powerdown 0
+    crocore::syscall("setterm --blank 0");//--powersave off --powerdown 0
 }
 
 void EGL_App::poll_events()
@@ -489,8 +491,8 @@ void read_mouse_and_touch(kinski::App* the_app, int the_file_descriptor)
 std::string find_device_handler(const std::string &the_dev_name)
 {
     // get list of input-devices
-    string dev_str = kinski::fs::read_file("/proc/bus/input/devices");
-    auto lines = kinski::split(dev_str, '\n');
+    string dev_str = crocore::fs::read_file("/proc/bus/input/devices");
+    auto lines = crocore::split(dev_str, '\n');
     const std::string handler_token = "H:";
     bool found_dev_name = false;
     string evt_handler_name = "not_found";
@@ -504,21 +506,21 @@ std::string find_device_handler(const std::string &the_dev_name)
         {
             if(l.find(handler_token) != std::string::npos)
             {
-                auto splits = kinski::split(l, '=');
+                auto splits = crocore::split(l, '=');
 
-                if(!splits.empty()){ splits = kinski::split(splits.back(), ' '); }
+                if(!splits.empty()){ splits = crocore::split(splits.back(), ' '); }
                 if(!splits.empty()){ evt_handler_name = splits.back(); break; }
             }
         }
     }
-    return kinski::fs::join_paths("/dev/input/", evt_handler_name);
+    return crocore::fs::join_paths("/dev/input/", evt_handler_name);
 }
 
 std::string find_mouse_handler()
 {
     std::string dir = "/dev/input/by-id";
-    if(!kinski::fs::exists(dir)){ return ""; }
-    auto input_handles = kinski::fs::get_directory_entries(dir);
+    if(!crocore::fs::exists(dir)){ return ""; }
+    auto input_handles = crocore::fs::get_directory_entries(dir);
 
     for(const auto &p : input_handles)
     {
@@ -530,8 +532,8 @@ std::string find_mouse_handler()
 std::string find_keyboard_handler()
 {
     std::string dir = "/dev/input/by-id";
-    if(!kinski::fs::exists(dir)){ return ""; }
-    auto input_handles = kinski::fs::get_directory_entries(dir);
+    if(!crocore::fs::exists(dir)){ return ""; }
+    auto input_handles = crocore::fs::get_directory_entries(dir);
 
     for(const auto &p : input_handles)
     {
@@ -563,7 +565,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
         // find touch device name
         auto touch_dev_path = find_device_handler("FT5406");
 
-        if(kinski::fs::exists(touch_dev_path))
+        if(crocore::fs::exists(touch_dev_path))
         {
             int result = -1;
             (void) result;

@@ -45,7 +45,7 @@ namespace kinski{ namespace media{
         bool copy_frame(std::vector<uint8_t>& data, int *width = nullptr, int *height = nullptr);
         
         /*!
-         * copy the current frame to a kinski::ImagePtr
+         * copy the current frame to a crocore::ImagePtr
          * @return true if a new frame has been copied successfully,
          * false otherwise
          */
