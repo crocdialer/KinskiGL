@@ -8,6 +8,27 @@
 //triggers checks with glGetError()
 //#define KINSKI_GL_REPORT_ERRORS
 
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+#define KINSKI_MSW
+#else
+#if defined(linux) || defined(__linux) || defined(__linux__)
+#define KINSKI_LINUX
+
+#elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
+#define KINSKI_COCOA
+#include "TargetConditionals.h"
+#if TARGET_OS_IPHONE
+#define KINSKI_COCOA_TOUCH
+#else
+#define KINSKI_MAC
+#endif
+// This is defined to prevent the inclusion of some unfortunate macros in <AssertMacros.h>
+#define __ASSERTMACROS__
+#else
+#error "kinski compile error: Unknown platform"
+#endif
+#endif
+
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_ARM)
 #define KINSKI_GLES
 #endif
@@ -48,6 +69,7 @@
 #endif // KINSKI_GLES (OpenGL ES)
 
 #elif defined(KINSKI_COCOA)// desktop GL3
+#define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 #else
