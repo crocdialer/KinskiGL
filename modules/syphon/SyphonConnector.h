@@ -10,24 +10,29 @@
 
 #include "gl/gl.hpp"
 
-namespace kinski{ namespace syphon{
-    
+namespace kinski {
+namespace syphon {
+
 class Output
 {
- public:
-    Output(){};
+public:
+    Output() {};
+
     Output(const std::string &theName);
 
     void publish_texture(const gl::Texture &theTexture);
+
     void setName(const std::string &theName);
+
     std::string getName();
 
- private:
+private:
 
     std::shared_ptr<struct OutputImpl> m_impl;
 
     //! Emulates shared_ptr-like behavior
     explicit operator bool() const { return m_impl.get() != nullptr; }
+
     void reset() { m_impl.reset(); }
 };
 
@@ -43,10 +48,12 @@ public:
 
     static std::vector<ServerDescription> get_inputs();
 
-    Input(){};
+    Input() {};
+
     Input(uint32_t the_index);
 
     bool has_new_frame();
+
     bool copy_frame(gl::Texture &tex);
 
     ServerDescription description();
@@ -57,21 +64,23 @@ private:
 
     //! Emulates shared_ptr-like behavior
     operator bool() const { return m_impl.get() != nullptr; }
+
     void reset() { m_impl.reset(); }
 };
 
-class SyphonNotRunningException: public Exception
+class SyphonNotRunningException : public std::runtime_error
 {
 public:
     SyphonNotRunningException() :
-    Exception("No Syphon server running"){}
+            std::runtime_error("No Syphon server running") {}
 };
 
-class SyphonInputOutOfBoundsException: public Exception
+class SyphonInputOutOfBoundsException : public std::runtime_error
 {
 public:
     SyphonInputOutOfBoundsException() :
-    Exception("Requested SyphonInput out of bounds"){}
+            std::runtime_error("Requested SyphonInput out of bounds") {}
 };
-    
-}}//namespace
+
+}
+}//namespace
