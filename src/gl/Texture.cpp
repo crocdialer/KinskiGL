@@ -250,7 +250,7 @@ void Texture::set_roi(int the_x, int the_y, uint32_t the_width, uint32_t the_hei
     
 void Texture::set_roi(const crocore::Area_<uint32_t> &the_roi)
 {
-    set_roi(the_roi.x0, the_roi.y0, the_roi.width(), the_roi.height());
+    set_roi(the_roi.x, the_roi.y, the_roi.width, the_roi.height);
 }
     
 mat4 Texture::texture_matrix() const

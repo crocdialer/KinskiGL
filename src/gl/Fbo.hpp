@@ -154,19 +154,19 @@ public:
 //	//! For antialiased FBOs this returns the ID of the mirror FBO designed for reading, where the multisampled render buffers are resolved to. For non-antialised, this is the equivalent to getId()
 //	GLuint		getResolveId() const { if( m_obj->m_resolve_fbo_id ) return m_obj->m_resolve_fbo_id; else return m_obj->m_id; }
 //
-    void blit_to_current(const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst,
+    void blit_to_current(const crocore::Area_<int> &src, const crocore::Area_<int> &dst,
                          GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT) const;
 
 //	//! Copies to FBO \a dst from \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
-    void blit_to(Fbo the_dst_fbo, const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst,
+    void blit_to(Fbo fbo, const crocore::Area_<int> &src, const crocore::Area_<int> &dst,
                  GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT) const;
 
 //	//! Copies to the screen from Area \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
-    void blit_to_screen(const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst,
+    void blit_to_screen(const crocore::Area_<int> &src, const crocore::Area_<int> &dst,
                         GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT) const;
 
     //! Copies from the screen from Area \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
-    void blit_from_screen(const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst,
+    void blit_from_screen(const crocore::Area_<int> &src, const crocore::Area_<int> &dst,
                           GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT);
 
 #endif

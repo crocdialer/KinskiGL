@@ -26,7 +26,8 @@ ViewerApp::ViewerApp(int argc, char *argv[]) : BaseApp(argc, argv),
                                                m_gui_camera(gl::OrthoCamera::create(0, 1, 0, 1, 0, 1)),
                                                m_precise_selection(true),
                                                m_center_selected(false),
-                                               m_rotation_damping(.9)
+                                               m_rotation_damping(.9),
+                                               m_drag_buffer(crocore::CircularBuffer<gl::vec2>(10))
 {
     /*********** init our application properties ******************/
     m_search_paths = Property_<std::vector<std::string>>::create("File search paths",

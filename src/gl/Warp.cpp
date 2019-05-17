@@ -39,7 +39,7 @@ namespace {
 const std::vector<gl::vec2> default_points = {gl::vec2(0, 1), gl::vec2(1, 1), gl::vec2(0, 0),
                                               gl::vec2(1, 0)};
 
-const crocore::Area_<float> default_roi = crocore::Area_<float>(0.f, 0.f, 1.f, 1.f);
+const crocore::Area_<float> default_roi = {0.f, 0.f, 1.f, 1.f};
 };
 
 struct WarpImpl
@@ -402,8 +402,10 @@ void Warp::render_output(const gl::Texture &the_texture, const float the_brightn
     {
         uvec2 sz(the_texture.width() - 1, the_texture.height() - 1);
 
-        crocore::Area_<uint32_t> abs_roi(m_impl->m_src_area.x0 * sz.x, m_impl->m_src_area.y0 * sz.y,
-                                         m_impl->m_src_area.x1 * sz.x, m_impl->m_src_area.y1 * sz.y);
+        crocore::Area_<uint32_t> abs_roi = {static_cast<uint32_t>(m_impl->m_src_area.x * sz.x),
+                                            static_cast<uint32_t>(m_impl->m_src_area.y * sz.y),
+                                            static_cast<uint32_t>(m_impl->m_src_area.width * sz.x),
+                                            static_cast<uint32_t>(m_impl->m_src_area.height * sz.y)};
         roi_tex.set_roi(abs_roi);
     }
 

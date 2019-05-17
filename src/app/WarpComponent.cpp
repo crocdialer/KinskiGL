@@ -17,13 +17,13 @@
 
 using namespace crocore;
 
-namespace kinski
-{
+namespace kinski {
 
 WarpComponentPtr WarpComponent::create()
 {
     return WarpComponentPtr(new WarpComponent());
 }
+
 WarpComponent::WarpComponent()
 {
     set_name("quad_warping");
@@ -37,7 +37,7 @@ WarpComponent::WarpComponent()
     m_perspective = Property_<bool>::create("perspective", true);
     m_cubic_interpolation = Property_<bool>::create("use cubic interpolation", false);
     m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
-    m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(1));
+    m_src_size = Property_<gl::vec2>::create("source area size", gl::vec2(1));
     m_control_points = Property_<std::vector<gl::vec2>>::create("control points");
     m_control_points->set_tweakable(false);
     m_corners = Property_<std::vector<gl::vec2>>::create("quad corners");
@@ -57,12 +57,12 @@ WarpComponent::WarpComponent()
     register_property(m_control_points);
     register_property(m_corners);
     register_property(m_src_top_left);
-    register_property(m_src_bottom_right);
+    register_property(m_src_size);
     register_property(m_grid_resolution);
     register_property(m_edges);
     register_property(m_edge_exponents);
 
-    register_function("reset", [this](const std::vector<std::string>&){ reset(); });
+    register_function("reset", [this](const std::vector<std::string> &) { reset(); });
 
     m_params.resize(m_quad_warp.size());
     m_params[0].enabled = true;
@@ -71,7 +71,7 @@ WarpComponent::WarpComponent()
 void WarpComponent::reset()
 {
     *m_src_top_left = gl::vec2(0);
-    *m_src_bottom_right = gl::vec2(0);
+    *m_src_size = gl::vec2(0);
     m_quad_warp[*m_index].reset();
     refresh();
 
@@ -129,8 +129,9 @@ void WarpComponent::set_from(gl::Warp &the_quadwarp, uint32_t the_index)
     *m_control_points = the_quadwarp.control_points();
     *m_corners = the_quadwarp.corners();
 
-    *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
-    *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
+    *m_src_top_left = gl::vec2(the_quadwarp.src_area().x, the_quadwarp.src_area().y);
+    *m_src_size = gl::vec2(the_quadwarp.src_area().width, the_quadwarp.src_area().height);
+
     *m_grid_resolution = the_quadwarp.grid_resolution();
 
     auto edges = the_quadwarp.edges(), edge_exp = the_quadwarp.edge_exponents();
@@ -145,10 +146,10 @@ void WarpComponent::set_from(gl::Warp &the_quadwarp, uint32_t the_index)
     m_quad_warp[the_index].set_corners(*m_corners);
     m_quad_warp[the_index].set_perspective(*m_perspective);
     m_quad_warp[the_index].set_cubic_interpolation(*m_cubic_interpolation);
-    m_quad_warp[the_index].set_src_area(Area_<float>(m_src_top_left->value().x,
-                                                     m_src_top_left->value().y,
-                                                     m_src_bottom_right->value().x,
-                                                     m_src_bottom_right->value().y));
+    m_quad_warp[the_index].set_src_area({m_src_top_left->value().x,
+                                         m_src_top_left->value().y,
+                                         m_src_size->value().x,
+                                         m_src_size->value().y});
     m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
 
     if(m_edges->value().size() == 4)
@@ -167,7 +168,7 @@ void WarpComponent::set_from(gl::Warp &the_quadwarp, uint32_t the_index)
     observe_properties(true);
 }
 
-gl::Warp& WarpComponent::quad_warp(int i)
+gl::Warp &WarpComponent::quad_warp(int i)
 {
     i = i < 0 || i >= (int)m_quad_warp.size() ? *m_index : i;
     return m_quad_warp[i];
@@ -183,51 +184,40 @@ void WarpComponent::update_property(const PropertyConstPtr &the_property)
     if(the_property == m_index)
     {
         refresh();
-    }
-    else if(the_property == m_enabled)
+    }else if(the_property == m_enabled)
     {
         m_params[*m_index].enabled = *m_enabled;
-    }
-    else if(the_property == m_draw_grid)
+    }else if(the_property == m_draw_grid)
     {
         m_params[*m_index].display_grid = *m_draw_grid;
-    }
-    else if(the_property == m_draw_control_points)
+    }else if(the_property == m_draw_control_points)
     {
         m_params[*m_index].display_points = *m_draw_control_points;
-    }
-    else if(the_property == m_control_points)
+    }else if(the_property == m_control_points)
     {
         m_quad_warp[*m_index].set_control_points(m_control_points->value());
-    }
-    else if(the_property == m_corners)
+    }else if(the_property == m_corners)
     {
         m_quad_warp[*m_index].set_corners(m_corners->value());
-    }
-    else if(the_property == m_num_subdivisions)
+    }else if(the_property == m_num_subdivisions)
     {
         m_quad_warp[*m_index].set_num_subdivisions(*m_num_subdivisions);
-    }
-    else if(the_property == m_grid_resolution)
+    }else if(the_property == m_grid_resolution)
     {
         m_quad_warp[*m_index].set_grid_resolution(*m_grid_resolution);
-    }
-    else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
+    }else if(the_property == m_src_size || the_property == m_src_top_left)
     {
-        m_quad_warp[*m_index].set_src_area(Area_<float>(m_src_top_left->value().x,
-                                                        m_src_top_left->value().y,
-                                                        m_src_bottom_right->value().x,
-                                                        m_src_bottom_right->value().y));
-    }
-    else if(the_property == m_perspective)
+        m_quad_warp[*m_index].set_src_area({m_src_top_left->value().x,
+                                            m_src_top_left->value().y,
+                                            m_src_size->value().x,
+                                            m_src_size->value().y});
+    }else if(the_property == m_perspective)
     {
         m_quad_warp[*m_index].set_perspective(*m_perspective);
-    }
-    else if(the_property == m_cubic_interpolation)
+    }else if(the_property == m_cubic_interpolation)
     {
         m_quad_warp[*m_index].set_cubic_interpolation(*m_cubic_interpolation);
-    }
-    else if(the_property == m_edges)
+    }else if(the_property == m_edges)
     {
         if(m_edges->value().size() == 4)
         {
@@ -235,8 +225,7 @@ void WarpComponent::update_property(const PropertyConstPtr &the_property)
             gl::vec4 tmp(vec[0], vec[1], vec[2], vec[3]);
             m_quad_warp[*m_index].set_edges(tmp);
         }
-    }
-    else if(the_property == m_edge_exponents)
+    }else if(the_property == m_edge_exponents)
     {
         if(m_edge_exponents->value().size() == 4)
         {
@@ -278,8 +267,7 @@ void WarpComponent::render_output(int the_index, const gl::Texture &the_tex,
         gl::draw_line(gl::vec2(0, gl::window_dimension().y - cp.y),
                       gl::vec2(gl::window_dimension().x, gl::window_dimension().y - cp.y));
         gl::draw_line(gl::vec2(cp.x, 0), gl::vec2(cp.x, gl::window_dimension().y));
-    }
-    else if(m_params[the_index].display_points && (the_index == *m_index))
+    }else if(m_params[the_index].display_points && (the_index == *m_index))
     {
         m_quad_warp[the_index].render_control_points();
     }
@@ -300,8 +288,7 @@ void WarpComponent::key_press(const KeyEvent &e)
             {
                 quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) - gl::vec2(inc.x, 0.f));
             }
-            if(m_active_control_points.empty())
-            { quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y)); }
+            if(m_active_control_points.empty()){ quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y)); }
             break;
 
         case Key::_RIGHT:
@@ -309,8 +296,7 @@ void WarpComponent::key_press(const KeyEvent &e)
             {
                 quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) + gl::vec2(inc.x, 0.f));
             }
-            if(m_active_control_points.empty())
-            { quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y)); }
+            if(m_active_control_points.empty()){ quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y)); }
             break;
 
         case Key::_UP:
@@ -318,8 +304,7 @@ void WarpComponent::key_press(const KeyEvent &e)
             {
                 quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) + gl::vec2(0.f, inc.y));
             }
-            if(m_active_control_points.empty())
-            { quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
+            if(m_active_control_points.empty()){ quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
             break;
 
         case Key::_DOWN:
@@ -327,8 +312,7 @@ void WarpComponent::key_press(const KeyEvent &e)
             {
                 quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) - gl::vec2(0.f, inc.y));
             }
-            if(m_active_control_points.empty())
-            { quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
+            if(m_active_control_points.empty()){ quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
             break;
 
         case Key::_F1:
@@ -423,7 +407,7 @@ void WarpComponent::mouse_press(const MouseEvent &e)
 
         const auto &control_points = quad_warp().control_points();
 
-        for(uint32_t i = 0; i < control_points.size(); i ++)
+        for(uint32_t i = 0; i < control_points.size(); i++)
         {
             auto c = quad_warp().control_point(i);
 
@@ -442,8 +426,7 @@ void WarpComponent::mouse_press(const MouseEvent &e)
                 LOG_TRACE_2 << "selected control point: " << i << " -> " << glm::to_string(coord);
             }
         }
-    }
-    else if(e.is_right())
+    }else if(e.is_right())
     {
         m_active_control_points.clear();
         quad_warp().selected_indices().clear();

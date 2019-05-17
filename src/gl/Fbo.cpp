@@ -724,7 +724,7 @@ uint32_t Fbo::max_num_attachments()
 
 #if !defined(KINSKI_GLES_2)
 
-void Fbo::blit_to_current(const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst,
+void Fbo::blit_to_current(const crocore::Area_<int> &src, const crocore::Area_<int> &dst,
                           GLenum filter, GLbitfield mask) const
 {
     if(!m_impl){ return; }
@@ -732,24 +732,24 @@ void Fbo::blit_to_current(const crocore::Area_<int> &the_src, const crocore::Are
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, id());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, sb.value());
-    glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1, the_dst.x0, the_dst.y0,
-                      the_dst.x1, the_dst.y1, mask, filter);
+    glBlitFramebuffer(src.x, src.y, src.x + src.width, src.y + src.height, dst.x, dst.y,
+                      dst.x + dst.width, dst.y + dst.height, mask, filter);
     KINSKI_CHECK_GL_ERRORS();
 }
 
-void Fbo::blit_to(Fbo the_dst_fbo, const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst,
+void Fbo::blit_to(Fbo fbo, const crocore::Area_<int> &src, const crocore::Area_<int> &dst,
                   GLenum filter, GLbitfield mask) const
 {
     if(!m_impl){ return; }
     SaveFramebufferBinding sb;
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, id());
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, the_dst_fbo.id());
-    glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1, the_dst.x0, the_dst.y0,
-                      the_dst.x1, the_dst.y1, mask, filter);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.id());
+    glBlitFramebuffer(src.x, src.y, src.x + src.width, src.y + src.height, dst.x, dst.y,
+                      dst.x + dst.width, dst.y + dst.height, mask, filter);
 }
 
-void Fbo::blit_to_screen(const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst,
+void Fbo::blit_to_screen(const crocore::Area_<int> &src, const crocore::Area_<int> &dst,
                          GLenum filter, GLbitfield mask) const
 {
     if(!m_impl){ return; }
@@ -757,19 +757,19 @@ void Fbo::blit_to_screen(const crocore::Area_<int> &the_src, const crocore::Area
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, id());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1,
-                      the_dst.x0, the_dst.y0, the_dst.x1, the_dst.y1, mask, filter);
+    glBlitFramebuffer(src.x, src.y, src.x + src.width, src.y + src.height, dst.x, dst.y,
+                      dst.x + dst.width, dst.y + dst.height, mask, filter);
 }
 
-void Fbo::blit_from_screen(const crocore::Area_<int> &the_src, const crocore::Area_<int> &the_dst, GLenum filter,
+void Fbo::blit_from_screen(const crocore::Area_<int> &src, const crocore::Area_<int> &dst, GLenum filter,
                            GLbitfield mask)
 {
     if(!m_impl){ return; }
     SaveFramebufferBinding sb;
     glBindFramebuffer(GL_READ_FRAMEBUFFER, GL_NONE);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, id());
-    glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1,
-                      the_dst.x0, the_dst.y0, the_dst.x1, the_dst.y1, mask, filter);
+    glBlitFramebuffer(src.x, src.y, src.x + src.width, src.y + src.height, dst.x, dst.y,
+                      dst.x + dst.width, dst.y + dst.height, mask, filter);
 }
 
 #endif

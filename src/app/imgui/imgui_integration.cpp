@@ -56,8 +56,12 @@ void render()
             {
                 auto &tex = *reinterpret_cast<kinski::gl::Texture *>(pcmd->TextureId);
                 g_mesh->material()->add_texture(tex);
-                auto rect = crocore::Area_<uint32_t>(pcmd->ClipRect.x, pcmd->ClipRect.y,
-                                                     pcmd->ClipRect.z, pcmd->ClipRect.w);
+
+                crocore::Area_<uint32_t> rect = {static_cast<uint32_t>(pcmd->ClipRect.x),
+                                                 static_cast<uint32_t>(pcmd->ClipRect.y),
+                                                 static_cast<uint32_t>(pcmd->ClipRect.z - pcmd->ClipRect.x),
+                                                 static_cast<uint32_t>(pcmd->ClipRect.w - pcmd->ClipRect.y)};
+
                 g_mesh->material()->set_scissor_rect(rect);
                 entry.num_indices = pcmd->ElemCount;
                 kinski::gl::draw_mesh(g_mesh);

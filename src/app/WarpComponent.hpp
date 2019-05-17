@@ -108,7 +108,7 @@ private:
     crocore::Property_<bool>::Ptr m_enabled, m_draw_grid, m_draw_control_points, m_perspective,
             m_cubic_interpolation;
 
-    crocore::Property_<gl::vec2>::Ptr m_src_top_left, m_src_bottom_right;
+    crocore::Property_<gl::vec2>::Ptr m_src_top_left, m_src_size;
     crocore::Property_<std::vector<gl::vec2>>::Ptr m_corners, m_control_points;
     crocore::Property_<std::vector<float>>::Ptr m_edges, m_edge_exponents;
 };

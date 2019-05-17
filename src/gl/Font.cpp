@@ -257,14 +257,14 @@ crocore::ImagePtr Font::create_image(const std::string &theText, const vec4 &the
 
     for(auto &q : quads)
     {
-        crocore::Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_impl->bitmap->m_width),
-                                     static_cast<uint32_t>(q.t0 * m_impl->bitmap->m_height),
-                                     static_cast<uint32_t>(q.s1 * m_impl->bitmap->m_width),
-                                     static_cast<uint32_t>(q.t1 * m_impl->bitmap->m_height));
-        crocore::Area_<uint32_t> dst(static_cast<uint32_t>(q.x0),
-                                     static_cast<uint32_t>(m_impl->font_height + q.y0),
-                                     static_cast<uint32_t>(q.x1),
-                                     static_cast<uint32_t>(m_impl->font_height + q.y1));
+        crocore::Area_<uint32_t> src = {static_cast<uint32_t>(q.s0 * m_impl->bitmap->m_width),
+                                        static_cast<uint32_t>(q.t0 * m_impl->bitmap->m_height),
+                                        static_cast<uint32_t>((q.s1 - q.s0) * m_impl->bitmap->m_width),
+                                        static_cast<uint32_t>((q.t1 - q.t0) * m_impl->bitmap->m_height)};
+        crocore::Area_<uint32_t> dst = {static_cast<uint32_t>(q.x0),
+                                        static_cast<uint32_t>(m_impl->font_height + q.y0),
+                                        static_cast<uint32_t>(q.x1 - q.x0),
+                                        static_cast<uint32_t>(q.y1 - q.y0)};
 
         area_pairs.push_back(std::make_pair(src, dst));
     }
@@ -354,30 +354,33 @@ gl::MeshPtr Font::create_mesh(const std::string &theText, const glm::vec4 &theCo
 
     for(const auto &quad : quads)
     {
-        int w = quad.x1 - quad.x0;
-        int h = quad.y1 - quad.y0;
+        float h = quad.y1 - quad.y0;
 
-        crocore::Area_<float> tex_Area(quad.s0, 1 - quad.t0, quad.s1, 1 - quad.t1);
-        crocore::Area_<uint32_t> vert_Area(static_cast<uint32_t>(quad.x0),
-                                           static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0)),
-                                           static_cast<uint32_t>(quad.x0 + w),
-                                           static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0 + h)));
+        stbtt_aligned_quad adjusted = {};
+        adjusted.x0 = quad.x0;
+        adjusted.y0 = max_y - (m_impl->font_height + quad.y0);
+        adjusted.x1 = quad.x1;
+        adjusted.y1 = max_y - (m_impl->font_height + quad.y0 + h);
+        adjusted.s0 = quad.s0;
+        adjusted.t0 = 1 - quad.t0;
+        adjusted.s1 = quad.s1;
+        adjusted.t1 = 1 - quad.t1;
 
         // CREATE QUAD
         // create vertices
-        vertices.push_back(glm::vec3(vert_Area.x0, vert_Area.y1, 0));
-        vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y1, 0));
-        vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y0, 0));
-        vertices.push_back(glm::vec3(vert_Area.x0, vert_Area.y0, 0));
+        vertices.emplace_back(adjusted.x0, adjusted.y1, 0);
+        vertices.emplace_back(adjusted.x1, adjusted.y1, 0);
+        vertices.emplace_back(adjusted.x1, adjusted.y0, 0);
+        vertices.emplace_back(adjusted.x0, adjusted.y0, 0);
 
         // create texcoords
-        tex_coords.push_back(glm::vec2(tex_Area.x0, tex_Area.y1));
-        tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y1));
-        tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y0));
-        tex_coords.push_back(glm::vec2(tex_Area.x0, tex_Area.y0));
+        tex_coords.emplace_back(adjusted.s0, adjusted.t1);
+        tex_coords.emplace_back(adjusted.s1, adjusted.t1);
+        tex_coords.emplace_back(adjusted.s1, adjusted.t0);
+        tex_coords.emplace_back(adjusted.s0, adjusted.t0);
 
         // create colors
-        for(int i = 0; i < 4; i++){ colors.push_back(glm::vec4(1)); }
+        for(int i = 0; i < 4; i++){ colors.emplace_back(1); }
     }
     for(uint32_t i = 0; i < vertices.size(); i += 4)
     {

@@ -1370,7 +1370,7 @@ void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPt
         else
         {
             glEnable(GL_SCISSOR_TEST);
-            glScissor(rect.x0, gl::window_dimension().y - rect.y1, rect.width(), rect.height());
+            glScissor(rect.x, gl::window_dimension().y - (rect.y + rect.height), rect.width, rect.height);
         }
     }
     KINSKI_CHECK_GL_ERRORS();
