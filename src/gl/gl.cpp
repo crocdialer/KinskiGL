@@ -1885,7 +1885,7 @@ Texture create_texture_from_image(const crocore::ImagePtr &the_img, bool mipmap,
 
 #if !defined(KINSKI_GLES)
     crocore::Image::Type bgr_types[] = {crocore::Image::Type::BGR, crocore::Image::Type::BGRA};
-    if(contains(bgr_types, the_img->type())){ ret.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
+    if(contains(bgr_types, the_img->type)){ ret.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
 #endif
 
     ret.set_anisotropic_filter(anisotropic_filter_lvl);
@@ -1931,7 +1931,7 @@ crocore::ImagePtr create_image_from_texture(const gl::Texture &the_texture)
         the_texture.bind();
         glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data());
         ret->flip();
-        ret->m_type = crocore::Image::Type::RGBA;
+        ret->type = crocore::Image::Type::RGBA;
         return ret;
     }
 #endif

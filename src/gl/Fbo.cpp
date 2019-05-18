@@ -69,7 +69,7 @@ crocore::ImagePtr create_image_from_framebuffer(gl::FboPtr the_fbo)
         h = the_fbo->height();
     }
     auto ret = crocore::Image_<uint8_t>::create(w, h, num_comp);
-    ret->m_type = crocore::Image::Type::RGBA;
+    ret->type = crocore::Image::Type::RGBA;
     glReadPixels(0, 0, w, h, format, GL_UNSIGNED_BYTE, ret->data());
     ret->flip();
     return ret;

@@ -92,7 +92,7 @@ struct FontImpl
 
         // rect packing
         stbtt_pack_context spc;
-        stbtt_PackBegin(&spc, img->m_data, img->m_width, img->m_height, 0, the_padding, nullptr);
+        stbtt_PackBegin(&spc, (uint8_t*)img->data(), img->width(), img->height(), 0, the_padding, nullptr);
 
         int num_chars = 768;
         stbtt_PackFontRange(&spc, const_cast<uint8_t *>(the_font.data()), 0, the_font_size, 32,
@@ -125,7 +125,7 @@ struct FontImpl
                 y += line_height;
                 continue;
             }
-            stbtt_GetPackedQuad(char_data.get(), bitmap->m_width, bitmap->m_height,
+            stbtt_GetPackedQuad(char_data.get(), bitmap->width(), bitmap->height(),
                                 codepoint - 32, &x, &y, &q, 0);
 
             if(the_max_y && *the_max_y < q.y1 + font_height){ *the_max_y = q.y1 + font_height; }
@@ -257,10 +257,10 @@ crocore::ImagePtr Font::create_image(const std::string &theText, const vec4 &the
 
     for(auto &q : quads)
     {
-        crocore::Area_<uint32_t> src = {static_cast<uint32_t>(q.s0 * m_impl->bitmap->m_width),
-                                        static_cast<uint32_t>(q.t0 * m_impl->bitmap->m_height),
-                                        static_cast<uint32_t>((q.s1 - q.s0) * m_impl->bitmap->m_width),
-                                        static_cast<uint32_t>((q.t1 - q.t0) * m_impl->bitmap->m_height)};
+        crocore::Area_<uint32_t> src = {static_cast<uint32_t>(q.s0 * m_impl->bitmap->width()),
+                                        static_cast<uint32_t>(q.t0 * m_impl->bitmap->height()),
+                                        static_cast<uint32_t>((q.s1 - q.s0) * m_impl->bitmap->width()),
+                                        static_cast<uint32_t>((q.t1 - q.t0) * m_impl->bitmap->height())};
         crocore::Area_<uint32_t> dst = {static_cast<uint32_t>(q.x0),
                                         static_cast<uint32_t>(m_impl->font_height + q.y0),
                                         static_cast<uint32_t>(q.x1 - q.x0),
@@ -272,8 +272,8 @@ crocore::ImagePtr Font::create_image(const std::string &theText, const vec4 &the
 
     for(const auto &a : area_pairs)
     {
-        m_impl->bitmap->m_roi = a.first;
-        dst_img->m_roi = a.second;
+        m_impl->bitmap->roi = a.first;
+        dst_img->roi = a.second;
         crocore::copy_image<uint8_t>(m_impl->bitmap, dst_img);
     }
     return dst_img;
