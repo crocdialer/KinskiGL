@@ -361,7 +361,7 @@ bool MediaController::copy_frame_to_image(crocore::ImagePtr& the_image)
            the_image->num_components() != num_channels)
         {
             auto img = crocore::Image_<uint8_t >::create(w, h, num_channels);
-            img->m_type = crocore::Image::Type::RGBA;
+            img->type = crocore::Image::Type::RGBA;
         }
 
         // map the buffer for reading
