@@ -113,9 +113,9 @@ namespace kinski
         mutable std::vector<turtle_state> m_state_stack;
         
         // iteration depth of last run
-        uint32_t m_iteration_depth;
+        uint32_t m_iteration_depth{};
 
-        mutable std::atomic<bool> m_cancel_requested;
+        mutable std::atomic<bool> m_cancel_requested{};
 
         /*! an optional function object, responsible for performing validity checks for
          *  newly created geometry

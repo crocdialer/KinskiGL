@@ -82,17 +82,17 @@ void LSystem::iterate(int num_iterations)
 
     for(int i = 0; i < num_iterations; i++)
     {
-        string tmp;
+        stringstream ss;
 
         for(char ch : m_buffer)
         {
             auto iter = m_rules.find(ch);
 
             // if we found a corresponding rule, apply it. else append the original token
-            if(iter != m_rules.end()){ tmp.append(iter->second); }
-            else{ tmp.insert(tmp.end(), ch); }
+            if(iter != m_rules.end()){ ss << iter->second; }
+            else{ ss << ch; }
         }
-        m_buffer = tmp;
+        m_buffer = ss.str();
     }
     m_buffer = crocore::remove_whitespace(m_buffer);
     LOG_TRACE << m_buffer;
@@ -161,7 +161,7 @@ gl::MeshPtr LSystem::create_mesh() const
         gl::Color current_color(gl::COLOR_WHITE);
 
         // upcoming char starts a parameter block
-        bool has_parameter = next_ch && next_ch == '(';
+        bool has_parameter = next_ch == '(';
 
         // color / material / stack state here
         switch(ch)
@@ -174,6 +174,9 @@ gl::MeshPtr LSystem::create_mesh() const
                 // pop state
             case ']':
                 m_state_stack.pop_back();
+                break;
+
+            default:
                 break;
         }
 
@@ -335,7 +338,7 @@ gl::MeshPtr LSystem::create_mesh() const
 
                     // our current increment
                     current_increment = increment + crocore::random(-m_increment_randomness,
-                                                                   m_increment_randomness);
+                                                                    m_increment_randomness);
 
                     // random direction
                     grow_dir = glm::sphericalRand(1.f);
