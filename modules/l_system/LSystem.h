@@ -60,7 +60,7 @@ namespace kinski
         const std::unordered_map<char, std::string>& rules() const {return m_rules;}
         void set_rules(const std::unordered_map<char, std::string> &rule_map){m_rules = rule_map;}
         
-        void add_rule(const std::pair<char, string> the_rule);
+        void add_rule(const std::pair<char, std::string> the_rule);
         void add_rule(const std::string &the_rule);
         
         void set_position_check(PositionCheckFunctor pf){m_position_check = pf;}

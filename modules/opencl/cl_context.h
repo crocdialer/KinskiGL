@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "core/core.hpp"
+#include "crocore/crocore.hpp"
 
 #define __CL_ENABLE_EXCEPTIONS
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS

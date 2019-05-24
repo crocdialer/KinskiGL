@@ -62,7 +62,7 @@ int App::run()
         time_stamp = get_application_time();
 
         // poll io_service if no seperate worker-threads exist
-        if(!m_main_queue.get_num_threads()) m_main_queue.poll();
+        if(!m_main_queue.num_threads()) m_main_queue.poll();
 
         // poll input events
         poll_events();

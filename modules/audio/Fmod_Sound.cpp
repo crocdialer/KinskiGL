@@ -6,7 +6,7 @@
 //
 //
 
-#include "core/file_functions.hpp"
+#include "crocore/filesystem.hpp"
 #include "Fmod_Sound.h"
 #include <cmath>
 
@@ -37,7 +37,7 @@ namespace kinski{ namespace audio{
 #ifdef TARGET_LINUX
             FMOD::System_SetOutput(sys,FMOD_OUTPUTTYPE_ALSA);
 #endif
-            g_systems[device]->setDriver(clamp<int>(device, 0, get_output_devices().size() - 1));
+            g_systems[device]->setDriver(crocore::clamp<int>(device, 0, get_output_devices().size() - 1));
             
             g_systems[device]->setSpeakerMode(FMOD_SPEAKERMODE_5POINT1);
             g_systems[device]->init(32, FMOD_INIT_NORMAL, NULL);//do we want just 32 channels?
@@ -276,7 +276,7 @@ namespace kinski{ namespace audio{
     
     void Fmod_Sound::load(const std::string &fileName, bool stream)
     {
-        std::string path = fs::search_file(fileName);
+        std::string path = crocore::fs::search_file(fileName);
         m_multiplay = false;
         init_fmod(m_device);
         unload();
@@ -422,7 +422,7 @@ namespace kinski{ namespace audio{
     
     void Fmod_Sound::set_pan(float pan)
     {
-        m_pan = kinski::clamp(pan, -1.f, 1.f);
+        m_pan = crocore::clamp(pan, -1.f, 1.f);
         if (playing()){m_channel->setPan(m_pan);}
     }
     

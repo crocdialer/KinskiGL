@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "core/core.hpp"
+#include "crocore/crocore.hpp"
 
 namespace kinski{ namespace audio{
     
@@ -72,25 +72,25 @@ namespace kinski{ namespace audio{
         virtual int position_ms() = 0;
     };
     
-    class SystemException: public Exception
+class SystemException: public std::runtime_error
     {
     public:
         SystemException() :
-        Exception(std::string("Got trouble with audio system")){}
+                std::runtime_error(std::string("Got trouble with audio system")){}
     };
     
-    class SoundLoadException: public Exception
+    class SoundLoadException: public std::runtime_error
     {
     public:
         SoundLoadException(const std::string &theFilename) :
-        Exception(std::string("Got trouble loading an audiofile: ") + theFilename){}
+                std::runtime_error(std::string("Got trouble loading an audiofile: ") + theFilename){}
     };
     
-    class SoundRecordingException: public Exception
+    class SoundRecordingException: public std::runtime_error
     {
     public:
         SoundRecordingException() :
-        Exception("Got trouble recording a sound: "){}
+                std::runtime_error("Got trouble recording a sound: "){}
     };
     
     class SoundInput

@@ -417,24 +417,24 @@ bool ViewerApp::save_settings(const std::string &the_path)
         warp_components.push_back(wc);
     }
 
-    background_queue().submit([this, path_prefix, light_components, warp_components, task]()
-                              {
+    background_queue().post([this, path_prefix, light_components, warp_components, task]()
+                            {
 
-                                  try
-                                  {
-                                      serializer::save_state(shared_from_this(),
-                                                             fs::join_paths(path_prefix, "config.json"),
-                                                             PropertyIO_GL());
-                                      serializer::save_state(light_components,
-                                                             fs::join_paths(path_prefix, "light_config.json"),
-                                                             PropertyIO_GL());
-                                      serializer::save_state(warp_components,
-                                                             fs::join_paths(path_prefix, "warp_config.json"),
-                                                             PropertyIO_GL());
+                                try
+                                {
+                                    serializer::save_state(shared_from_this(),
+                                                           fs::join_paths(path_prefix, "config.json"),
+                                                           PropertyIO_GL());
+                                    serializer::save_state(light_components,
+                                                           fs::join_paths(path_prefix, "light_config.json"),
+                                                           PropertyIO_GL());
+                                    serializer::save_state(warp_components,
+                                                           fs::join_paths(path_prefix, "warp_config.json"),
+                                                           PropertyIO_GL());
 
-                                  }
-                                  catch(std::exception &e) { LOG_ERROR << e.what(); }
-                              });
+                                }
+                                catch(std::exception &e) { LOG_ERROR << e.what(); }
+                            });
     return true;
 }
 
@@ -526,50 +526,50 @@ void ViewerApp::async_load_texture(const std::string &the_path,
                                    GLfloat anisotropic_filter_lvl)
 {
     auto task = Task::create("load texture: " + the_path);
-    background_queue().submit([this, task, the_path, the_callback, mip_map, compress,
-                                      anisotropic_filter_lvl]()
-                              {
-                                  std::string abs_path = the_path;
-                                  try { abs_path = fs::search_file(the_path); }
-                                  catch(std::exception &e) {}
+    background_queue().post([this, task, the_path, the_callback, mip_map, compress,
+                                    anisotropic_filter_lvl]()
+                            {
+                                std::string abs_path = the_path;
+                                try { abs_path = fs::search_file(the_path); }
+                                catch(std::exception &e) {}
 
-                                  auto file_type = fs::get_file_type(abs_path);
+                                auto file_type = fs::get_file_type(abs_path);
 
-                                  if(file_type == fs::FileType::IMAGE)
-                                  {
-                                      auto img = create_image_from_file(abs_path);
+                                if(file_type == fs::FileType::IMAGE)
+                                {
+                                    auto img = create_image_from_file(abs_path);
 
-                                      main_queue().submit(
-                                              [task, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
-                                              {
-                                                  auto tex = gl::create_texture_from_image(img, mip_map, compress,
-                                                                                           anisotropic_filter_lvl);
-                                                  the_callback(tex);
-                                              });
-                                  }else if(file_type == fs::FileType::DIRECTORY)
-                                  {
-                                      auto img_paths = fs::get_directory_entries(abs_path, fs::FileType::IMAGE);
+                                    main_queue().post(
+                                            [task, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
+                                            {
+                                                auto tex = gl::create_texture_from_image(img, mip_map, compress,
+                                                                                         anisotropic_filter_lvl);
+                                                the_callback(tex);
+                                            });
+                                }else if(file_type == fs::FileType::DIRECTORY)
+                                {
+                                    auto img_paths = fs::get_directory_entries(abs_path, fs::FileType::IMAGE);
 
-                                      if(img_paths.size() == 6)
-                                      {
-                                          std::vector<ImagePtr> images(6);
-                                          for(size_t i = 0; i < 6; i++)
-                                          {
-                                              images[i] = create_image_from_file(img_paths[i]);
-                                          }
+                                    if(img_paths.size() == 6)
+                                    {
+                                        std::vector<ImagePtr> images(6);
+                                        for(size_t i = 0; i < 6; i++)
+                                        {
+                                            images[i] = create_image_from_file(img_paths[i]);
+                                        }
 
-                                          main_queue().submit(
-                                                  [task, the_path, images, mip_map, compress, the_callback]()
-                                                  {
-                                                      auto cubemap = gl::create_cube_texture_from_images(images,
-                                                                                                         mip_map,
-                                                                                                         compress);
-                                                      LOG_DEBUG << "loaded cubemap folder: " << the_path;
-                                                      the_callback(cubemap);
-                                                  });
-                                      }else{ LOG_WARNING << "got " << img_paths.size() << " images, expected 6"; }
-                                  }else{ LOG_WARNING << "could not load texture: " << the_path; }
-                              });
+                                        main_queue().post(
+                                                [task, the_path, images, mip_map, compress, the_callback]()
+                                                {
+                                                    auto cubemap = gl::create_cube_texture_from_images(images,
+                                                                                                       mip_map,
+                                                                                                       compress);
+                                                    LOG_DEBUG << "loaded cubemap folder: " << the_path;
+                                                    the_callback(cubemap);
+                                                });
+                                    }else{ LOG_WARNING << "got " << img_paths.size() << " images, expected 6"; }
+                                }else{ LOG_WARNING << "could not load texture: " << the_path; }
+                            });
 }
 
 gl::Texture ViewerApp::generate_snapshot()

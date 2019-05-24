@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "core/core.hpp"
+#include "crocore/crocore.hpp"
 
 namespace kinski
 {
@@ -21,17 +21,17 @@ namespace kinski
         typedef std::function<void(int)> distance_cb_t;
         
         static std::string id();
-        static DistanceSensorPtr create(ConnectionPtr the_device = ConnectionPtr());
+        static DistanceSensorPtr create(crocore::ConnectionPtr the_device = {});
         virtual ~DistanceSensor();
         
-        bool connect(ConnectionPtr the_device);
+        bool connect(crocore::ConnectionPtr the_device);
         uint32_t distance() const;
         void set_distance_callback(distance_cb_t cb);
         bool is_initialized() const;
         
     private:
         DistanceSensor();
-        void receive_data(ConnectionPtr the_device, const std::vector<uint8_t> &the_data);
+        void receive_data(crocore::ConnectionPtr the_device, const std::vector<uint8_t> &the_data);
         std::unique_ptr<struct DistanceSensorImpl> m_impl;
     };
 }// namespace

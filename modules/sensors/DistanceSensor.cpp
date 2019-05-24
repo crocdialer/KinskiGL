@@ -7,8 +7,8 @@
 //
 
 //#include <cstring>
-#include "core/CircularBuffer.hpp"
-#include "core/Serial.hpp"
+#include "crocore/CircularBuffer.hpp"
+#include "crocore/Serial.hpp"
 #include "DistanceSensor.hpp"
 
 #define DEVICE_ID "DISTANCE_SENSOR"
@@ -18,14 +18,14 @@ namespace kinski{
     
     struct DistanceSensorImpl
     {
-        ConnectionPtr m_sensor_device;
-        CircularBuffer<uint8_t> m_sensor_accumulator{512};
+        crocore::ConnectionPtr m_sensor_device;
+        crocore::CircularBuffer<uint8_t> m_sensor_accumulator{512};
         uint32_t m_distance = 0;
         
         DistanceSensor::distance_cb_t m_distance_callback;
     };
     
-    DistanceSensorPtr DistanceSensor::create(ConnectionPtr the_device)
+    DistanceSensorPtr DistanceSensor::create(crocore::ConnectionPtr the_device)
     {
         DistanceSensorPtr ret(new DistanceSensor());
         if(the_device){ ret->connect(the_device); }
@@ -43,7 +43,7 @@ namespace kinski{
     
     }
     
-    bool DistanceSensor::connect(ConnectionPtr the_device)
+    bool DistanceSensor::connect(crocore::ConnectionPtr the_device)
     {
         m_impl->m_sensor_device = the_device;
         m_impl->m_sensor_accumulator.clear();
@@ -59,7 +59,7 @@ namespace kinski{
         return false;
     }
     
-    void DistanceSensor::receive_data(ConnectionPtr the_device, const std::vector<uint8_t> &the_data)
+    void DistanceSensor::receive_data(crocore::ConnectionPtr the_device, const std::vector<uint8_t> &the_data)
     {
         bool reading_complete = false;
         uint32_t distance_val = 0;
@@ -70,8 +70,8 @@ namespace kinski{
             {
                 case SERIAL_END_CODE:
                 {
-                    auto str = string(m_impl->m_sensor_accumulator.begin(), m_impl->m_sensor_accumulator.end());
-                    distance_val = string_to<uint32_t>(str);
+                    auto str = std::string(m_impl->m_sensor_accumulator.begin(), m_impl->m_sensor_accumulator.end());
+                    distance_val = crocore::string_to<uint32_t>(str);
                     m_impl->m_sensor_accumulator.clear();
                     reading_complete = true;
                     break;

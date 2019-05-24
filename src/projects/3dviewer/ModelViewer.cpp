@@ -677,17 +677,17 @@ void ModelViewer::async_load_asset(const std::string &the_path,
 {
     auto task = Task::create("load asset: " + the_path);
 
-    background_queue().submit([this, task, the_completion_handler]()
-    {
-        // load model on worker thread
-        auto m = load_asset(*m_model_path);
+    background_queue().post([this, task, the_completion_handler]()
+                            {
+                                // load model on worker thread
+                                auto m = load_asset(*m_model_path);
 
-        // work on this thread done, now queue texture creation on main queue
-        main_queue().submit([m, task, the_completion_handler]()
-        {
-            the_completion_handler(m);
-        });
-    });
+                                // work on this thread done, now queue texture creation on main queue
+                                main_queue().post([m, task, the_completion_handler]()
+                                                  {
+                                                      the_completion_handler(m);
+                                                  });
+                            });
 }
 
 /////////////////////////////////////////////////////////////////

@@ -7,8 +7,8 @@
 //
 #pragma once
 
-#include "core/core.hpp"
-#include "core/Connection.hpp"
+#include "crocore/crocore.hpp"
+#include "crocore/Connection.hpp"
 
 namespace kinski
 {
@@ -21,11 +21,11 @@ namespace kinski
         typedef std::function<void(int)> touch_cb_t;
         
         static std::string id();
-        static CapacitiveSensorPtr create(ConnectionPtr the_uart_device = ConnectionPtr());
+        static CapacitiveSensorPtr create(crocore::ConnectionPtr the_uart_device = {});
         virtual ~CapacitiveSensor();
         
-        bool connect(ConnectionPtr the_device);
-        ConnectionPtr device_connection() const;
+        bool connect(crocore::ConnectionPtr the_device);
+        crocore::ConnectionPtr device_connection() const;
         
         uint16_t touch_state() const;
         
@@ -51,7 +51,7 @@ namespace kinski
     private:
         
         CapacitiveSensor();
-        void receive_data(ConnectionPtr the_device, const std::vector<uint8_t> &the_data);
+        void receive_data(crocore::ConnectionPtr the_device, const std::vector<uint8_t> &the_data);
         bool update_config();
         
         std::unique_ptr<struct CapacitiveSensorImpl> m_impl;

@@ -98,7 +98,7 @@ void MediaPlayer::setup()
     m_check_ip_timer = Timer(background_queue().io_service(), [this]()
     {
         auto fetched_ip = net::local_ip();
-        main_queue().submit([this, fetched_ip](){ m_ip_adress = fetched_ip; });
+        main_queue().post([this, fetched_ip]() { m_ip_adress = fetched_ip; });
     });
     m_check_ip_timer.set_periodic();
     m_check_ip_timer.expires_from_now(5.f);
@@ -516,11 +516,11 @@ void MediaPlayer::reload_media()
             }
             else if(!m_playlist->value().empty())
             {
-                main_queue().submit([this]()
-                {
-                    *m_playlist_index = (*m_playlist_index + 1) % m_playlist->value().size();
+                main_queue().post([this]()
+                                  {
+                                      *m_playlist_index = (*m_playlist_index + 1) % m_playlist->value().size();
 //                    *m_media_path = m_playlist->value()[*m_playlist_index];
-                });
+                                  });
             }
         });
         
@@ -758,12 +758,12 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
     
     if(file_list.size() != m_playlist->value().size())
     {
-        main_queue().submit([this, file_list]()
-        {
-            *m_playlist_index = 0;
-            m_playlist->set(file_list);
+        main_queue().post([this, file_list]()
+                          {
+                              *m_playlist_index = 0;
+                              m_playlist->set(file_list);
 //            *m_media_path = m_playlist[0];
-        });
+                          });
     }
 }
 

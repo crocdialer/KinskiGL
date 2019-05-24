@@ -341,7 +341,7 @@ bool GLFW_App::v_sync() const
 
 void GLFW_App::set_v_sync(bool b)
 {
-    main_queue().submit([b]() { glfwSwapInterval(b ? 1 : 0); });
+    main_queue().post([b]() { glfwSwapInterval(b ? 1 : 0); });
 }
 
 double GLFW_App::get_application_time()
@@ -374,39 +374,39 @@ void GLFW_App::set_fullscreen(bool b, int monitor_index)
     if(m_windows.empty() || monitor_index > num - 1 || monitor_index < 0) return;
     auto m = monitors[monitor_index];
 
-    main_queue().submit([this, b, monitor_index, m]
-                        {
+    main_queue().post([this, b, monitor_index, m]
+                      {
 
-                            // currently not in fullscreen mode
-                            if(!fullscreen())
-                            {
-                                m_win_params = gl::ivec4(m_windows.front()->framebuffer_size(),
-                                                         m_windows.front()->position());
-                            }
+                          // currently not in fullscreen mode
+                          if(!fullscreen())
+                          {
+                              m_win_params = gl::ivec4(m_windows.front()->framebuffer_size(),
+                                                       m_windows.front()->position());
+                          }
 
-                            const GLFWvidmode *mode = glfwGetVideoMode(m);
-                            glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-                            glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-                            glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-                            glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+                          const GLFWvidmode *mode = glfwGetVideoMode(m);
+                          glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+                          glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+                          glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+                          glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-                            gl::ivec2 new_res = b ? gl::ivec2(mode->width, mode->height) : m_win_params.xy();
+                          gl::ivec2 new_res = b ? gl::ivec2(mode->width, mode->height) : m_win_params.xy();
 
-                            GLFW_WindowPtr window = GLFW_Window::create(new_res.x, new_res.y, name(), b, monitor_index,
-                                                                        m_windows.front()->handle());
+                          GLFW_WindowPtr window = GLFW_Window::create(new_res.x, new_res.y, name(), b, monitor_index,
+                                                                      m_windows.front()->handle());
 
-                            if(!b){ window->set_position(m_win_params.zw()); }
+                          if(!b){ window->set_position(m_win_params.zw()); }
 
-                            // remove first elem from vector
-                            m_windows.erase(m_windows.begin());
+                          // remove first elem from vector
+                          m_windows.erase(m_windows.begin());
 
-                            add_window(window);
-                            set_window_size(new_res);
+                          add_window(window);
+                          set_window_size(new_res);
 
-                            gl::reset_state();
-                            set_cursor_visible(cursor_visible());
-                            App::set_fullscreen(b, monitor_index);
-                        });
+                          gl::reset_state();
+                          set_cursor_visible(cursor_visible());
+                          App::set_fullscreen(b, monitor_index);
+                      });
 }
 
 int GLFW_App::get_num_monitors() const
@@ -441,11 +441,11 @@ void GLFW_App::add_window(WindowPtr the_window)
     glfwSetCharCallback(w, &GLFW_App::s_char_func);
     glfwSetWindowCloseCallback(w, &GLFW_App::s_window_close);
 
-    main_queue().submit_with_delay([w]()
-                                   {
-                                       // called during resize, move and similar events
-                                       glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
-                                   }, 2.f);
+    main_queue().post_with_delay([w]()
+                                 {
+                                     // called during resize, move and similar events
+                                     glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
+                                 }, 2.f);
 
     // first added window
     if(m_windows.empty())

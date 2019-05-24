@@ -7,9 +7,9 @@
 //
 
 #include "cl_context.h"
-#include "core/file_functions.hpp"
+#include "crocore/filesystem.hpp"
 
-#if defined(KINSKI_LINUX)
+#if defined(linux) || defined(__linux) || defined(__linux__)
   #include <GL/glx.h>
 #elif defined (__APPLE__) || defined(MACOSX)
 #include <OpenGL/CGLCurrent.h>
@@ -79,11 +79,11 @@ namespace kinski
         try
         {
             cl::Program::Sources sources;
-            std::string file_content = fs::read_file(path);
+            std::string file_content = crocore::fs::read_file(path);
             sources.push_back(std::make_pair(file_content.c_str(), file_content.size() + 1));
             set_sources(sources);
         }
-        catch(fs::FileNotFoundException &e){LOG_ERROR<<e.what();}
+        catch(crocore::fs::FileNotFoundException &e){LOG_ERROR<<e.what();}
     }
     
     void cl_context::set_sources(const cl::Program::Sources &sources)
