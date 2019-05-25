@@ -119,7 +119,7 @@ void EGL_App::init()
         if(!has_changed){ return; }
 
         get_input_file_descriptors(mp, kp, nullptr);
-        main_queue().submit([this, mouse_fd, keyboard_fd]
+        main_queue().post([this, mouse_fd, keyboard_fd]
         {
             if(mouse_fd && !m_mouse_fd)
             {
