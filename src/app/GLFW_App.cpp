@@ -441,11 +441,8 @@ void GLFW_App::add_window(WindowPtr the_window)
     glfwSetCharCallback(w, &GLFW_App::s_char_func);
     glfwSetWindowCloseCallback(w, &GLFW_App::s_window_close);
 
-    main_queue().post_with_delay([w]()
-                                 {
-                                     // called during resize, move and similar events
-                                     glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
-                                 }, 2.f);
+    // called during resize, move and similar events
+//    glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
 
     // first added window
     if(m_windows.empty())
