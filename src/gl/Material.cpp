@@ -95,19 +95,19 @@ namespace kinski { namespace gl {
     
     void Material::set_metalness(float m)
     {
-        m_metalness = clamp(m, 0.f, 1.f);
+        m_metalness = crocore::clamp(m, 0.f, 1.f);
         m_dirty_uniform_buffer = true;
     }
     
     void Material::set_roughness(float r)
     {
-        m_roughness = clamp(r, 0.f, 1.f);
+        m_roughness = crocore::clamp(r, 0.f, 1.f);
         m_dirty_uniform_buffer = true;
     }
     
     void Material::set_occlusion(float ao)
     {
-        m_occlusion = clamp(ao, 0.f, 1.f);
+        m_occlusion = crocore::clamp(ao, 0.f, 1.f);
         m_dirty_uniform_buffer = true;
     }
     

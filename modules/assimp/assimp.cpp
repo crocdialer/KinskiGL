@@ -338,7 +338,7 @@ gl::MaterialPtr create_material(const aiScene *the_scene, const aiMaterial *mtl,
     
     if((ret1 == AI_SUCCESS) && (ret2 == AI_SUCCESS))
     {
-        roughness = 1.f - clamp(shininess * strength / 80.f, 0.f, 1.f);
+        roughness = 1.f - crocore::clamp(shininess * strength / 80.f, 0.f, 1.f);
     }
     theMaterial->set_roughness(roughness);
     
