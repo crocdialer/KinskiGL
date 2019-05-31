@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "core/networking.hpp"
+#include "crocore/networking.hpp"
 
-namespace kinski{ namespace net{ namespace http{
+namespace crocore{ namespace net{ namespace http{
     
 typedef struct
 {

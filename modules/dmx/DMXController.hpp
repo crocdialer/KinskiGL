@@ -8,16 +8,18 @@
 
 #pragma once
 
-#include "core/core.hpp"
+#include "crocore/crocore.hpp"
 
-namespace kinski{ namespace dmx
+using namespace crocore;
+
+namespace dmx
 {
-    class DMXController
+    class Controller
     {
     public:
 
-        DMXController(io_service_t &io);
-        ~DMXController();
+        Controller(io_service_t &io);
+        ~Controller();
         
         bool connect(const std::string &the_device_name);
         
@@ -34,6 +36,6 @@ namespace kinski{ namespace dmx
         bool is_initialized() const;
 
     private:
-        std::unique_ptr<struct DMXControllerImpl> m_impl;
+        std::unique_ptr<struct ControllerImpl> m_impl;
     };
-}}// namespace
+}// namespace

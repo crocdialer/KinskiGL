@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace kinski{ namespace net{ namespace http{
+namespace crocore{ namespace net{ namespace http{
 
 typedef std::shared_ptr<class CurlAction> ActionPtr;
 typedef std::map<CURL*, ActionPtr> HandleMap;
