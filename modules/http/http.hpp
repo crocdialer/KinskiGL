@@ -8,25 +8,28 @@
 
 #pragma once
 
+#include <chrono>
 #include "crocore/networking.hpp"
 
 namespace crocore{ namespace net{ namespace http{
     
-typedef struct
+struct connection_info_t
 {
     std::string url;
-    double dl_total, dl_now, ul_total, ul_now;
-    uint64_t timeout;
-} connection_info_t;
+    double dl_total = 0, dl_now = 0, ul_total = 0, ul_now = 0;
+    uint64_t timeout = 0;
+};
     
-typedef struct
+struct response_t
 {
-    uint64_t status_code;
+    connection_info_t connection;
+    uint64_t status_code = 0;
     std::vector<uint8_t> data;
-} response_t;
+    double duration = 0.0;
+};
     
-typedef std::function<void(connection_info_t)> progress_cb_t;
-typedef std::function<void(const connection_info_t&, const response_t&)> completion_cb_t;
+using progress_cb_t = std::function<void(connection_info_t)>;
+using completion_cb_t = std::function<void(response_t&)>;
 
 /*!
  * get the resource at the given url (blocking) with HTTP HEAD
@@ -63,9 +66,9 @@ class Client
 {
 public:
     
-    Client(io_service_t &io);
+    explicit Client(io_service_t &io);
 
-    Client(Client &&the_client);
+    Client(Client &&the_client) noexcept;
 
     ~Client();
 

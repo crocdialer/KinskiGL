@@ -1,3 +1,7 @@
+#include <utility>
+
+#include <utility>
+
 //
 //  GOMTalking.cpp
 //  MrProximity
@@ -12,11 +16,14 @@
 #include "http.hpp"
 
 using namespace std;
+using duration_t = std::chrono::duration<double>;
 
-namespace crocore{ namespace net{ namespace http{
+namespace crocore {
+namespace net {
+namespace http {
 
-typedef std::shared_ptr<class CurlAction> ActionPtr;
-typedef std::map<CURL*, ActionPtr> HandleMap;
+using ActionPtr = std::shared_ptr<class CurlAction>;
+using handle_map_t = std::map<CURL *, ActionPtr>;
 
 // Timeout interval for http requests
 static const long DEFAULT_TIMEOUT = 0;
@@ -29,7 +36,7 @@ struct ClientImpl
     std::shared_ptr<CURLM> m_curl_multi_handle;
 
     // map containing current handles
-    HandleMap m_handle_map;
+    handle_map_t m_handle_map;
 
     // mutex to protect the handle-map
     std::mutex m_mutex;
@@ -40,15 +47,15 @@ struct ClientImpl
     // number of running transfers
     int m_num_connections;
 
-    ClientImpl(boost::asio::io_service *io):
-    m_io_service(io),
-    m_curl_multi_handle(curl_multi_init(), curl_multi_cleanup),
-    m_timeout(DEFAULT_TIMEOUT),
-    m_num_connections(0){};
+    explicit ClientImpl(boost::asio::io_service *io) :
+            m_io_service(io),
+            m_curl_multi_handle(curl_multi_init(), curl_multi_cleanup),
+            m_timeout(DEFAULT_TIMEOUT),
+            m_num_connections(0) {};
 
     void poll();
 
-    void add_action(ActionPtr the_action, completion_cb_t ch, progress_cb_t ph = progress_cb_t());
+    void add_action(const ActionPtr &action, completion_cb_t ch, progress_cb_t ph = progress_cb_t());
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,7 +64,7 @@ class CurlAction
 {
 private:
     std::shared_ptr<CURL> m_curl_handle;
-    connection_info_t m_connection_info;
+    std::chrono::steady_clock::time_point m_start_time;
     completion_cb_t m_completion_handler;
     progress_cb_t m_progress_handler;
     response_t m_response;
@@ -74,9 +81,9 @@ private:
 
         if(userp)
         {
-            CurlAction *ourAction = static_cast<CurlAction*>(userp);
-            uint8_t* buf_start = (uint8_t*)(buffer);
-            uint8_t* buf_end = buf_start + num_bytes;
+            auto *ourAction = static_cast<CurlAction *>(userp);
+            auto *buf_start = (uint8_t *)(buffer);
+            uint8_t *buf_end = buf_start + num_bytes;
             ourAction->m_response.data.insert(ourAction->m_response.data.end(), buf_start, buf_end);
         }
         return num_bytes;
@@ -105,27 +112,26 @@ private:
     static int progress_static(void *userp, double dltotal, double dlnow, double ult,
                                double uln)
     {
-        CurlAction *self = static_cast<CurlAction*>(userp);
-        self->m_connection_info.dl_total = dltotal;
-        self->m_connection_info.dl_now = dlnow;
-        self->m_connection_info.ul_total = ult;
-        self->m_connection_info.ul_now = uln;
-        LOG_TRACE_2 << self->connection_info().url << " : " << self->connection_info().dl_now << " / "
-        << self->connection_info().dl_total;
+        auto *self = static_cast<CurlAction *>(userp);
+        auto &con = self->m_response.connection;
+        con.dl_total = dltotal;
+        con.dl_now = dlnow;
+        con.ul_total = ult;
+        con.ul_now = uln;
+        LOG_TRACE_2 << con.url << " : " << con.dl_now << " / " << con.dl_total;
 
-        if(self->m_progress_handler)
-            self->m_progress_handler(self->m_connection_info);
-
+        if(self->m_progress_handler){ self->m_progress_handler(con); }
         return 0;
     }
 
 public:
-    CurlAction(const std::string &the_url):
-    m_connection_info({the_url, 0, 0, 0, 0, 0})
+    explicit CurlAction(const std::string &the_url) :
+            m_curl_handle(curl_easy_init(), curl_easy_cleanup),
+            m_start_time(std::chrono::steady_clock::now())
     {
-        set_handle(curl_easy_init());
+        m_response.connection = {the_url, 0, 0, 0, 0, 0};
         curl_easy_setopt(handle(), CURLOPT_WRITEDATA, this);
-		curl_easy_setopt(handle(), CURLOPT_WRITEFUNCTION, write_static);
+        curl_easy_setopt(handle(), CURLOPT_WRITEFUNCTION, write_static);
         curl_easy_setopt(handle(), CURLOPT_READDATA, this);
         curl_easy_setopt(handle(), CURLOPT_READFUNCTION, read_static);
         curl_easy_setopt(handle(), CURLOPT_NOPROGRESS, 0L);
@@ -136,7 +142,7 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    response_t& response(){ return m_response; };
+    response_t &response() { return m_response; };
 
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -144,17 +150,17 @@ public:
     {
         CURLcode curlResult = curl_easy_perform(handle());
         curl_easy_getinfo(handle(), CURLINFO_RESPONSE_CODE, &m_response.status_code);
-        if(!curlResult && m_completion_handler) m_completion_handler(m_connection_info, m_response);
-		return !curlResult;
+        if(!curlResult && m_completion_handler) m_completion_handler(m_response);
+        return !curlResult;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    CURL* handle() const { return m_curl_handle.get(); }
+    CURL *handle() const { return m_curl_handle.get(); }
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    connection_info_t connection_info() const { return m_connection_info; }
+    connection_info_t connection_info() const { return m_response.connection; }
 
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -166,18 +172,25 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     completion_cb_t completion_handler() const { return m_completion_handler; }
-    void set_completion_handler(completion_cb_t ch){ m_completion_handler = ch; }
-    void set_progress_handler(progress_cb_t ph){ m_progress_handler = ph; }
+
+    void set_completion_handler(completion_cb_t ch) { m_completion_handler = std::move(ch); }
+
+    void set_progress_handler(progress_cb_t ph) { m_progress_handler = std::move(ph); }
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    void set_timeout(uint64_t the_timeout)
+    void set_timeout(uint64_t timeout)
     {
-        m_connection_info.timeout = the_timeout;
-        curl_easy_setopt(handle(), CURLOPT_TIMEOUT, the_timeout);
+        m_response.connection.timeout = timeout;
+        curl_easy_setopt(handle(), CURLOPT_TIMEOUT, timeout);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
+
+    double duration() const
+    {
+        return duration_t(std::chrono::steady_clock::now() - m_start_time).count();
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,7 +199,7 @@ typedef CurlAction Action_GET;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class Action_POST: public CurlAction
+class Action_POST : public CurlAction
 {
 private:
     std::vector<uint8_t> m_data;
@@ -194,10 +207,10 @@ private:
 
 public:
     Action_POST(const string &the_url,
-                const std::vector<uint8_t> &the_data,
-                const std::string &the_mime_type):
-    CurlAction(the_url),
-    m_data(the_data)
+                std::vector<uint8_t> the_data,
+                const std::string &the_mime_type) :
+            CurlAction(the_url),
+            m_data(std::move(the_data))
     {
         auto header_content = "Content-Type: " + the_mime_type;
         m_headers = std::shared_ptr<struct curl_slist>(curl_slist_append(nullptr,
@@ -213,7 +226,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class Action_PUT: public CurlAction
+class Action_PUT : public CurlAction
 {
 private:
     std::vector<uint8_t> m_data;
@@ -221,10 +234,10 @@ private:
 
 public:
     Action_PUT(const string &the_url,
-               const std::vector<uint8_t> &the_data,
-               const std::string &the_mime_type):
-    CurlAction(the_url),
-    m_data(the_data)
+               std::vector<uint8_t> the_data,
+               const std::string &the_mime_type) :
+            CurlAction(the_url),
+            m_data(std::move(the_data))
     {
         auto header_content = "Content-Type: " + the_mime_type;
         m_headers = std::shared_ptr<struct curl_slist>(curl_slist_append(nullptr,
@@ -245,11 +258,11 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class Action_DELETE: public CurlAction
+class Action_DELETE : public CurlAction
 {
 public:
-    Action_DELETE(const string &the_url):
-    CurlAction(the_url)
+    explicit Action_DELETE(const string &the_url) :
+            CurlAction(the_url)
     {
         curl_easy_setopt(handle(), CURLOPT_CUSTOMREQUEST, "DELETE");
     }
@@ -312,16 +325,16 @@ response_t del(const std::string &the_url)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Client::Client(io_service_t &io):
-m_impl(std::make_unique<ClientImpl>(&io))
+Client::Client(io_service_t &io) :
+        m_impl(std::make_unique<ClientImpl>(&io))
 {
 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Client::Client(Client &&the_client):
-m_impl(std::move(the_client.m_impl))
+Client::Client(Client &&the_client) noexcept:
+        m_impl(std::move(the_client.m_impl))
 {
 
 }
@@ -332,7 +345,7 @@ Client::~Client() = default;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Client& Client::operator=(Client other)
+Client &Client::operator=(Client other)
 {
     std::swap(m_impl, other.m_impl);
     return *this;
@@ -358,32 +371,34 @@ void ClientImpl::poll()
 
             if(itr != m_handle_map.end())
             {
+                auto &response = itr->second->response();
+                response.duration = itr->second->duration();
+
                 if(!res)
                 {
                     // http response code
-                    curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE,
-                                      &itr->second->response().status_code);
+                    curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &itr->second->response().status_code);
 
                     auto ci = itr->second->connection_info();
-                    int num_kb = ci.dl_total / 1024;
+                    auto num_kb = static_cast<uint32_t >(ci.dl_total / 1024);
 
-                    LOG_TRACE_1 << itr->second->response().status_code << ": '" << ci.url
-                        << "' completed successfully (" << num_kb << " kB)";
+                    LOG_TRACE_1 << crocore::format("%d: '%s' completed successfully (%d kB, %d ms)",
+                                                   response.status_code,
+                                                   ci.url.c_str(),
+                                                   num_kb,
+                                                   (uint32_t)(response.duration * 1000));
 
                     if(itr->second->completion_handler())
                     {
-                        itr->second->completion_handler()(itr->second->connection_info(),
-                                                          itr->second->response());
+                        itr->second->completion_handler()(response);
                     }
-                }
-                else
+                }else
                 {
                     LOG_DEBUG << "could not retrieve '" << itr->second->connection_info().url << "'";
                 }
                 m_handle_map.erase(itr);
             }
-        }
-        else{ LOG_DEBUG << msg->msg; }
+        }else{ LOG_DEBUG << msg->msg; }
     }
 
     if(m_num_connections && m_io_service)
@@ -394,18 +409,18 @@ void ClientImpl::poll()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void ClientImpl::add_action(ActionPtr the_action, completion_cb_t ch, progress_cb_t ph)
+void ClientImpl::add_action(const ActionPtr &action, completion_cb_t ch, progress_cb_t ph)
 {
     // set options for this handle
-    the_action->set_timeout(m_timeout);
-    the_action->set_completion_handler(ch);
-    the_action->set_progress_handler(ph);
+    action->set_timeout(m_timeout);
+    action->set_completion_handler(std::move(ch));
+    action->set_progress_handler(std::move(ph));
 
     std::unique_lock<std::mutex> lock(m_mutex);
-    m_handle_map[the_action->handle()] = the_action;
+    m_handle_map[action->handle()] = action;
 
     // add handle to multi
-    curl_multi_add_handle(m_curl_multi_handle.get(), the_action->handle());
+    curl_multi_add_handle(m_curl_multi_handle.get(), action->handle());
 
     if(m_io_service && !m_num_connections)
     {
@@ -422,7 +437,7 @@ void Client::async_head(const std::string &the_url,
     LOG_DEBUG << "async_head: '" << the_url << "'";
     ActionPtr url_action = make_shared<Action_GET>(the_url);
     curl_easy_setopt(url_action->handle(), CURLOPT_NOBODY, 1L);
-    m_impl->add_action(url_action, ch, ph);
+    m_impl->add_action(url_action, std::move(ch), std::move(ph));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -435,7 +450,7 @@ void Client::async_get(const std::string &the_url,
 
     // create an action which holds an easy handle
     ActionPtr url_action = make_shared<Action_GET>(the_url);
-    m_impl->add_action(url_action, ch, ph);
+    m_impl->add_action(url_action, std::move(ch), std::move(ph));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -448,7 +463,7 @@ void Client::async_post(const std::string &the_url,
 {
     LOG_DEBUG << "async_post: '" << the_url << "'";
     ActionPtr url_action = make_shared<Action_POST>(the_url, the_data, the_mime_type);
-    m_impl->add_action(url_action, ch, ph);
+    m_impl->add_action(url_action, std::move(ch), std::move(ph));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -461,7 +476,7 @@ void Client::async_put(const std::string &the_url,
 {
     LOG_DEBUG << "async_put: '" << the_url << "'";
     ActionPtr url_action = make_shared<Action_PUT>(the_url, the_data, the_mime_type);
-    m_impl->add_action(url_action, ch, ph);
+    m_impl->add_action(url_action, std::move(ch), std::move(ph));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -470,7 +485,7 @@ void Client::async_del(const std::string &the_url, completion_cb_t ch)
 {
     LOG_DEBUG << "async_del: '" << the_url << "'";
     ActionPtr url_action = make_shared<Action_DELETE>(the_url);
-    m_impl->add_action(url_action, ch);
+    m_impl->add_action(url_action, std::move(ch));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -489,4 +504,6 @@ void Client::set_timeout(uint64_t t)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-}}}// namespace
+}
+}
+}// namespace
