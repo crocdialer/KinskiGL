@@ -98,7 +98,7 @@ void EditTransform(const Camera& camera, matrix_t& matrix)
 	}
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-	ImGuizmo::Manipulate(camera.mView.m16, camera.mProjection.m16, mCurrentGizmoOperation, mCurrentGizmoMode, matrix.m16, nullptr, useSnap ? &snap.x : nullptr);
+	ImGuizmo::Manipulate(camera.mView.m16, camera.mProjection.m16, mCurrentGizmoOperation, mCurrentGizmoMode, matrix.m16, NULL, useSnap ? &snap.x : NULL);
 }
 #endif
 #pragma once
@@ -157,10 +157,10 @@ namespace ImGuizmo
 	// translation is applied in world space
 	enum OPERATION
 	{
-		TRANSLATE = 1 << 0,
-		ROTATE = 1 << 1,
-		SCALE = 1 << 2,
-		BOUNDS = 1 << 3
+		TRANSLATE,
+		ROTATE,
+		SCALE,
+		BOUNDS,
 	};
 
 	enum MODE
@@ -169,6 +169,5 @@ namespace ImGuizmo
 		WORLD
 	};
 
-	IMGUI_API void Manipulate(const float *view, const float *projection, OPERATION operation, MODE mode, float *matrix,
-			                  float *deltaMatrix = 0, float *snap = 0, float *localBounds = nullptr, float *boundsSnap = nullptr);
+	IMGUI_API void Manipulate(const float *view, const float *projection, OPERATION operation, MODE mode, float *matrix, float *deltaMatrix = 0, float *snap = 0, float *localBounds = NULL, float *boundsSnap = NULL);
 };

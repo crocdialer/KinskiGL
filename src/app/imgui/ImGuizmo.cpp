@@ -774,12 +774,12 @@ namespace ImGuizmo
       }
    }
 
-   static float GetUniform(const vec_t& position, const matrix_t& mat)
-   {
-      vec_t trf = makeVect(position.x, position.y, position.z, 1.f);
-      trf.Transform(mat);
-      return trf.w;
-   }
+//   static float GetUniform(const vec_t& position, const matrix_t& mat)
+//   {
+//      vec_t trf = makeVect(position.x, position.y, position.z, 1.f);
+//      trf.Transform(mat);
+//      return trf.w;
+//   }
 
    static void ComputeContext(const float *view, const float *projection, float *matrix, MODE mode)
    {
@@ -1444,6 +1444,9 @@ namespace ImGuizmo
          vec_t dirPlaneX, dirPlaneY, dirAxis;
          bool belowAxisLimit, belowPlaneLimit;
          ComputeTripodAxisAndVisibility(i, dirAxis, dirPlaneX, dirPlaneY, belowAxisLimit, belowPlaneLimit);
+         dirAxis.TransformVector(gContext.mModel);
+         dirPlaneX.TransformVector(gContext.mModel);
+         dirPlaneY.TransformVector(gContext.mModel);
 
        const float len = IntersectRayPlane(gContext.mRayOrigin, gContext.mRayVector, BuildPlan(gContext.mModel.v.position, dirAxis));
        vec_t posOnPlan = gContext.mRayOrigin + gContext.mRayVector * len;
@@ -1943,7 +1946,7 @@ namespace ImGuizmo
          {
             vec_t camSpacePosition;
             camSpacePosition.TransformPoint(faceCoords[iCoord] * 0.5f * invert, gContext.mMVP);
-            if (camSpacePosition.z > 0.001f)
+            if (camSpacePosition.z < 0.001f)
             {
                skipFace = true;
                break;
