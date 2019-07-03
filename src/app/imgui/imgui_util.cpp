@@ -476,7 +476,8 @@ void draw_light_ui(const gl::LightPtr &the_light)
 
 void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPtr &the_camera)
 {
-    static uint32_t current_gizmo = 0;
+    constexpr int32_t gizmo_inactive = -1;
+    static int32_t current_gizmo = gizmo_inactive;
 
     ImGui::Begin("selected object");
 
@@ -486,7 +487,7 @@ void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPt
         return;
     }
 
-    if(ImGui::RadioButton("None", !current_gizmo)){ current_gizmo = 0; }
+    if(ImGui::RadioButton("None", current_gizmo == gizmo_inactive)){ current_gizmo = gizmo_inactive; }
     ImGui::SameLine();
     if(ImGui::RadioButton("Translate", current_gizmo == ImGuizmo::TRANSLATE)){ current_gizmo = ImGuizmo::TRANSLATE; }
     ImGui::SameLine();
@@ -539,7 +540,7 @@ void draw_object3D_ui(const gl::Object3DPtr &the_object, const gl::CameraConstPt
 
     ImGui::End();
 
-    if(the_camera && current_gizmo)
+    if(the_camera && (current_gizmo != gizmo_inactive))
     {
         bool is_ortho = std::dynamic_pointer_cast<const gl::OrthoCamera>(the_camera).get();
         auto z_val = transform[3].z;
