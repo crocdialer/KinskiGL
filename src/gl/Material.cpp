@@ -12,10 +12,29 @@
 using namespace std;
 using namespace glm;
 
-namespace kinski::gl {
+namespace kinski {
+namespace gl {
 
-Material::Material(ShaderPtr theShader) :
-        m_shader(std::move(theShader)),
+class InsertUniformVisitor : public boost::static_visitor<>
+{
+private:
+    gl::ShaderPtr m_shader;
+    const std::string &m_uniform;
+
+public:
+
+    InsertUniformVisitor(gl::ShaderPtr theShader, const std::string &theUniform)
+            : m_shader(theShader), m_uniform(theUniform) {};
+
+    template<typename T>
+    inline void operator()(T &value) const
+    {
+        m_shader->uniform(m_uniform, value);
+    }
+};
+
+Material::Material(const ShaderPtr &theShader) :
+        m_shader(theShader),
         m_dirty_uniform_buffer(true),
         m_polygon_mode(GL_FRONT),
         m_wireframe(false),
@@ -40,10 +59,10 @@ Material::Material(ShaderPtr theShader) :
     set_point_attenuation(1.f, 0.f, 0.f);
 }
 
-MaterialPtr Material::create(const gl::ShaderType &type)
+MaterialPtr Material::create(const gl::ShaderType &the_type)
 {
     auto ret = MaterialPtr(new Material(nullptr));
-    ret->enqueue_shader(type);
+    ret->enqueue_shader(the_type);
     return ret;
 }
 
@@ -52,14 +71,14 @@ MaterialPtr Material::create(const ShaderPtr &theShader)
     return MaterialPtr(new Material(theShader));
 }
 
-void Material::set_culling(uint32_t value)
+void Material::set_culling(uint32_t the_value)
 {
-    m_cull_value = value & (CULL_FRONT | CULL_BACK);
+    m_cull_value = the_value & (CULL_FRONT | CULL_BACK);
 }
 
-void Material::set_shadow_properties(uint32_t value)
+void Material::set_shadow_properties(uint32_t the_value)
 {
-    m_shadow_properties = value & (SHADOW_CAST | SHADOW_RECEIVE);
+    m_shadow_properties = the_value & (SHADOW_CAST | SHADOW_RECEIVE);
     m_dirty_uniform_buffer = true;
 }
 
@@ -111,45 +130,45 @@ void Material::set_shader(const ShaderPtr &theShader)
     m_queued_shader = ShaderType::NONE;
 }
 
-void Material::add_texture(const Texture &texture, Texture::Usage usage)
+void Material::add_texture(const Texture &the_texture, Texture::Usage the_usage)
 {
-    m_textures[static_cast<uint32_t>(usage)] = texture;
+    m_textures[static_cast<uint32_t>(the_usage)] = the_texture;
     m_dirty_uniform_buffer = true;
 }
 
-void Material::clear_texture(Texture::Usage usage)
+void Material::clear_texture(Texture::Usage the_usage)
 {
-    m_textures.erase(static_cast<uint32_t>(usage));
+    m_textures.erase(static_cast<uint32_t>(the_usage));
     m_dirty_uniform_buffer = true;
 }
 
-void Material::add_texture(const Texture &texture, uint32_t key)
+void Material::add_texture(const Texture &the_texture, uint32_t the_key)
 {
-    m_textures[key] = texture;
+    m_textures[the_key] = the_texture;
     m_dirty_uniform_buffer = true;
 }
 
-void Material::clear_texture(uint32_t key)
+void Material::clear_texture(uint32_t the_key)
 {
-    m_textures.erase(key);
+    m_textures.erase(the_key);
     m_dirty_uniform_buffer = true;
 }
 
-bool Material::has_texture(Texture::Usage usage)
+bool Material::has_texture(Texture::Usage the_usage)
 {
-    return has_texture(static_cast<uint32_t>(usage));
+    return has_texture(static_cast<uint32_t>(the_usage));
 }
 
-bool Material::has_texture(uint32_t key)
+bool Material::has_texture(uint32_t the_key)
 {
     // search queued textures
-    for(const auto &p : m_queued_textures){ if(p.second.key == key){ return true; }}
-    return m_textures.find(key) != std::end(m_textures);
+    for(const auto &p : m_queued_textures){ if(p.second.key == the_key){ return true; }}
+    return m_textures.find(the_key) != std::end(m_textures);
 }
 
-gl::Texture *Material::get_texture_ptr(Texture::Usage usage)
+gl::Texture *Material::get_texture_ptr(Texture::Usage the_usage)
 {
-    auto it = m_textures.find(static_cast<uint32_t>(usage));
+    auto it = m_textures.find(static_cast<uint32_t>(the_usage));
     if(it != std::end(m_textures))
     {
         return &it->second;
@@ -157,9 +176,9 @@ gl::Texture *Material::get_texture_ptr(Texture::Usage usage)
     return nullptr;
 }
 
-gl::Texture Material::get_texture(Texture::Usage usage) const
+gl::Texture Material::get_texture(Texture::Usage the_usage) const
 {
-    auto it = m_textures.find(static_cast<uint32_t>(usage));
+    auto it = m_textures.find(static_cast<uint32_t>(the_usage));
     if(it != std::end(m_textures))
     {
         return it->second;
@@ -192,25 +211,25 @@ ShaderConstPtr Material::shader() const
     return m_shader;
 }
 
-void Material::enqueue_texture(const std::string &texture_path, uint32_t key)
+void Material::enqueue_texture(const std::string &the_texture_path, uint32_t the_key)
 {
-    m_queued_textures[texture_path] = {key, nullptr, AssetLoadStatus::NOT_LOADED};
+    m_queued_textures[the_texture_path] = {the_key, nullptr, AssetLoadStatus::NOT_LOADED};
 }
 
-void Material::enqueue_texture(const std::string &texture_path, const crocore::ImagePtr &image, uint32_t key)
+void Material::enqueue_texture(const std::string &the_texture_path, crocore::ImagePtr the_image, uint32_t the_key)
 {
-    if(image){ m_queued_textures[texture_path] = {key, image, AssetLoadStatus::IMAGE_LOADED}; }
-    else{ enqueue_texture(texture_path, key); }
+    if(the_image){ m_queued_textures[the_texture_path] = {the_key, the_image, AssetLoadStatus::IMAGE_LOADED}; }
+    else{ enqueue_texture(the_texture_path, the_key); }
 }
 
-void Material::enqueue_shader(gl::ShaderType type)
+void Material::enqueue_shader(gl::ShaderType the_type)
 {
-    m_queued_shader = type;
+    m_queued_shader = the_type;
 }
 
-void Material::update_uniforms(const ShaderPtr &shader)
+void Material::update_uniforms(const ShaderPtr &the_shader)
 {
-    auto shader_obj = shader ? shader : m_shader;
+    auto shader_obj = the_shader ? the_shader : m_shader;
     if(!shader_obj)
     {
         LOG_WARNING << "update_uniforms: no shader assigned";
@@ -275,14 +294,16 @@ void Material::update_uniforms(const ShaderPtr &shader)
         // set all other uniform values
         for(auto&[name, uniform] : uniforms())
         {
-            std::visit([this, &name](auto &&value)
-                       {
-                           m_shader->uniform(name, value);
-                       }, uniform);
+//            std::visit([this, &name](auto &&value)
+//                       {
+//                            m_shader->uniform(name, value);
+//                       }, uniform);
+            boost::apply_visitor(InsertUniformVisitor(shader_obj, name), uniform);
             KINSKI_CHECK_GL_ERRORS();
         }
     }
     m_dirty_uniform_buffer = false;
 }
 
+}
 }// namespace
