@@ -30,7 +30,7 @@ public:
             std::vector<vec2>, std::vector<vec3>, std::vector<vec4>,
             std::vector<mat3>, std::vector<mat4>>;
 
-    using UniformMap = std::unordered_map<std::string, uniform_t>;
+    using UniformMap = std::map<std::string, uniform_t>;
 
     enum CullType
     {
