@@ -13,15 +13,15 @@ OPTION (BUILD_TESTS "Build Tests" ON)
 if(USE_CXX11)
     add_definitions(-DKINSKI_CPP11)
 
-    #set(CMAKE_CXX_STANDARD 14)
-    #set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
     if(APPLE)
     SET(CMAKE_CXX_FLAGS "-std=c++1z -stdlib=libc++")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++1z")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     ELSE( APPLE )
-    SET (CMAKE_CXX_FLAGS "-std=c++14 -pthread -Wall -Wformat=0")
+    SET (CMAKE_CXX_FLAGS "-std=c++17 -pthread -Wall -Wformat=0")
     endif(APPLE)
 
 endif(USE_CXX11)
