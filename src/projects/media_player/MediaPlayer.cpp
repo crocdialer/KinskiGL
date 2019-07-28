@@ -43,7 +43,7 @@ namespace
 void MediaPlayer::setup()
 {
     ViewerApp::setup();
-    Logger::get()->set_use_log_file(true);
+    crocore::g_logger.set_use_log_file(true);
 
     fonts()[1].load(fonts()[0].path(), 28);
     fonts()[2].load(fonts()[0].path(), 54);
@@ -176,7 +176,7 @@ void MediaPlayer::draw()
         }
     }
     
-    if(!*m_is_master && m_is_syncing && Logger::get()->severity() >= Severity::DEBUG)
+    if(!*m_is_master && m_is_syncing && crocore::g_logger.severity() >= Severity::DEBUG)
     {
         gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
     }
