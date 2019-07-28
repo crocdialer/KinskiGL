@@ -65,7 +65,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
                                  const std::vector<std::string> &the_args)
     {
         LOG_TRACE << "adding log_stream: " << con->remote_ip();
-        Logger::get()->add_outstream(con);
+        crocore::g_logger.add_outstream(con);
     });
 
     add_command("echo", [](net::tcp_connection_ptr con, const std::vector<std::string> &the_args)

@@ -4,6 +4,10 @@
 
 namespace kinski{ namespace gui {
 
+const ImVec2& im_vec_cast(const glm::vec2 &the_vec);
+const ImVec4& im_vec_cast(const glm::vec4 &the_vec);
+const ImVec4 im_vec_cast(const glm::vec3 &the_vec);
+
 bool init(kinski::App *the_app);
 
 void shutdown();

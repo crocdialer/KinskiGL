@@ -348,7 +348,7 @@ void ViewerApp::update_property(const PropertyConstPtr &theProperty)
         }
     }else if(theProperty == m_logger_severity)
     {
-        Logger::get()->set_severity(static_cast<Severity>(m_logger_severity->value()));
+        crocore::g_logger.set_severity(static_cast<Severity>(m_logger_severity->value()));
     }else if(theProperty == m_show_tweakbar)
     {
         set_display_gui(*m_show_tweakbar);

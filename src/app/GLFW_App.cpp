@@ -206,7 +206,7 @@ void GLFW_App::init()
     gl::context()->set_current_context_id(main_window->handle());
 
     // set graphical log stream
-    crocore::Logger::get()->add_outstream(&m_outstream_gl);
+    crocore::g_logger.add_outstream(&m_outstream_gl);
 
     // version
     LOG_INFO << "OpenGL: " << glGetString(GL_VERSION);

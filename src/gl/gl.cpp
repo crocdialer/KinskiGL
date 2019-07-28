@@ -57,10 +57,10 @@ std::map<gl::ShaderType, std::string> g_shader_names =
         };
 
 using vao_map_key_t = std::pair<const gl::Geometry *, const gl::Shader *>;
-using vao_map_t = std::unordered_map<vao_map_key_t, uint32_t, crocore::PairHash<const gl::Geometry *, const gl::Shader *>>;
+using vao_map_t = std::unordered_map<vao_map_key_t, uint32_t, crocore::pair_hash<const gl::Geometry *, const gl::Shader *>>;
 
 using fbo_map_key_t = std::pair<const gl::Fbo *, uint32_t>;
-using fbo_map_t = std::unordered_map<fbo_map_key_t, uint32_t, crocore::PairHash<const gl::Fbo *, uint32_t>>;
+using fbo_map_t = std::unordered_map<fbo_map_key_t, uint32_t, crocore::pair_hash<const gl::Fbo *, uint32_t>>;
 };
 
 struct ContextImpl
