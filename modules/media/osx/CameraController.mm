@@ -46,7 +46,7 @@
         return nil;
     }
     
-    device_id = kinski::clamp(device_id, 0, num_devices - 1);
+    device_id = crocore::clamp(device_id, 0, num_devices - 1);
     int i = 0;
     
 	for (AVCaptureDevice *device in devices)
@@ -218,7 +218,7 @@ namespace kinski{ namespace media{
         return false;
     }
     
-    bool CameraController::copy_frame_to_image(ImagePtr& the_image)
+    bool CameraController::copy_frame_to_image(crocore::ImagePtr& the_image)
     {
         if(!m_impl->m_camera.has_new_frame) return false;
         
@@ -234,8 +234,8 @@ namespace kinski{ namespace media{
             if(!the_image || the_image->width() != w || the_image->height() != h ||
                the_image->num_components() != num_channels)
             {
-                auto img = Image_<uint8_t>::create(w, h, num_channels);
-                img->m_type = Image::Type::BGRA;
+                auto img = crocore::Image_<uint8_t>::create(w, h, num_channels);
+                img->type = crocore::Image::Type::BGRA;
                 the_image = img;
             }
             

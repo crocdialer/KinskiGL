@@ -1,5 +1,5 @@
 #import <AVFoundation/AVFoundation.h>
-#include "core/file_functions.hpp"
+#include "crocore/filesystem.hpp"
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
 #include "MediaController.hpp"
@@ -125,10 +125,10 @@ namespace kinski{ namespace media{
         m_impl->m_movie_ended_cb = on_end;
         NSURL *url = nullptr;
 
-        if(!fs::is_uri(filePath))
+        if(!crocore::fs::is_uri(filePath))
         {
-            try{ m_impl->m_src_path = fs::search_file(filePath); }
-            catch(fs::FileNotFoundException &e)
+            try{ m_impl->m_src_path = crocore::fs::search_file(filePath); }
+            catch(crocore::fs::FileNotFoundException &e)
             {
                 LOG_ERROR << e.what();
                 return;
@@ -287,7 +287,7 @@ namespace kinski{ namespace media{
     void MediaController::set_volume(float the_volume)
     {
         if(!is_loaded()){ return; }
-        m_impl->m_player.volume = clamp(the_volume, 0.f, 1.f);
+        m_impl->m_player.volume = crocore::clamp(the_volume, 0.f, 1.f);
     }
 
 /////////////////////////////////////////////////////////////////
@@ -320,7 +320,7 @@ namespace kinski{ namespace media{
 
 /////////////////////////////////////////////////////////////////
     
-    bool MediaController::copy_frame_to_image(ImagePtr& the_image)
+    bool MediaController::copy_frame_to_image(crocore::ImagePtr& the_image)
     {
         if(!m_impl || !m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
         CVPixelBufferRef buffer = m_impl->new_buffer();
@@ -334,8 +334,8 @@ namespace kinski{ namespace media{
             if(!the_image || the_image->width() != w || the_image->height() != h ||
                the_image->num_components() != num_channels)
             {
-                auto img = Image_<uint8_t>::create(w, h, num_channels);
-                img->m_type = Image::Type::BGRA;
+                auto img = crocore::Image_<uint8_t>::create(w, h, num_channels);
+                img->type = crocore::Image::Type::BGRA;
                 the_image = img;
             }
             size_t num_bytes = std::min(the_image->num_bytes(), CVPixelBufferGetDataSize(buffer));

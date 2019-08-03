@@ -946,13 +946,13 @@ void MediaPlayer::setup_rpc_interface()
                                                 const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ *m_loop = crocore::string_to<bool>(rpc_args.front()); }
-        con->write(to_string(m_media->loop()));
+        con->write(crocore::to_string(m_media->loop()));
     });
 
     remote_control().add_command("is_playing", [this](net::tcp_connection_ptr con,
                                                       const std::vector<std::string> &rpc_args)
     {
-        con->write(to_string(m_media->is_playing()));
+        con->write(crocore::to_string(m_media->is_playing()));
     });
 
     remote_control().add_command("next", [this](net::tcp_connection_ptr con,
