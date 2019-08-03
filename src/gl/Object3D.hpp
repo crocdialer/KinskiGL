@@ -123,7 +123,7 @@ namespace kinski { namespace gl {
         //! billboard hint, can be used by Visitors
         bool m_billboard;
         
-        mat4 m_transform;
+        mat4 m_transform = glm::mat4(1);
         std::weak_ptr<Object3D> m_parent;
         std::list<Object3DPtr> m_children;
         
