@@ -74,7 +74,7 @@ void DeferredRenderer::init()
     m_mesh_sphere = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 32), m_mat_lighting);
     m_mesh_cone = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 24), m_mat_lighting);
 
-    glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
+    glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(1), glm::half_pi<float>(), gl::X_AXIS);
 
     for(auto &vert : m_mesh_cone->geometry()->vertices())
     {

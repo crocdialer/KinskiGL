@@ -191,7 +191,7 @@ namespace kinski{ namespace gl{
         if(!m_mesh){ return; }
 
         // make sure the particle mesh has global identity transform
-        m_mesh->set_global_transform(gl::mat4());
+        m_mesh->set_global_transform(gl::mat4(1));
         
         m_emission_accum = std::min<float>(m_emission_accum + m_emission_rate * time_delta,
                                            max_num_particles() - m_num_alive);

@@ -62,7 +62,7 @@ namespace kinski{namespace physics{
 //        auto aabb = the_mesh->boundingBox();
 //        float scale_val = 1.f;//std::max(std::max(aabb.width(), aabb.height()), aabb.depth());
         
-        auto mesh_transform = the_mesh->global_transform() ;//* scale(glm::mat4(), vec3(1.f / scale_val));
+        auto mesh_transform = the_mesh->global_transform() ;//* scale(glm::mat4(1), vec3(1.f / scale_val));
         std::vector<glm::vec3> world_space_verts;
         
         world_space_verts.resize(mesh_verts.size());
@@ -293,7 +293,7 @@ namespace kinski{namespace physics{
             m->entries() = {e0, e1};
             m->materials().push_back(inner_mat);
             m->set_position(curVoronoiPoint + type_cast(com));
-//            m->transform() *= glm::scale(mat4(), vec3(scale_val));
+//            m->transform() *= glm::scale(mat4(1), vec3(scale_val));
             
             // compute projected texcoords (outside)
             gl::project_texcoords(the_mesh, m);

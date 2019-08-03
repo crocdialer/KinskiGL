@@ -175,7 +175,7 @@ namespace kinski{ namespace gl{
 
         void init(const void *data, GLint dataFormat, const Format &format);
 
-        mat4 m_textureMatrix;
+        mat4 m_textureMatrix = mat4(1);
         gl::vec2 m_texcoord_scale = gl::vec2(1.f);
         gl::vec3 m_uvw_offset = gl::vec3(0.f);
         std::shared_ptr<struct TextureImpl> m_impl;

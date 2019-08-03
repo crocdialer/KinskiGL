@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE( test_Plane )
         BOOST_CHECK_CLOSE(p.distance(v1), 50.f, 0.0001f);
 
         // transform the plane
-        p.transform(glm::translate(glm::mat4(), glm::normalize(v1 - v) * 20.f));
+        p.transform(glm::translate(glm::mat4(1), glm::normalize(v1 - v) * 20.f));
         BOOST_CHECK_CLOSE(p.distance(v1), 30.f, 0.0001f);
     }
 

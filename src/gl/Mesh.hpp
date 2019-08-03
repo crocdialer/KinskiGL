@@ -161,7 +161,7 @@ namespace kinski { namespace gl {
         Mesh(const GeometryPtr &theGeom, const MaterialPtr &theMaterial);
 
         void build_bone_matrices(BonePtr bone, std::vector<glm::mat4> &matrices,
-                                 glm::mat4 parentTransform = glm::mat4());
+                                 glm::mat4 parentTransform = glm::mat4(1));
 
         GeometryPtr m_geometry;
         std::vector<Entry> m_entries;

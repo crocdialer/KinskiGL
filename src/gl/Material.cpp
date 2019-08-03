@@ -194,7 +194,7 @@ glm::mat4 Material::texture_matrix() const
         if(!t){ continue; }
         return t.texture_matrix();
     }
-    return glm::mat4();
+    return glm::mat4(1);
 }
 
 const ShaderPtr &Material::shader()

@@ -550,7 +550,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         gl::MeshPtr mesh = gl::Mesh::create(combined_geom, materials.empty() ? gl::Material::create() : materials[0]);
         mesh->entries() = entries;
         if(!materials.empty()){ mesh->materials() = materials; }
-        mesh->set_root_bone(create_bone_hierarchy(theScene->mRootNode, mat4(), bonemap));
+        mesh->set_root_bone(create_bone_hierarchy(theScene->mRootNode, mat4(1), bonemap));
 
         for(uint32_t i = 0; i < theScene->mNumAnimations; i++)
         {
@@ -649,7 +649,7 @@ bool get_mesh_transform(const aiScene *the_scene, const aiMesh *the_ai_mesh, glm
     };
 
     std::deque<node_t> node_queue;
-    node_queue.push_back({the_scene->mRootNode, glm::mat4()});
+    node_queue.push_back({the_scene->mRootNode, glm::mat4(1)});
 
     while(!node_queue.empty())
     {

@@ -673,7 +673,7 @@ const gl::mat4 &Warp::transform() const
             std::swap(dest[2], dest[3]);
             m_impl->m_transform = calculate_homography(src.data(), dest.data());
             m_impl->m_inv_transform = glm::inverse(m_impl->m_transform);
-        }else{ m_impl->m_transform = m_impl->m_inv_transform = glm::mat4(); }
+        }else{ m_impl->m_transform = m_impl->m_inv_transform = glm::mat4(1); }
         m_impl->m_dirty = false;
     }
     return m_impl->m_transform;

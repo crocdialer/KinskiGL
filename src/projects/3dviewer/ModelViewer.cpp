@@ -75,7 +75,7 @@ void ModelViewer::setup()
     ground_mesh->set_name(tag_ground_plane);
     ground_mesh->material()->set_shadow_properties(gl::Material::SHADOW_RECEIVE);
     ground_mesh->material()->set_roughness(0.4);
-    ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
+    ground_mesh->transform() = glm::rotate(mat4(1), -glm::half_pi<float>(), gl::X_AXIS);
     ground_mesh->add_tag(tag_ground_plane);
     scene()->add_object(ground_mesh);
     load_settings();
@@ -633,7 +633,7 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
             auto geom = gl::Geometry::create_plane(1.f, 1.f, 100, 100);
             auto mat = gl::Material::create();
             m = gl::Mesh::create(geom, mat);
-            m->transform() = rotate(mat4(), 90.f, gl::Y_AXIS);
+            m->transform() = rotate(mat4(1), 90.f, gl::Y_AXIS);
             
             async_load_texture(the_path, [m](const gl::Texture &t)
             {

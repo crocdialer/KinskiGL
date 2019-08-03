@@ -42,7 +42,7 @@ LSystem::LSystem() :
         m_diameter(1.f),
         m_diameter_shrink_factor(1.f)
 {
-    m_state_stack = {{glm::mat4(), false, m_diameter}};
+    m_state_stack = {{glm::mat4(1), false, m_diameter}};
 }
 
 const glm::vec3 &LSystem::head() const
@@ -98,7 +98,7 @@ void LSystem::iterate(int num_iterations)
     LOG_TRACE << m_buffer;
 
     // reset stack
-    m_state_stack = {{glm::mat4(), false, m_diameter}};
+    m_state_stack = {{glm::mat4(1), false, m_diameter}};
 }
 
 /*!

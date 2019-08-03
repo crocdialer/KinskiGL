@@ -263,7 +263,7 @@ void load_matrix(const Matrixtype type, const glm::mat4 &theMatrix)
 
 void load_identity(const Matrixtype type)
 {
-    load_matrix(type, glm::mat4());
+    load_matrix(type, glm::mat4(1));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -313,7 +313,7 @@ void set_matrices_for_window()
     load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, gl::window_dimension().x,
                                                   0.f, gl::window_dimension().y,
                                                   0.f, 1.f));
-    load_matrix(gl::MODEL_VIEW_MATRIX, mat4());
+    load_matrix(gl::MODEL_VIEW_MATRIX, mat4(1));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -328,10 +328,10 @@ void set_window_dimension(const glm::vec2 &theDim, const vec2 &the_offset)
     glViewport(the_offset.x, the_offset.y, theDim.x, theDim.y);
 
     if(g_projectionMatrixStack.empty())
-        g_projectionMatrixStack.push(mat4());
+        g_projectionMatrixStack.push(mat4(1));
 
     if(g_modelViewMatrixStack.empty())
-        g_modelViewMatrixStack.push(mat4());
+        g_modelViewMatrixStack.push(mat4(1));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -539,7 +539,7 @@ void draw_lines_2D(const vector<vec3> &thePoints, const vec4 &theColor, float li
     load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_viewport_dim[0],
                                                   0.f, g_viewport_dim[1],
                                                   0.f, 1.f));
-    load_matrix(gl::MODEL_VIEW_MATRIX, mat4());
+    load_matrix(gl::MODEL_VIEW_MATRIX, mat4(1));
     draw_lines(thePoints, theColor, line_thickness);
 }
 
@@ -649,7 +649,7 @@ void draw_points_2D(const std::vector<vec2> &the_points, gl::Color the_color,
     load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_viewport_dim[0],
                                                   0.f, g_viewport_dim[1],
                                                   0.f, 1.f));
-    load_matrix(gl::MODEL_VIEW_MATRIX, mat4());
+    load_matrix(gl::MODEL_VIEW_MATRIX, mat4(1));
 
     // invert coords to 2D with TL center
     std::vector<gl::vec3> inverted_points;
@@ -836,7 +836,7 @@ void draw_quad(const gl::MaterialPtr &theMaterial,
     quad_mesh->materials()[0] = theMaterial;
     float scaleX = (x1 - x0) / g_viewport_dim[0];
     float scaleY = (y0 - y1) / g_viewport_dim[1];
-    mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
+    mat4 modelViewMatrix = glm::scale(mat4(1), vec3(scaleX, scaleY, 1));
     modelViewMatrix[3] = vec4(x0 / g_viewport_dim[0], y1 / g_viewport_dim[1], 0, 1);
 
     gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
@@ -884,7 +884,7 @@ void draw_grid(float width, float height, int numW, int numH)
         it = theMap.insert(std::make_pair(conf, mesh)).first;
     }
     gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-    gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(glm::mat4(), gl::vec3(width, 1.f, height)));
+    gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(glm::mat4(1), gl::vec3(width, 1.f, height)));
     draw_mesh(it->second);
 }
 
@@ -1052,7 +1052,7 @@ void draw_light(const LightPtr &theLight)
         spot_mesh = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16),
                                      gl::Material::create());
 
-        glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
+        glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(1), glm::half_pi<float>(), gl::X_AXIS);
 
         for(auto &vert : spot_mesh->geometry()->vertices())
         {
@@ -1117,8 +1117,8 @@ void draw_boundingbox(const gl::AABB &the_aabb)
 {
     static MeshPtr line_mesh;
     if(!line_mesh){ line_mesh = gl::Mesh::create(gl::Geometry::create_box_lines()); }
-    glm::mat4 center_mat = glm::translate(glm::mat4(), the_aabb.center());
-    glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(the_aabb.width(),
+    glm::mat4 center_mat = glm::translate(glm::mat4(1), the_aabb.center());
+    glm::mat4 scale_mat = glm::scale(glm::mat4(1), vec3(the_aabb.width(),
                                                        the_aabb.height(),
                                                        the_aabb.depth()));
     gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
@@ -1179,7 +1179,7 @@ void draw_circle(const glm::vec2 &center, float the_radius, const MaterialPtr &t
     }
     our_mesh->materials()[0] = theMaterial ? theMaterial : default_mat;
     mat4 projectionMatrix = ortho(0.0f, g_viewport_dim[0], 0.0f, g_viewport_dim[1], 0.0f, 1.0f);
-    mat4 modelView = glm::scale(mat4(), vec3(the_radius));
+    mat4 modelView = glm::scale(mat4(1), vec3(the_radius));
     modelView[3] = vec4(center.x, g_viewport_dim[1] - center.y, 0, modelView[3].w);
 
     ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);

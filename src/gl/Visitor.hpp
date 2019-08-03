@@ -26,7 +26,7 @@ namespace kinski { namespace gl {
         explicit Visitor(bool visit_only_enabled = true):
         m_visit_only_enabled(visit_only_enabled)
         {
-            m_transform_stack.push(glm::mat4());
+            m_transform_stack.push(glm::mat4(1));
         }
         
         inline const std::stack<glm::mat4>& transform_stack() const {return m_transform_stack;};

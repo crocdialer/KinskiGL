@@ -64,7 +64,7 @@ namespace kinski { namespace gl {
     
     void Object3D::set_look_at(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
     {
-        set_transform(glm::inverse(glm::lookAt(position(), theLookAt, theUp)) * glm::scale(mat4(), scale()));
+        set_transform(glm::inverse(glm::lookAt(position(), theLookAt, theUp)) * glm::scale(mat4(1), scale()));
     }
     
     void Object3D::set_look_at(const Object3DPtr &theLookAt)
@@ -112,7 +112,7 @@ namespace kinski { namespace gl {
     
     void Object3D::set_global_transform(const glm::mat4 &transform)
     {
-        glm::mat4 parent_trans_inv = parent() ? glm::inverse(parent()->global_transform()) : glm::mat4();
+        glm::mat4 parent_trans_inv = parent() ? glm::inverse(parent()->global_transform()) : glm::mat4(1);
         m_transform = parent_trans_inv * transform;
     }
     
@@ -208,7 +208,7 @@ namespace kinski { namespace gl {
     
     gl::OBB Object3D::obb() const
     {
-        gl::OBB ret(aabb(), mat4());
+        gl::OBB ret(aabb(), mat4(1));
         return ret;
     }
     

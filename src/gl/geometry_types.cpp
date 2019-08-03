@@ -212,7 +212,7 @@ AABB& AABB::transform(const glm::mat4& t)
 
 ray_intersection AABB::intersect(const Ray& theRay) const
 {
-    OBB obb(*this, glm::mat4());
+    OBB obb(*this, glm::mat4(1));
     return obb.intersect(theRay);
 }
     
@@ -278,16 +278,16 @@ Frustum::Frustum(float aspect, float fov, float near, float far)
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane
 
-    t = glm::rotate(glm::mat4(), angle_y, up);
+    t = glm::rotate(glm::mat4(1), angle_y, up);
 	planes[2] = Plane(eyePos, lookAt).transform(t); // left plane
 
-    t = glm::rotate(glm::mat4(), -angle_y, up);
+    t = glm::rotate(glm::mat4(1), -angle_y, up);
 	planes[3] = Plane(eyePos, lookAt).transform(t); // right plane
 
-    t = glm::rotate(glm::mat4(), -angle_x, side);
+    t = glm::rotate(glm::mat4(1), -angle_x, side);
 	planes[4] = Plane(eyePos, lookAt).transform(t); // top plane
 
-    t = glm::rotate(glm::mat4(), angle_x, side);
+    t = glm::rotate(glm::mat4(1), angle_x, side);
 	planes[5] = Plane(eyePos, lookAt).transform(t); // bottom plane
 }
 
