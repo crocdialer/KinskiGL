@@ -75,7 +75,7 @@ void EGL_App::init()
     gl::create_context(platform_data);
 
     // set graphical log stream
-    Logger::get()->add_outstream(&m_outstream_gl);
+    crocore::g_logger.add_outstream(&m_outstream_gl);
 
     // version
     LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);

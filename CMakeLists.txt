@@ -21,7 +21,7 @@ if(USE_CXX11)
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++1z")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     ELSE( APPLE )
-    SET (CMAKE_CXX_FLAGS "-std=c++17 -pthread -Wall -Wformat=0")
+    SET (CMAKE_CXX_FLAGS "-std=c++17 -pthread -Wall -Wformat=0 -latomic")
     endif(APPLE)
 
 endif(USE_CXX11)
