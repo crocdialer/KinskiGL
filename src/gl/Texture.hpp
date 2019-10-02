@@ -38,6 +38,8 @@ namespace kinski{ namespace gl{
             Format(){}
         };
 
+        glm::mat4 texture_matrix = mat4(1);
+
         //! Default initializer.
         Texture(){};
 
@@ -84,7 +86,7 @@ namespace kinski{ namespace gl{
 
         void set_swizzle(GLint red, GLint green, GLint blue, GLint alpha);
 
-        mat4 texture_matrix() const;
+        mat4 transform() const;
 
         const bool is_bound() const;
         const GLint bound_texture_unit() const;
@@ -175,7 +177,6 @@ namespace kinski{ namespace gl{
 
         void init(const void *data, GLint dataFormat, const Format &format);
 
-        mat4 m_textureMatrix = mat4(1);
         gl::vec2 m_texcoord_scale = gl::vec2(1.f);
         gl::vec3 m_uvw_offset = gl::vec3(0.f);
         std::shared_ptr<struct TextureImpl> m_impl;

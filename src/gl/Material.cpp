@@ -192,7 +192,7 @@ glm::mat4 Material::texture_matrix() const
     {
         const auto &t = pair.second;
         if(!t){ continue; }
-        return t.texture_matrix();
+        return t.transform();
     }
     return glm::mat4(1);
 }

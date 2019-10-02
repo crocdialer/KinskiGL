@@ -245,7 +245,7 @@ void Texture::set_roi(int the_x, int the_y, uint32_t the_width, uint32_t the_hei
     int y_inv = height() - the_height - the_y;
     vec3 offset = vec3((float)the_x / width(), (float)y_inv / height(), 0);
     vec3 sc = vec3((float)the_width / width(), (float)the_height / height(), 1);
-    m_textureMatrix = translate(mat4(1), offset) * scale(mat4(1), sc);
+    texture_matrix = translate(mat4(1), offset) * scale(mat4(1), sc);
 }
     
 void Texture::set_roi(const crocore::Area_<uint32_t> &the_roi)
@@ -253,9 +253,9 @@ void Texture::set_roi(const crocore::Area_<uint32_t> &the_roi)
     set_roi(the_roi.x, the_roi.y, the_roi.width, the_roi.height);
 }
     
-mat4 Texture::texture_matrix() const
+mat4 Texture::transform() const
 {
-    mat4 ret = m_textureMatrix;
+    mat4 ret = texture_matrix;
     ret[3] += vec4(m_uvw_offset, 0.f);
 
     if(m_impl && m_impl->m_flipped)
