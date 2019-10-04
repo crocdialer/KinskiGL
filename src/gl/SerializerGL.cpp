@@ -10,7 +10,8 @@
 #include <nlohmann/json.hpp>
 #include "SerializerGL.hpp"
 
-namespace kinski {
+namespace kinski
+{
 
 using namespace gl;
 
@@ -44,7 +45,7 @@ bool PropertyIO_GL::read_property(const crocore::PropertyConstPtr &theProperty,
 
         success = true;
 
-    }else if(theProperty->is_of_type<vec3>())
+    } else if(theProperty->is_of_type<vec3>())
     {
         theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC3;
 
@@ -55,7 +56,7 @@ bool PropertyIO_GL::read_property(const crocore::PropertyConstPtr &theProperty,
             theJsonValue[PROPERTY_VALUE][i] = ptr[i];
 
         success = true;
-    }else if(theProperty->is_of_type<vec4>())
+    } else if(theProperty->is_of_type<vec4>())
     {
         theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC4;
 
@@ -67,7 +68,7 @@ bool PropertyIO_GL::read_property(const crocore::PropertyConstPtr &theProperty,
 
 
         success = true;
-    }else if(theProperty->is_of_type<quat>())
+    } else if(theProperty->is_of_type<quat>())
     {
         theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_QUAT;
 
@@ -78,7 +79,7 @@ bool PropertyIO_GL::read_property(const crocore::PropertyConstPtr &theProperty,
             theJsonValue[PROPERTY_VALUE][i] = ptr[i];
 
         success = true;
-    }else if(theProperty->is_of_type<mat3>())
+    } else if(theProperty->is_of_type<mat3>())
     {
         theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_MAT3;
 
@@ -89,7 +90,7 @@ bool PropertyIO_GL::read_property(const crocore::PropertyConstPtr &theProperty,
             theJsonValue[PROPERTY_VALUE][i] = ptr[i];
 
         success = true;
-    }else if(theProperty->is_of_type<mat4>())
+    } else if(theProperty->is_of_type<mat4>())
     {
         theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_MAT4;
 
@@ -100,7 +101,7 @@ bool PropertyIO_GL::read_property(const crocore::PropertyConstPtr &theProperty,
             theJsonValue[PROPERTY_VALUE][i] = ptr[i];
 
         success = true;
-    }else if(theProperty->is_of_type<ivec2>())
+    } else if(theProperty->is_of_type<ivec2>())
     {
         theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_IVEC2;
 
@@ -112,11 +113,13 @@ bool PropertyIO_GL::read_property(const crocore::PropertyConstPtr &theProperty,
 
         success = true;
 
-    }else if(theProperty->is_of_type<std::vector<vec2>>())
+    } else if(theProperty->is_of_type<std::vector<vec2>>())
     {
         theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC2_ARRAY;
 
-        const std::vector<vec2> &vec_array = theProperty->get_value<std::vector<vec2>>();
+        auto &vec_array = theProperty->get_value<std::vector<vec2>>();
+
+        theJsonValue[PROPERTY_VALUE] = crocore::json::array();
 
         for(uint32_t j = 0; j < vec_array.size(); ++j)
         {
@@ -147,7 +150,7 @@ bool PropertyIO_GL::write_property(crocore::PropertyPtr &theProperty,
         theProperty->set_value<vec2>(vec);
         success = true;
 
-    }else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_VEC3)
+    } else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_VEC3)
     {
         vec3 vec;
         float *ptr = &vec[0];
@@ -157,7 +160,7 @@ bool PropertyIO_GL::write_property(crocore::PropertyPtr &theProperty,
         theProperty->set_value<vec3>(vec);
         success = true;
 
-    }else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_VEC4)
+    } else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_VEC4)
     {
         vec4 vec;
         float *ptr = &vec[0];
@@ -167,7 +170,7 @@ bool PropertyIO_GL::write_property(crocore::PropertyPtr &theProperty,
         theProperty->set_value<vec4>(vec);
         success = true;
 
-    }else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_QUAT)
+    } else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_QUAT)
     {
         quat vec;
         float *ptr = &vec[0];
@@ -177,7 +180,7 @@ bool PropertyIO_GL::write_property(crocore::PropertyPtr &theProperty,
         theProperty->set_value<quat>(vec);
         success = true;
 
-    }else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_MAT3)
+    } else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_MAT3)
     {
         mat3 mat;
         float *ptr = &mat[0][0];
@@ -187,7 +190,7 @@ bool PropertyIO_GL::write_property(crocore::PropertyPtr &theProperty,
         theProperty->set_value<mat3>(mat);
         success = true;
 
-    }else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_MAT4)
+    } else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_MAT4)
     {
         mat4 mat;
         float *ptr = &mat[0][0];
@@ -197,23 +200,27 @@ bool PropertyIO_GL::write_property(crocore::PropertyPtr &theProperty,
         theProperty->set_value<mat4>(mat);
         success = true;
 
-    }else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_VEC2_ARRAY)
+    } else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_VEC2_ARRAY)
     {
         std::vector<vec2> vals;
 
-        for(uint32_t i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
+        try
         {
-            vec2 v;
-            float *ptr = &v[0];
+            for(uint32_t i = 0; i < theJsonValue.at(PROPERTY_VALUE).size(); ++i)
+            {
+                vec2 v;
+                float *ptr = &v[0];
 
-            for(int j = 0; j < 2; ++j){ ptr[j] = theJsonValue[PROPERTY_VALUE][i][j]; }
+                for(int j = 0; j < 2; ++j){ ptr[j] = theJsonValue[PROPERTY_VALUE][i][j]; }
 
-            vals.push_back(v);
-        }
+                vals.push_back(v);
+            }
+        } catch(std::exception &e){ LOG_ERROR << e.what(); }
+
         theProperty->set_value<std::vector<vec2>>(vals);
 
         success = true;
-    }else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_IVEC2)
+    } else if(theJsonValue[PROPERTY_TYPE] == PROPERTY_TYPE_IVEC2)
     {
         ivec2 vec;
         int *ptr = &vec[0];

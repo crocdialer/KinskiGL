@@ -88,8 +88,8 @@ namespace kinski{ namespace gl{
 
         mat4 transform() const;
 
-        const bool is_bound() const;
-        const GLint bound_texture_unit() const;
+        bool is_bound() const;
+        GLint bound_texture_unit() const;
 
         //! Replaces the pixels of a texture with \a data
         void update(const uint8_t *data,GLenum format, int theWidth, int theHeight,

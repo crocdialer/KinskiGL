@@ -270,12 +270,12 @@ mat4 Texture::transform() const
     return ret;
 }
 
-const bool Texture::is_bound() const
+bool Texture::is_bound() const
 {
     return m_impl->m_bound_texture_unit >= 0;
 }
 
-const GLint Texture::bound_texture_unit() const
+GLint Texture::bound_texture_unit() const
 {
     return m_impl ? m_impl->m_bound_texture_unit : -1;
 }
