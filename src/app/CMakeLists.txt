@@ -12,9 +12,8 @@ FILE(GLOB IMGUI_SOURCES imgui/*.cpp)
 
 ##### GLFW
 if(NOT KINSKI_ARM)
-find_package(GLFW3 REQUIRED)
-INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
-SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
+find_package(glfw3 3.3 REQUIRED)
+set(LIBS ${LIBS} glfw)
 FILE(GLOB GLFW_SOURCES GLFW_App.cpp App.cpp AntTweakBarConnector.cpp)
 FILE(GLOB GLFW_HEADERS GLFW_App.hpp AntTweakBarConnector.hpp)
 
