@@ -1930,7 +1930,7 @@ crocore::ImagePtr create_image_from_texture(const gl::Texture &the_texture)
         auto ret = crocore::Image_<uint8_t>::create(the_texture.width(), the_texture.height(), 4);
         the_texture.bind();
         glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data());
-        ret->flip();
+        ret->flip(false);
         ret->type = crocore::Image::Type::RGBA;
         return ret;
     }
