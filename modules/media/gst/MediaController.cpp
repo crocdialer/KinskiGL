@@ -479,9 +479,25 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
 
 bool MediaController::use_net_time_provider(const std::string &the_ip, uint16_t the_port)
 {
-    auto clock = gst_net_client_clock_new("remote clock", the_ip.c_str(), the_port,
-                                          gst_clock_get_time(m_impl->m_gst_util.clock()));
+
+//    gst_pipeline_set_new_stream_time((GstPipeline*)data.pipeline,GST_CLOCK_TIME_NONE);
+//    - data.netclock =  gst_net_client_clock_new(NULL, "127.0.0.1", 5637,0);
+//    if(data.netclock == NULL)
+//    {
+//        g_print("Failed to create client\n");
+//    }
+//
+//    - gst_element_set_start_time(data.pipeline,GST_CLOCK_TIME_NONE);
+//    - gst_element_set_base_time(data.pipeline, 0);
+//    - gst_pipeline_use_clock((GstPipeline*)data.pipeline,data.netclock);
+
+    LOG_DEBUG << "MediaController::use_net_time_provider: " << the_ip << ":" << the_port;
+
+    auto clock = gst_net_client_clock_new(nullptr, the_ip.c_str(), the_port,
+                                          gst_element_get_base_time(m_impl->m_gst_util.pipeline()));
     m_impl->m_gst_util.set_clock(clock);
+    m_impl->m_gst_util.set_pipeline_state(GST_STATE_PLAYING);
+
     return true;
 }
 

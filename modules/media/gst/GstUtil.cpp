@@ -4,28 +4,31 @@
 
 #include "GstUtil.h"
 
-namespace kinski{ namespace media{
+namespace kinski
+{
+namespace media
+{
 
 std::weak_ptr<GMainLoop> GstUtil::s_g_main_loop;
 std::weak_ptr<std::thread> GstUtil::s_thread;
 std::weak_ptr<GstGLDisplay> GstUtil::s_gst_gl_display;
 const int GstUtil::s_enable_async_state_change = true;
 
-GstUtil::GstUtil(bool use_gl):
-m_use_gl(use_gl),
-m_num_video_channels(0),
-m_num_audio_channels(0),
-m_has_subtitle(false),
-m_prerolled(false),
-m_live(false),
-m_buffering(false),
-m_has_new_frame(false),
-m_video_has_changed(true),
-m_fps(0.f),
-m_end_of_stream(true),
-m_pause(false),
-m_current_state(GST_STATE_NULL),
-m_target_state(GST_STATE_NULL)
+GstUtil::GstUtil(bool use_gl) :
+        m_use_gl(use_gl),
+        m_num_video_channels(0),
+        m_num_audio_channels(0),
+        m_has_subtitle(false),
+        m_prerolled(false),
+        m_live(false),
+        m_buffering(false),
+        m_has_new_frame(false),
+        m_video_has_changed(true),
+        m_fps(0.f),
+        m_end_of_stream(true),
+        m_pause(false),
+        m_current_state(GST_STATE_NULL),
+        m_target_state(GST_STATE_NULL)
 {
     auto success = init_gstreamer();
 
@@ -49,14 +52,14 @@ m_target_state(GST_STATE_NULL)
         {
             m_thread = std::shared_ptr<std::thread>(new std::thread(&g_main_loop_run, m_g_main_loop.get()),
                                                     [](std::thread *t)
-            {
-                if(t->joinable())
-                {
-                    try{ t->join(); }
-                    catch(std::exception &e){ LOG_ERROR << e.what(); }
-                    delete t;
-                }
-            });
+                                                    {
+                                                        if(t->joinable())
+                                                        {
+                                                            try{ t->join(); }
+                                                            catch(std::exception &e){ LOG_ERROR << e.what(); }
+                                                            delete t;
+                                                        }
+                                                    });
             s_thread = m_thread;
         }
         m_gst_gl_display = s_gst_gl_display.lock();
@@ -84,7 +87,7 @@ bool GstUtil::init_gstreamer()
     {
         guint major, minor, micro, nano;
         gst_version(&major, &minor, &micro, &nano);
-        GError* err;
+        GError *err;
 
         if(!gst_init_check(nullptr, nullptr, &err))
         {
@@ -132,14 +135,21 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
     if(!the_pipeline){ return; }
 
     m_pipeline = the_pipeline;
-    m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
-                                            &gst_object_unref);
 
     if(!m_pipeline)
     {
         LOG_ERROR << "failed to create playbin pipeline";
         return;
     }
+
+    m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
+                                            &gst_object_unref);
+
+    gst_pipeline_use_clock(GST_PIPELINE(m_pipeline), m_gst_clock.get());
+
+    gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
+    auto basetime = gst_clock_get_time(m_gst_clock.get());
+    gst_element_set_base_time(m_pipeline, basetime);
 
     if(!m_gst_clock)
     {
@@ -167,7 +177,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 
         std::string caps_descr = "video/x-raw(memory:GLMemory), format=RGBA";
         if(!m_use_gl){ caps_descr = "video/x-raw, format=RGBA"; }
-        GstCaps* caps = gst_caps_from_string(caps_descr.c_str());
+        GstCaps *caps = gst_caps_from_string(caps_descr.c_str());
         gst_app_sink_set_caps(GST_APP_SINK(m_app_sink), caps);
         gst_caps_unref(caps);
 
@@ -179,12 +189,12 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
         {
             if(!m_gst_gl_display)
             {
-                GstGLDisplay* gl_display = nullptr;
+                GstGLDisplay *gl_display = nullptr;
 #if defined(KINSKI_EGL)
                 auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
                 gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display(platform_data_egl->egl_display);
 #elif defined(GST_UTIL_LINUX)
-                gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
+                gl_display = (GstGLDisplay *) gst_gl_display_x11_new_with_display(glfwGetX11Display());
 #elif defined(KINSKI_MAC)
                 gl_display = gst_gl_display_new();//(GstGLDisplay*)gst_gl_display_cocoa_new();
 #endif
@@ -197,7 +207,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
                                                       GST_GL_PLATFORM_EGL, GST_GL_API_GLES2);
 #elif defined(GST_UTIL_LINUX)
             m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
-                                                      (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
+                                                      (guintptr) ::glfwGetGLXContext(glfwGetCurrentContext()),
                                                       GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
 #elif defined(KINSKI_MAC)
             auto platform_data_mac = std::dynamic_pointer_cast<gl::PlatformDataCGL>(gl::context()->platform_data());
@@ -223,7 +233,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 #else
             if(m_raw_caps_filter)
             {
-                g_object_set(G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string( "video/x-raw" ), nullptr );
+                g_object_set(G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string("video/x-raw"), nullptr);
             }
 #endif
             else{ LOG_ERROR << "failed to create raw caps filter element"; }
@@ -259,8 +269,10 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
     add_bus_watch(m_pipeline);
 }
 
-void GstUtil::set_clock(GstClock* the_clock)
+void GstUtil::set_clock(GstClock *the_clock)
 {
+    gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
+//    gst_element_set_base_time(m_pipeline, 0);
     gst_pipeline_set_clock(GST_PIPELINE(m_pipeline), the_clock);
     m_gst_clock = std::shared_ptr<GstClock>(the_clock, &gst_object_unref);
 }
@@ -274,7 +286,7 @@ void GstUtil::set_eos()
     m_condition_new_frame.notify_one();
 }
 
-void GstUtil::process_sample(GstSample* sample)
+void GstUtil::process_sample(GstSample *sample)
 {
     // pull the memory buffer from sample.
     {
@@ -287,10 +299,10 @@ void GstUtil::process_sample(GstSample* sample)
     if(m_video_has_changed)
     {
         // Grab video info.
-        GstCaps* currentCaps = gst_sample_get_caps(sample);
+        GstCaps *currentCaps = gst_sample_get_caps(sample);
         if(gst_video_info_from_caps(&m_video_info, currentCaps))
         {
-            m_fps = (float)m_video_info.fps_n / (float)m_video_info.fps_d;
+            m_fps = (float) m_video_info.fps_n / (float) m_video_info.fps_d;
         }
         /// reset the new video flag
         m_video_has_changed = false;
@@ -338,7 +350,8 @@ void GstUtil::update_state(GstState the_state)
             m_pause = false;
             break;
 
-        default: break;
+        default:
+            break;
     }
 }
 
@@ -407,7 +420,7 @@ bool GstUtil::is_playing() const
     return false;
 }
 
-void GstUtil::add_bus_watch(GstElement* the_pipeline)
+void GstUtil::add_bus_watch(GstElement *the_pipeline)
 {
     m_gst_bus = gst_pipeline_get_bus(GST_PIPELINE(the_pipeline));
     m_bus_id = gst_bus_add_watch(m_gst_bus, check_bus_messages_async, this);
@@ -421,21 +434,22 @@ void GstUtil::reset_bus()
     m_gst_bus = nullptr;
 }
 
-GstBusSyncReply GstUtil::check_bus_messages_sync(GstBus* bus, GstMessage* message, gpointer userData)
+GstBusSyncReply GstUtil::check_bus_messages_sync(GstBus *bus, GstMessage *message, gpointer userData)
 {
-    if(!userData ){ return GST_BUS_DROP; }
+    if(!userData){ return GST_BUS_DROP; }
 
-    GstUtil* self = static_cast<GstUtil*>(userData);
+    GstUtil *self = static_cast<GstUtil *>(userData);
 
     switch(GST_MESSAGE_TYPE(message))
     {
         case GST_MESSAGE_NEED_CONTEXT:
         {
             const gchar *context_type = nullptr;
-            GstContext* context = nullptr;
+            GstContext *context = nullptr;
             gst_message_parse_context_type(message, &context_type);
 
-            LOG_TRACE_2 << "need context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            LOG_TRACE_2 << "need context " << context_type << " from element "
+                        << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
 
             if(g_strcmp0(context_type, GST_GL_DISPLAY_CONTEXT_TYPE) == 0)
             {
@@ -453,16 +467,17 @@ GstBusSyncReply GstUtil::check_bus_messages_sync(GstBus* bus, GstMessage* messag
             if(context){ gst_context_unref(context); }
             break;
         }
-        default: break;
+        default:
+            break;
     }
     return GST_BUS_PASS;
 }
 
-gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpointer userData)
+gboolean GstUtil::check_bus_messages_async(GstBus *bus, GstMessage *message, gpointer userData)
 {
     if(!userData){ return true; }
 
-    auto *self = static_cast<GstUtil*>(userData);
+    auto *self = static_cast<GstUtil *>(userData);
 
     switch(GST_MESSAGE_TYPE(message))
     {
@@ -493,7 +508,8 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
             gst_message_parse_have_context(message, &context);
             context_type = gst_context_get_context_type(context);
             context_str = gst_structure_to_string(gst_context_get_structure(context));
-            LOG_TRACE_2 << "have context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            LOG_TRACE_2 << "have context " << context_type << " from element "
+                        << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
             g_free(context_str);
 
             if(context){ gst_context_unref(context); }
@@ -589,7 +605,8 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
             break;
         }
 
-        default: break;
+        default:
+            break;
     }
 
     return true;
@@ -627,20 +644,20 @@ std::shared_ptr<GstBuffer> GstUtil::wait_for_buffer()
 void GstUtil::on_gst_eos(GstAppSink *sink, gpointer userData)
 {
     LOG_TRACE_2 << "on_gst_eos";
-    auto *self = static_cast<GstUtil*>(userData);
+    auto *self = static_cast<GstUtil *>(userData);
     self->set_eos();
 }
 
 GstFlowReturn GstUtil::on_gst_sample(GstAppSink *sink, gpointer userData)
 {
-    auto *self = static_cast<GstUtil*>(userData);
+    auto *self = static_cast<GstUtil *>(userData);
     self->process_sample(gst_app_sink_pull_sample(sink));
     return GST_FLOW_OK;
 }
 
 GstFlowReturn GstUtil::on_gst_preroll(GstAppSink *sink, gpointer userData)
 {
-    auto *self = static_cast<GstUtil*>(userData);
+    auto *self = static_cast<GstUtil *>(userData);
     self->process_sample(gst_app_sink_pull_preroll(sink));
     return GST_FLOW_OK;
 }
@@ -715,9 +732,10 @@ void GstUtil::set_on_aysnc_done_cb(const std::function<void()> &the_cb)
     m_on_async_done_cb = the_cb;
 }
 
-const GstVideoInfo& GstUtil::video_info() const
+const GstVideoInfo &GstUtil::video_info() const
 {
     return m_video_info;
 }
 
-}}//namespaces
+}
+}//namespaces

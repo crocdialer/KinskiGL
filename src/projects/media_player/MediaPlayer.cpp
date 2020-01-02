@@ -458,12 +458,12 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
     }
     else if(theProperty == m_net_time_provider)
     {
-//        m_reload_media = true;
+        m_reload_media = true;
 
-        if(!m_net_time_provider->value().empty() && m_media)
-        {
-            m_media->use_net_time_provider(*m_net_time_provider, 7777);
-        }
+//        if(!m_net_time_provider->value().empty() && m_media)
+//        {
+//            m_media->use_net_time_provider(*m_net_time_provider, 7777);
+//        }
     }
 }
 
@@ -531,6 +531,11 @@ void MediaPlayer::reload_media()
                                           }
                                           m_media->set_rate(*m_playback_speed);
                                           m_media->set_volume(*m_volume);
+
+                                          if(!*m_is_master && !m_net_time_provider->value().empty())
+                                          {
+                                              m_media->use_net_time_provider(*m_net_time_provider, 7777);
+                                          }
                                       });
         m_media->load(abs_path, *m_auto_play, *m_loop, render_target, audio_target);
     }
@@ -555,10 +560,10 @@ void MediaPlayer::reload_media()
         send_network_cmd("load " + fs::get_filename_part(*m_media_path));
 //        begin_network_sync();
     }
-    else if(!m_net_time_provider->value().empty())
-    {
-        m_media->use_net_time_provider(*m_net_time_provider, 7777);
-    }
+//    else if(!m_net_time_provider->value().empty())
+//    {
+//        m_media->use_net_time_provider(*m_net_time_provider, 7777);
+//    }
 }
 
 /////////////////////////////////////////////////////////////////
