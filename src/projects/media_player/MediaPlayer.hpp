@@ -32,19 +32,19 @@ namespace kinski
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
         bool m_reload_media = false, m_needs_redraw = true;
         int m_is_syncing = 0;
-        Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer, m_scan_media_timer, m_check_ip_timer;
+        Timer m_broadcast_timer, m_scan_media_timer, m_check_ip_timer;
 
         net::udp_server m_udp_server;
         std::unordered_map<std::string, float> m_ip_timestamps;
-        std::unordered_map<std::string, CircularBuffer<double>> m_ip_roundtrip;
 
         std::string m_ip_adress;
-        
+
         // properties
         Property_<std::string>::Ptr
         m_media_path = Property_<std::string>::create("media path", ""),
+        m_net_time_provider = Property_<std::string>::create("netowkr time provider url", ""),
         m_text_overlay = Property_<std::string>::create("text overlay", "");
-        
+
         Property_<bool>::Ptr
         m_scale_to_fit = Property_<bool>::create("scale_to_fit", false),
         m_loop = Property_<bool>::create("loop", false),
@@ -52,13 +52,13 @@ namespace kinski
         m_force_audio_jack = Property_<bool>::create("force 3.5mm audio-jack", false),
         m_use_discovery_broadcast = Property_<bool>::create("use discovery broadcast", true),
         m_is_master = Property_<bool>::create("is master", false);
-        
+
         Property_<float>::Ptr
         m_playback_speed = Property_<float>::create("playback speed", 1.f),
         m_volume = RangedProperty<float>::create("volume", 1.f, 0.f , 1.f),
         m_brightness = RangedProperty<float>::create("brightness", 1.f, 0.f , 2.f),
         m_gamma = RangedProperty<float>::create("gamma", 1.f, 0.f , 4.f);
-        
+
         Property_<int>::Ptr
         m_broadcast_port = Property_<int>::create("discovery broadcast port", 55555);
 
@@ -73,12 +73,17 @@ namespace kinski
 
         void setup_rpc_interface();
         void reload_media();
-        void sync_media_to_timestamp(double the_timestamp);
+
+//        void sync_media_to_timestamp(double the_timestamp);
+
         void remove_dead_ip_adresses();
-        void begin_network_sync();
-        void send_sync_cmd();
+
+//        void begin_network_sync();
+
+//        void send_sync_cmd();
+
         void send_network_cmd(const std::string &the_cmd);
-        void ping_delay(const std::string &the_ip);
+//        void ping_delay(const std::string &the_ip);
 
         void create_playlist(const std::string &the_base_dir);
         void playlist_next();
@@ -107,7 +112,7 @@ namespace kinski
         void file_drop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void teardown() override;
         void update_property(const PropertyConstPtr &theProperty) override;
-        
+
         bool needs_redraw() const override;
 
     };

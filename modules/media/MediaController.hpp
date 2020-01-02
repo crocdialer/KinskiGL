@@ -90,10 +90,15 @@ public:
      */
     bool copy_frames_offline(gl::Texture &tex, bool compress = false);
 
+    /**
+     * @return  the network-port for the time-provider service
+     */
+    uint16_t net_time_provider_port();
+
     /*!
      *
      */
-    bool use_net_time_provider(const std::string &the_ip, uint16_t the_port = 0);
+    bool use_net_time_provider(const std::string &the_ip, uint16_t the_port);
 
 private:
 

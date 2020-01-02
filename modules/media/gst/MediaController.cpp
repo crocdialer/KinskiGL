@@ -7,7 +7,9 @@
 
 #include <gst/net/gstnet.h>
 
-namespace kinski{ namespace media
+namespace kinski
+{
+namespace media
 {
 
 struct MediaControllerImpl
@@ -31,7 +33,7 @@ struct MediaControllerImpl
     GstElement *m_video_sink;
 
     // provides our clock-time for remote synching
-    std::unique_ptr<GstNetTimeProvider, void(*)(gpointer)> m_net_time_provider;
+    std::unique_ptr<GstNetTimeProvider, void (*)(gpointer)> m_net_time_provider;
 
     std::weak_ptr<MediaController> m_media_controller;
     MediaController::callback_t m_on_load_cb, m_on_end_cb;
@@ -39,18 +41,18 @@ struct MediaControllerImpl
     MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
     MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
 
-    MediaControllerImpl():
-    m_rate(1.f),
-    m_volume(1.f),
-    m_seeking(false),
-    m_seek_requested(false),
-    m_current_time_nanos(0),
-    m_seek_requested_nanos(0),
-    m_stream(false),
-    m_loop(false),
-    m_gst_util(true),
-    m_video_sink(nullptr),
-    m_net_time_provider(nullptr, &g_object_unref)
+    MediaControllerImpl() :
+            m_rate(1.f),
+            m_volume(1.f),
+            m_seeking(false),
+            m_seek_requested(false),
+            m_current_time_nanos(0),
+            m_seek_requested_nanos(0),
+            m_stream(false),
+            m_loop(false),
+            m_gst_util(true),
+            m_video_sink(nullptr),
+            m_net_time_provider(nullptr, &g_object_unref)
     {
         init_callbacks();
     }
@@ -63,39 +65,39 @@ struct MediaControllerImpl
     void init_callbacks()
     {
         m_gst_util.set_on_load_cb([this]()
-        {
-            auto mc = m_media_controller.lock();
-            if(mc && m_on_load_cb){ m_on_load_cb(mc); }
-        });
+                                  {
+                                      auto mc = m_media_controller.lock();
+                                      if(mc && m_on_load_cb){ m_on_load_cb(mc); }
+                                  });
 
         m_gst_util.set_on_end_cb([this]()
-        {
-            if(m_seeking){ return; }
+                                 {
+                                     if(m_seeking){ return; }
 
-            auto mc = m_media_controller.lock();
-            if(mc && m_on_end_cb){ m_on_end_cb(mc); }
+                                     auto mc = m_media_controller.lock();
+                                     if(mc && m_on_end_cb){ m_on_end_cb(mc); }
 
-            if(m_loop)
-            {
-                // if playing back on reverse start the loop from the
-                // end of the file
-                if(m_rate < 0){ if(mc) mc->seek_to_time(mc->duration()); }
-                else{ send_seek_event(0); }
-            }
-        });
+                                     if(m_loop)
+                                     {
+                                         // if playing back on reverse start the loop from the
+                                         // end of the file
+                                         if(m_rate < 0){ if(mc) mc->seek_to_time(mc->duration()); }
+                                         else{ send_seek_event(0); }
+                                     }
+                                 });
 
         m_gst_util.set_on_aysnc_done_cb([this]()
-        {
-            if(m_seeking)
-            {
-                if(m_seek_requested)
-                {
-                    send_seek_event(m_seek_requested_nanos);
-                    m_seek_requested = false;
-                }
-                else{ m_seeking = false; }
-            }
-        });
+                                        {
+                                            if(m_seeking)
+                                            {
+                                                if(m_seek_requested)
+                                                {
+                                                    send_seek_event(m_seek_requested_nanos);
+                                                    m_seek_requested = false;
+                                                }
+                                                else{ m_seeking = false; }
+                                            }
+                                        });
     }
 
     void send_seek_event(gint64 the_position_nanos, bool force_seek = false)
@@ -112,7 +114,7 @@ struct MediaControllerImpl
             return;
         }
 
-        GstEvent* seek_event;
+        GstEvent *seek_event;
         GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
 //        if(fabsf(m_rate) > 2){ seek_flags = GstSeekFlags(seek_flags | GST_SEEK_FLAG_TRICKMODE); }
 
@@ -179,8 +181,8 @@ MediaControllerPtr MediaController::create(const std::string &filePath, bool aut
 
 ///////////////////////////////////////////////////////////////////////////////
 
-MediaController::MediaController():
-m_impl(new MediaControllerImpl)
+MediaController::MediaController() :
+        m_impl(new MediaControllerImpl)
 {
 
 }
@@ -219,7 +221,8 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     m_impl->m_gst_util.set_pipeline_state(GST_STATE_READY);
 
     // net time provider
-    auto ntp = gst_net_time_provider_new(m_impl->m_gst_util.clock(), nullptr, 0);
+    int net_port = 7777;
+    auto ntp = gst_net_time_provider_new(m_impl->m_gst_util.clock(), nullptr, net_port);
     m_impl->m_net_time_provider.reset(ntp);
 
     std::string uri_path = filePath;
@@ -227,9 +230,9 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     if(crocore::fs::is_uri(filePath)){ m_impl->m_stream = true; }
     else
     {
-        GError* err = nullptr;
-        gchar* uri = gst_filename_to_uri(found_path.c_str(), &err);
-        uri_path = std::string(static_cast<const char*>(uri));
+        GError *err = nullptr;
+        gchar *uri = gst_filename_to_uri(found_path.c_str(), &err);
+        uri_path = std::string(static_cast<const char *>(uri));
         g_free(uri);
         if(err){ g_free(err); }
     }
@@ -319,13 +322,13 @@ void MediaController::set_volume(float newVolume)
     {
         newVolume = crocore::clamp(newVolume, 0.f, 1.f);
         m_impl->m_volume = newVolume;
-        g_object_set(G_OBJECT(m_impl->m_gst_util.pipeline()), "volume", (gdouble)newVolume, nullptr);
+        g_object_set(G_OBJECT(m_impl->m_gst_util.pipeline()), "volume", (gdouble) newVolume, nullptr);
     }
 }
 
 /////////////////////////////////////////////////////////////////
 
-bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
+bool MediaController::copy_frame(std::vector<uint8_t> &data, int *width, int *height)
 {
     auto buf = m_impl->m_gst_util.new_buffer();
 
@@ -347,7 +350,7 @@ bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *he
 
 /////////////////////////////////////////////////////////////////
 
-bool MediaController::copy_frame_to_image(crocore::ImagePtr& the_image)
+bool MediaController::copy_frame_to_image(crocore::ImagePtr &the_image)
 {
     auto buf = m_impl->m_gst_util.new_buffer();
 
@@ -360,7 +363,7 @@ bool MediaController::copy_frame_to_image(crocore::ImagePtr& the_image)
         if(!the_image || the_image->width() != w || the_image->height() != h ||
            the_image->num_components() != num_channels)
         {
-            auto img = crocore::Image_<uint8_t >::create(w, h, num_channels);
+            auto img = crocore::Image_<uint8_t>::create(w, h, num_channels);
             img->type = crocore::Image::Type::RGBA;
         }
 
@@ -387,7 +390,7 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 
         if(mem && gst_is_gl_memory(mem))
         {
-            GstGLMemory *gl_mem = (GstGLMemory*)(mem);
+            GstGLMemory *gl_mem = (GstGLMemory *) (mem);
 
             GLint id = gl_mem->tex_id;
             GLint target = GL_TEXTURE_2D;
@@ -430,8 +433,8 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
 
     if(num_frames)
     {
-        width = (uint32_t)m_impl->m_gst_util.video_info().width;
-        height = (uint32_t)m_impl->m_gst_util.video_info().height;
+        width = (uint32_t) m_impl->m_gst_util.video_info().width;
+        height = (uint32_t) m_impl->m_gst_util.video_info().height;
 
         // aquire gpu-memory for our frames
         gl::Texture::Format fmt;
@@ -488,7 +491,7 @@ double MediaController::duration() const
     {
         gint64 duration = 0;
         gst_element_query_duration(m_impl->m_gst_util.pipeline(), GST_FORMAT_TIME, &duration);
-        return duration / (double)GST_SECOND;
+        return duration / (double) GST_SECOND;
     }
     return 0.0;
 }
@@ -499,7 +502,7 @@ double MediaController::current_time() const
 {
     if(m_impl)
     {
-        return m_impl->current_time_nanos() / (double)GST_SECOND;
+        return m_impl->current_time_nanos() / (double) GST_SECOND;
     }
     return 0.0;
 }
@@ -573,7 +576,7 @@ void MediaController::set_rate(float r)
 
 /////////////////////////////////////////////////////////////////
 
-const std::string& MediaController::path() const
+const std::string &MediaController::path() const
 {
     static std::string ret;
     return is_loaded() ? m_impl->m_src_path : ret;
@@ -609,5 +612,15 @@ MediaController::AudioTarget MediaController::audio_target() const
     return AudioTarget::AUTO;
 }
 
+uint16_t MediaController::net_time_provider_port()
+{
+    if(!m_impl){ return 0; }
+
+    int net_time_port = 0;
+    g_object_get(m_impl->m_net_time_provider.get(), "port", &net_time_port, NULL);
+    return net_time_port;
+}
+
 /////////////////////////////////////////////////////////////////
-}}// namespaces
+}
+}// namespaces

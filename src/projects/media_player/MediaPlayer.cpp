@@ -16,26 +16,17 @@ using namespace glm;
 
 namespace
 {
-    //! enforce mutual exlusion on state
-    std::mutex g_ip_table_mutex;
+//! enforce mutual exlusion on state
+std::mutex g_ip_table_mutex;
 
-    //! interval to send sync cmd (secs)
-    const double g_sync_interval = 0.05;
+////! interval to send sync cmd (secs)
+//const double g_sync_interval = 0.05;
 
-    //! keep_alive timeout after which a remote node is considered dead (secs)
-    const double g_dead_thresh = 10.0;
+//! keep_alive timeout after which a remote node is considered dead (secs)
+const double g_dead_thresh = 10.0;
 
-    //! interval for keep_alive broadcasts (secs)
-    const double g_broadcast_interval = 2.0;
-
-    //! minimum difference to remote media-clock for fine-tuning (secs)
-    double g_sync_thresh = 0.02;
-    
-    //! minimum difference to remote media-clock for scrubbing (secs)
-    const double g_scrub_thresh = 1.0;
-    
-    //! force reset of playback speed (secs)
-    const double g_sync_duration = 1.0;
+//! interval for keep_alive broadcasts (secs)
+const double g_broadcast_interval = 2.0;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -61,44 +52,45 @@ void MediaPlayer::setup()
     register_property(m_is_master);
     register_property(m_use_discovery_broadcast);
     register_property(m_broadcast_port);
+    register_property(m_net_time_provider);
     register_property(m_text_overlay);
     observe_properties();
 
-    remote_control().set_components({ shared_from_this(), m_warp_component });
+    remote_control().set_components({shared_from_this(), m_warp_component});
 //    set_default_config_path("~/");
 
     // setup our components to receive rpc calls
     setup_rpc_interface();
 
     load_settings();
-    
+
     // check for command line input
     if(args().size() > 1)
     {
         fs::path p = args()[1];
-        
+
         if(fs::exists(p))
         {
             if(fs::is_directory(p))
             {
                 create_playlist(p);
-                
+
                 m_scan_media_timer = Timer(background_queue().io_service(),
                                            [this, p](){ create_playlist(p); });
                 m_scan_media_timer.set_periodic();
                 m_scan_media_timer.expires_from_now(5.f);
-                
+
                 fs::add_search_path(p, 3);
             }
             else{ *m_media_path = p; }
         }
     }
-    
+
     m_ip_adress = net::local_ip();
     m_check_ip_timer = Timer(background_queue().io_service(), [this]()
     {
         auto fetched_ip = net::local_ip();
-        main_queue().post([this, fetched_ip]() { m_ip_adress = fetched_ip; });
+        main_queue().post([this, fetched_ip](){ m_ip_adress = fetched_ip; });
     });
     m_check_ip_timer.set_periodic();
     m_check_ip_timer.expires_from_now(5.f);
@@ -119,7 +111,7 @@ void MediaPlayer::update(float timeDelta)
 
     if(m_camera_control && m_camera_control->is_capturing())
         m_needs_redraw = m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]) || m_needs_redraw;
-    
+
     if(m_media)
         m_needs_redraw = m_media->copy_frame_to_texture(textures()[TEXTURE_INPUT], true) || m_needs_redraw;
     else
@@ -158,7 +150,7 @@ void MediaPlayer::draw()
                 float aspect = textures()[TEXTURE_INPUT].aspect_ratio();
                 float window_aspect = gl::window_dimension().x / gl::window_dimension().y;
                 gl::vec2 pos, size;
-                
+
                 if(window_aspect < aspect)
                 {
                     // arrange y-position
@@ -175,7 +167,7 @@ void MediaPlayer::draw()
             }
         }
     }
-    
+
     if(!*m_is_master && m_is_syncing && crocore::g_logger.severity() >= Severity::DEBUG)
     {
         gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
@@ -185,15 +177,15 @@ void MediaPlayer::draw()
         // media title
         gl::draw_text_2D(m_media->is_loaded() ? fs::get_filename_part(m_media->path()) : *m_media_path,
                          fonts()[1], m_media->is_loaded() ? gl::COLOR_WHITE : gl::COLOR_RED, gl::vec2(10));
-        
+
         // time + playlist position
         auto str = secs_to_time_str(m_media->current_time()) + " / " +
-            secs_to_time_str(m_media->duration());
+                   secs_to_time_str(m_media->duration());
         str += m_playlist->value().empty() ? "" : format(" (%d / %d)", *m_playlist_index + 1,
-                                                m_playlist->value().size());
-        
+                                                         m_playlist->value().size());
+
         gl::draw_text_2D(str, fonts()[1], gl::COLOR_WHITE, gl::vec2(10, 40));
-        
+
         // ip-adress
         gl::draw_text_2D(m_ip_adress, fonts()[1],
                          m_ip_adress == net::UNKNOWN_IP ? gl::COLOR_RED : gl::COLOR_WHITE,
@@ -208,10 +200,10 @@ void MediaPlayer::draw()
 void MediaPlayer::key_press(const KeyEvent &e)
 {
     ViewerApp::key_press(e);
-    
+
     if(!e.is_alt_down())
     {
-        switch (e.code())
+        switch(e.code())
         {
             case Key::_C:
                 if(m_camera_control->is_capturing())
@@ -224,12 +216,12 @@ void MediaPlayer::key_press(const KeyEvent &e)
                 m_media->is_playing() ? m_media->pause() : m_media->play();
                 if(*m_is_master){ send_network_cmd(m_media->is_playing() ? "play" : "pause"); }
                 break;
-                
+
             case Key::_LEFT:
                 m_media->seek_to_time(m_media->current_time() - (e.is_shift_down() ? 30 : 5));
                 m_needs_redraw = true;
                 break;
-                
+
             case Key::_RIGHT:
                 m_media->seek_to_time(m_media->current_time() + (e.is_shift_down() ? 30 : 5));
                 m_needs_redraw = true;
@@ -237,15 +229,15 @@ void MediaPlayer::key_press(const KeyEvent &e)
             case Key::_UP:
                 *m_volume += .1f;
                 break;
-                
+
             case Key::_DOWN:
                 *m_volume -= .1f;
                 break;
-            
+
             case Key::_PAGE_UP:
                 playlist_next();
                 break;
-                
+
             case Key::_PAGE_DOWN:
                 playlist_prev();
                 break;
@@ -281,12 +273,12 @@ void MediaPlayer::key_press(const KeyEvent &e)
 bool MediaPlayer::needs_redraw() const
 {
     return (m_media && (!m_media->is_playing() || !m_media->has_video())) || !*m_use_warping
-        || m_needs_redraw || m_is_syncing;
+           || m_needs_redraw || m_is_syncing;
 };
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::resize(int w ,int h)
+void MediaPlayer::resize(int w, int h)
 {
     ViewerApp::resize(w, h);
 }
@@ -335,21 +327,21 @@ void MediaPlayer::mouse_wheel(const MouseEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+void MediaPlayer::touch_begin(const MouseEvent &e, const std::set<const Touch *> &the_touches)
 {
 
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+void MediaPlayer::touch_end(const MouseEvent &e, const std::set<const Touch *> &the_touches)
 {
 
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+void MediaPlayer::touch_move(const MouseEvent &e, const std::set<const Touch *> &the_touches)
 {
 
 }
@@ -395,16 +387,16 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
     {
         const auto &playlist = m_playlist->value();
 
-        if(*m_playlist_index >= 0 && *m_playlist_index < (int)playlist.size())
+        if(*m_playlist_index >= 0 && *m_playlist_index < (int) playlist.size())
         {
             *m_media_path = playlist[*m_playlist_index];
         }
     }
 #ifdef KINSKI_ARM
-    else if(theProperty == m_use_warping)
-    {
-        m_reload_media = true;
-    }
+        else if(theProperty == m_use_warping)
+        {
+            m_reload_media = true;
+        }
 #endif
     else if(theProperty == m_loop)
     {
@@ -432,7 +424,8 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
             });
             m_broadcast_timer.set_periodic();
             m_broadcast_timer.expires_from_now(g_broadcast_interval);
-        }else{ m_broadcast_timer.cancel(); }
+        }
+        else{ m_broadcast_timer.cancel(); }
     }
     else if(theProperty == m_is_master)
     {
@@ -446,32 +439,26 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
             m_udp_server.start_listen(*m_broadcast_port);
             m_udp_server.set_receive_function([this](const std::vector<uint8_t> &data,
                                                      const std::string &remote_ip, uint16_t remote_port)
-            {
-                string str(data.begin(), data.end());
-                LOG_TRACE_1 << str << " " << remote_ip << " (" << remote_port << ")";
+                                              {
+                                                  string str(data.begin(), data.end());
+                                                  LOG_TRACE_1 << str << " " << remote_ip << " (" << remote_port << ")";
 
-                if(str == name())
-                {
-                    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-                    m_ip_timestamps[remote_ip] = get_application_time();
-                    
-                    ping_delay(remote_ip);
-                }
-            });
-            begin_network_sync();
+                                                  if(str == name())
+                                                  {
+                                                      std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+                                                      m_ip_timestamps[remote_ip] = get_application_time();
+                                                  }
+                                              });
         }
         else
         {
             m_udp_server.stop_listen();
-            m_sync_timer.cancel();
             m_use_discovery_broadcast->notify_observers();
-            
-            m_sync_off_timer = Timer(background_queue().io_service(), [this]()
-            {
-                m_media->set_rate(*m_playback_speed);
-                m_is_syncing = 0;
-            });
         }
+    }
+    else if(theProperty == m_net_time_provider)
+    {
+        m_reload_media = true;
     }
 }
 
@@ -482,11 +469,15 @@ void MediaPlayer::reload_media()
     auto task = Task::create();
 
     textures()[TEXTURE_INPUT].reset();
-    m_sync_off_timer.cancel();
 
     std::string abs_path;
     try{ abs_path = fs::search_file(*m_media_path); }
-    catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.what(); m_reload_media = false; return; }
+    catch(fs::FileNotFoundException &e)
+    {
+        LOG_DEBUG << e.what();
+        m_reload_media = false;
+        return;
+    }
 
     auto media_type = fs::get_file_type(abs_path);
 
@@ -497,43 +488,45 @@ void MediaPlayer::reload_media()
        media_type == fs::FileType::MOVIE)
     {
         auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
-        media::MediaController::RenderTarget::SCREEN;
+                             media::MediaController::RenderTarget::SCREEN;
 
         auto audio_target = *m_force_audio_jack ? media::MediaController::AudioTarget::BOTH :
-        media::MediaController::AudioTarget::AUTO;
+                            media::MediaController::AudioTarget::AUTO;
 
         if(render_target == media::MediaController::RenderTarget::SCREEN)
-        { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
+        {
+            set_clear_color(gl::Color(clear_color().rgb(), 0.f));
+        }
 
         m_media->set_media_ended_callback([this](media::MediaControllerPtr mc)
-        {
-            LOG_DEBUG << "media ended";
-            
-            if(*m_is_master && *m_loop)
-            {
-                send_network_cmd("restart");
-                begin_network_sync();
-            }
-            else if(!m_playlist->value().empty())
-            {
-                main_queue().post([this]()
-                                  {
-                                      *m_playlist_index = (*m_playlist_index + 1) % m_playlist->value().size();
+                                          {
+                                              LOG_DEBUG << "media ended";
+
+                                              if(*m_is_master && *m_loop)
+                                              {
+                                                  send_network_cmd("restart");
+//                begin_network_sync();
+                                              }
+                                              else if(!m_playlist->value().empty())
+                                              {
+                                                  main_queue().post([this]()
+                                                                    {
+                                                                        *m_playlist_index = (*m_playlist_index + 1) %
+                                                                                            m_playlist->value().size();
 //                    *m_media_path = m_playlist->value()[*m_playlist_index];
-                                  });
-            }
-        });
-        
+                                                                    });
+                                              }
+                                          });
+
         m_media->set_on_load_callback([this](media::MediaControllerPtr mc)
-        {
-            if(m_media->has_video() && m_media->fps() > 0)
-            {
-                g_sync_thresh = 1.0 / m_media->fps() / 2.0;
-                LOG_DEBUG << "media fps: " << to_string(m_media->fps(), 2);
-            }
-            m_media->set_rate(*m_playback_speed);
-            m_media->set_volume(*m_volume);
-        });
+                                      {
+                                          if(m_media->has_video() && m_media->fps() > 0)
+                                          {
+                                              LOG_DEBUG << "media fps: " << to_string(m_media->fps(), 2);
+                                          }
+                                          m_media->set_rate(*m_playback_speed);
+                                          m_media->set_volume(*m_volume);
+                                      });
         m_media->load(abs_path, *m_auto_play, *m_loop, render_target, audio_target);
     }
     else if(media_type == fs::FileType::IMAGE)
@@ -546,7 +539,8 @@ void MediaPlayer::reload_media()
         m_media->unload();
         gl::Font font;
         font.load(abs_path, 44);
-        textures()[TEXTURE_INPUT] = font.create_texture("The quick brown fox \njumps over the lazy dog ... \n0123456789");
+        textures()[TEXTURE_INPUT] = font.create_texture(
+                "The quick brown fox \njumps over the lazy dog ... \n0123456789");
     }
     m_reload_media = false;
 
@@ -554,7 +548,11 @@ void MediaPlayer::reload_media()
     if(*m_is_master)
     {
         send_network_cmd("load " + fs::get_filename_part(*m_media_path));
-        begin_network_sync();
+//        begin_network_sync();
+    }
+    else if(!m_net_time_provider->value().empty())
+    {
+        m_media->use_net_time_provider(*m_net_time_provider, 7777);
     }
 }
 
@@ -578,7 +576,7 @@ float MediaPlayer::time_str_to_secs(const std::string &the_str) const
         case 3:
             secs = crocore::string_to<float>(splits[2]) +
                    60.f * crocore::string_to<float>(splits[1]) +
-                   3600.f * crocore::string_to<float>(splits[0]) ;
+                   3600.f * crocore::string_to<float>(splits[0]);
             break;
 
         case 2:
@@ -598,93 +596,92 @@ float MediaPlayer::time_str_to_secs(const std::string &the_str) const
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::sync_media_to_timestamp(double the_timestamp)
-{
-    auto diff = the_timestamp - m_media->current_time();
-    
-    if(m_media->is_playing())
-    {
-        m_is_syncing = diff * 1000.0;
-        
-        // adapt to playback rate
-        auto scrub_thresh = g_scrub_thresh / *m_playback_speed;
-        auto sync_thresh = g_sync_thresh / *m_playback_speed;
-        
-        if((abs(diff) > scrub_thresh))
-        {
-            m_media->seek_to_time(the_timestamp);
-        }
-        else if(abs(diff) > sync_thresh)
-        {
-            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.05 + 0.75 * diff / scrub_thresh);
-            m_media->set_rate(rate);
-            m_sync_off_timer.expires_from_now(g_sync_duration);
-        }
-        else
-        {
-            m_media->set_rate(*m_playback_speed);
-            m_is_syncing = 0;
-        }
-    }
-}
-
-/////////////////////////////////////////////////////////////////
-
-void MediaPlayer::begin_network_sync()
-{
-    m_sync_timer = Timer(background_queue().io_service(), [this]()
-    {
-        if(m_media && m_media->is_playing()){ send_sync_cmd(); }
-    });
-    m_sync_timer.set_periodic();
-    m_sync_timer.expires_from_now(g_sync_interval);
-}
-
-/////////////////////////////////////////////////////////////////
-
-void MediaPlayer::send_sync_cmd()
-{
-    remove_dead_ip_adresses();
-    
-    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-//    bool use_udp = true;
-    
-    for(auto &pair : m_ip_roundtrip)
-    {
-        double sync_delay = 0.0;//median(pair.second) * (use_udp ? 0.5 : 1.5);
-        string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
-        
-//        if(use_udp)
-        {
-            net::async_send_udp(background_queue().io_service(), cmd, pair.first,
-                                remote_control().udp_port());
-        }
+//void MediaPlayer::sync_media_to_timestamp(double the_timestamp)
+//{
+//    auto diff = the_timestamp - m_media->current_time();
+//
+//    if(m_media->is_playing())
+//    {
+//        m_is_syncing = diff * 1000.0;
+//
+//        // adapt to playback rate
+//        auto scrub_thresh = g_scrub_thresh / *m_playback_speed;
+//        auto sync_thresh = g_sync_thresh / *m_playback_speed;
+//
+//        if((abs(diff) > scrub_thresh))
+//        {
+//            m_media->seek_to_time(the_timestamp);
+//        }
+//        else if(abs(diff) > sync_thresh)
+//        {
+//            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.05 + 0.75 * diff / scrub_thresh);
+//            m_media->set_rate(rate);
+//            m_sync_off_timer.expires_from_now(g_sync_duration);
+//        }
 //        else
 //        {
-//            net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
-//                                remote_control().tcp_port());
+//            m_media->set_rate(*m_playback_speed);
+//            m_is_syncing = 0;
 //        }
-    }
-}
+//    }
+//}
+
+/////////////////////////////////////////////////////////////////
+
+//void MediaPlayer::begin_network_sync()
+//{
+//    m_sync_timer = Timer(background_queue().io_service(), [this]()
+//    {
+//        if(m_media && m_media->is_playing()){ send_sync_cmd(); }
+//    });
+//    m_sync_timer.set_periodic();
+//    m_sync_timer.expires_from_now(g_sync_interval);
+//}
+
+/////////////////////////////////////////////////////////////////
+
+//void MediaPlayer::send_sync_cmd()
+//{
+//    remove_dead_ip_adresses();
+//
+//    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+////    bool use_udp = true;
+//
+//    for(auto &pair : m_ip_roundtrip)
+//    {
+//        double sync_delay = 0.0;//median(pair.second) * (use_udp ? 0.5 : 1.5);
+//        string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
+//
+////        if(use_udp)
+//        {
+//            net::async_send_udp(background_queue().io_service(), cmd, pair.first,
+//                                remote_control().udp_port());
+//        }
+////        else
+////        {
+////            net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
+////                                remote_control().tcp_port());
+////        }
+//    }
+//}
 
 void MediaPlayer::remove_dead_ip_adresses()
 {
     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-    
+
     auto now = get_application_time();
     std::list<std::unordered_map<std::string, float>::iterator> dead_iterators;
-    
+
     auto it = m_ip_timestamps.begin();
-    
+
     for(; it != m_ip_timestamps.end(); ++it)
     {
         if(now - it->second >= g_dead_thresh){ dead_iterators.push_back(it); }
     }
-    
+
     // remove dead iterators
     for(auto &dead_it : dead_iterators)
     {
-        m_ip_roundtrip.erase(dead_it->first);
         m_ip_timestamps.erase(dead_it);
     }
 }
@@ -694,52 +691,51 @@ void MediaPlayer::remove_dead_ip_adresses()
 void MediaPlayer::send_network_cmd(const std::string &the_cmd)
 {
     remove_dead_ip_adresses();
-    
+
     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
 
     auto it = m_ip_timestamps.begin();
 
     for(; it != m_ip_timestamps.end(); ++it)
     {
-        net::async_send_tcp(background_queue().io_service(), the_cmd, it->first,
-                            remote_control().tcp_port());
+        net::async_send_tcp(background_queue().io_service(), the_cmd, it->first, remote_control().tcp_port());
     }
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::ping_delay(const std::string &the_ip)
-{
-    Stopwatch timer;
-    timer.start();
-    
-    auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
-                                           remote_control().tcp_port());
-    auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
-                                           const std::vector<uint8_t> &data)
-    {
-        std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-        
-        // we measured 2 roundtrips
-        auto delay = timer.time_elapsed() * 0.5;
-        
-        auto it = m_ip_roundtrip.find(ptr->remote_ip());
-        if(it == m_ip_roundtrip.end())
-        {
-            m_ip_roundtrip[ptr->remote_ip()] = CircularBuffer<double>(5);
-            m_ip_roundtrip[ptr->remote_ip()].push_back(delay);
-        }
-        else{ it->second.push_back(delay); }
-        
-        LOG_TRACE << ptr->remote_ip() << " (roundtrip, last 10s): "
-            << (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])) << " ms";
-        
-//        ptr->close();
-        con->set_tcp_receive_cb(net::tcp_connection::tcp_receive_cb_t());
-    };
-    con->set_connect_cb([this](ConnectionPtr the_con){ the_con->write("echo ping"); });
-    con->set_tcp_receive_cb(receive_func);
-}
+//void MediaPlayer::ping_delay(const std::string &the_ip)
+//{
+//    Stopwatch timer;
+//    timer.start();
+//
+//    auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
+//                                           remote_control().tcp_port());
+//    auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
+//                                           const std::vector<uint8_t> &data)
+//    {
+//        std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+//
+//        // we measured 2 roundtrips
+//        auto delay = timer.time_elapsed() * 0.5;
+//
+//        auto it = m_ip_roundtrip.find(ptr->remote_ip());
+//        if(it == m_ip_roundtrip.end())
+//        {
+//            m_ip_roundtrip[ptr->remote_ip()] = CircularBuffer<double>(5);
+//            m_ip_roundtrip[ptr->remote_ip()].push_back(delay);
+//        }
+//        else{ it->second.push_back(delay); }
+//
+//        LOG_TRACE << ptr->remote_ip() << " (roundtrip, last 10s): "
+//            << (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])) << " ms";
+//
+////        ptr->close();
+//        con->set_tcp_receive_cb(net::tcp_connection::tcp_receive_cb_t());
+//    };
+//    con->set_connect_cb([this](ConnectionPtr the_con){ the_con->write("echo ping"); });
+//    con->set_tcp_receive_cb(receive_func);
+//}
 
 /////////////////////////////////////////////////////////////////
 
@@ -748,14 +744,14 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
     std::map<fs::FileType, std::vector<fs::path>> files;
     files[fs::FileType::MOVIE] = {};
     files[fs::FileType::AUDIO] = {};
-    
+
     for(const auto &p : fs::get_directory_entries(the_base_dir, "", 3))
     {
         files[fs::get_file_type(p)].push_back(p);
     }
     auto file_list = concat_containers<fs::path>(files[fs::FileType::MOVIE], files[fs::FileType::AUDIO]);
     std::sort(file_list.begin(), file_list.end());
-    
+
     if(file_list.size() != m_playlist->value().size())
     {
         main_queue().post([this, file_list]()
@@ -811,14 +807,14 @@ void MediaPlayer::setup_rpc_interface()
     {
         if(!rpc_args.empty())
         {
-            std::string p; for(const auto &arg : rpc_args){ p += arg + " "; }
+            std::string p;
+            for(const auto &arg : rpc_args){ p += arg + " "; }
             p = p.substr(0, p.size() - 1);
             *m_media_path = p;
         }
         else
         {
             m_media->play();
-            m_sync_off_timer.cancel();
             if(*m_is_master){ send_network_cmd("play"); }
         }
     });
@@ -826,22 +822,19 @@ void MediaPlayer::setup_rpc_interface()
     register_function("pause", [this](const std::vector<std::string> &rpc_args)
     {
         m_media->pause();
-        m_sync_off_timer.cancel();
         if(*m_is_master){ send_network_cmd("pause"); }
     });
     remote_control().add_command("toggle_pause", [this](net::tcp_connection_ptr con,
-                                 const std::vector<std::string> &rpc_args)
+                                                        const std::vector<std::string> &rpc_args)
     {
         if(m_media->is_playing())
         {
             m_media->pause();
-            m_sync_off_timer.cancel();
             if(*m_is_master){ send_network_cmd("pause"); }
         }
         else
         {
             m_media->play();
-            m_sync_off_timer.cancel();
             if(*m_is_master){ send_network_cmd("play"); }
         }
     });
@@ -849,14 +842,14 @@ void MediaPlayer::setup_rpc_interface()
                                                    const std::vector<std::string> &rpc_args)
     {
         m_media->restart();
-        m_sync_off_timer.cancel();
     });
     remote_control().add_command("load");
     register_function("load", [this](const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty())
         {
-            std::string p; for(const auto &arg : rpc_args){ p += arg + " "; }
+            std::string p;
+            for(const auto &arg : rpc_args){ p += arg + " "; }
             p = p.substr(0, p.size() - 1);
             *m_media_path = p;
         }
@@ -911,7 +904,9 @@ void MediaPlayer::setup_rpc_interface()
     {
         if(!rpc_args.empty())
         {
-            sync_media_to_timestamp(time_str_to_secs(rpc_args.front()));
+            m_media->seek_to_time(time_str_to_secs(rpc_args.front()));
+//            sync_media_to_timestamp(time_str_to_secs(rpc_args.front()));
+
         }
     });
 
@@ -920,7 +915,8 @@ void MediaPlayer::setup_rpc_interface()
     {
         if(!rpc_args.empty())
         {
-            sync_media_to_timestamp(m_media->current_time() + string_to<float>(rpc_args.front()));
+            m_media->seek_to_time(m_media->current_time() + string_to<float>(rpc_args.front()));
+//            sync_media_to_timestamp(m_media->current_time() + string_to<float>(rpc_args.front()));
         }
     });
 
@@ -977,15 +973,15 @@ void MediaPlayer::setup_rpc_interface()
                                                      const std::vector<std::string> &rpc_args)
     {
         json j =
-        {
-            {"path", m_media->path()},
-            {"movie_index", m_playlist_index->value()},
-            {"position", m_media->current_time()},
-            {"duration", m_media->duration()},
-            {"rate", m_media->rate()},
-            {"volume", m_media->volume()},
-            {"playing", m_media->is_playing()}
-        };
+                {
+                        {"path",        m_media->path()},
+                        {"movie_index", m_playlist_index->value()},
+                        {"position",    m_media->current_time()},
+                        {"duration",    m_media->duration()},
+                        {"rate",        m_media->rate()},
+                        {"volume",      m_media->volume()},
+                        {"playing",     m_media->is_playing()}
+                };
         con->write(j.dump());
     });
 }
