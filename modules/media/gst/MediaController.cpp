@@ -495,10 +495,15 @@ bool MediaController::use_net_time_provider(const std::string &the_ip, uint16_t 
 
     auto clock = gst_net_client_clock_new(nullptr, the_ip.c_str(), the_port,
                                           gst_element_get_base_time(m_impl->m_gst_util.pipeline()));
-    m_impl->m_gst_util.set_clock(clock);
-    m_impl->m_gst_util.set_pipeline_state(GST_STATE_PLAYING);
+    if(clock)
+    {
+        m_impl->m_gst_util.set_clock(clock);
+        m_impl->m_gst_util.set_pipeline_state(GST_STATE_PLAYING);
 
-    return true;
+        return true;
+    }
+    else{ LOG_WARNING << "failed to create netclock"; }
+    return false;
 }
 
 /////////////////////////////////////////////////////////////////

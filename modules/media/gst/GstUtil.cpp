@@ -144,6 +144,11 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 
     m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
                                             &gst_object_unref);
+    if(!m_gst_clock)
+    {
+        LOG_ERROR << "failed to retrieve clock";
+        return;
+    }
 
     gst_pipeline_use_clock(GST_PIPELINE(m_pipeline), m_gst_clock.get());
 
@@ -151,11 +156,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
     auto basetime = gst_clock_get_time(m_gst_clock.get());
     gst_element_set_base_time(m_pipeline, basetime);
 
-    if(!m_gst_clock)
-    {
-        LOG_ERROR << "failed to retrieve clock";
-        return;
-    }
+    LOG_DEBUG << "gst_clock basetime: " << basetime;
 
     // user provided appsink?
     if(the_appsink){ m_app_sink = the_appsink; }
@@ -272,7 +273,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 void GstUtil::set_clock(GstClock *the_clock)
 {
     gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
-//    gst_element_set_base_time(m_pipeline, 0);
+    gst_element_set_base_time(m_pipeline, 0);
     gst_pipeline_set_clock(GST_PIPELINE(m_pipeline), the_clock);
     m_gst_clock = std::shared_ptr<GstClock>(the_clock, &gst_object_unref);
 }
