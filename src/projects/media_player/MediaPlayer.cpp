@@ -458,7 +458,12 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
     }
     else if(theProperty == m_net_time_provider)
     {
-        m_reload_media = true;
+//        m_reload_media = true;
+
+        if(!m_net_time_provider->value().empty() && m_media)
+        {
+            m_media->use_net_time_provider(*m_net_time_provider, 7777);
+        }
     }
 }
 

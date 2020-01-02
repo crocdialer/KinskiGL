@@ -225,6 +225,8 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     auto ntp = gst_net_time_provider_new(m_impl->m_gst_util.clock(), nullptr, net_port);
     m_impl->m_net_time_provider.reset(ntp);
 
+    LOG_DEBUG << "gst_net_time_provider_new: listening on port: " << net_time_provider_port();
+
     std::string uri_path = filePath;
 
     if(crocore::fs::is_uri(filePath)){ m_impl->m_stream = true; }

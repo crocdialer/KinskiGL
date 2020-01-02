@@ -141,6 +141,12 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
         return;
     }
 
+    if(!m_gst_clock)
+    {
+        LOG_ERROR << "failed to retrieve clock";
+        return;
+    }
+
     // user provided appsink?
     if(the_appsink){ m_app_sink = the_appsink; }
     else

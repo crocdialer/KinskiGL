@@ -42,7 +42,7 @@ namespace kinski
         // properties
         Property_<std::string>::Ptr
         m_media_path = Property_<std::string>::create("media path", ""),
-        m_net_time_provider = Property_<std::string>::create("netowkr time provider url", ""),
+        m_net_time_provider = Property_<std::string>::create("network time provider url", ""),
         m_text_overlay = Property_<std::string>::create("text overlay", "");
 
         Property_<bool>::Ptr
