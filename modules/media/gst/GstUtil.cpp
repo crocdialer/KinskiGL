@@ -151,6 +151,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
     }
 
     gst_pipeline_use_clock(GST_PIPELINE(m_pipeline), m_gst_clock.get());
+    gst_pipeline_set_clock(GST_PIPELINE(m_pipeline), m_gst_clock.get());
 
     gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
     auto basetime = gst_clock_get_time(m_gst_clock.get());
@@ -272,9 +273,10 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 
 void GstUtil::set_clock(GstClock *the_clock)
 {
-    gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
-    gst_element_set_base_time(m_pipeline, 0);
     gst_pipeline_set_clock(GST_PIPELINE(m_pipeline), the_clock);
+    gst_pipeline_use_clock(GST_PIPELINE(m_pipeline), the_clock);
+    gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
+    gst_element_set_base_time(m_pipeline, 8938701492101);
     m_gst_clock = std::shared_ptr<GstClock>(the_clock, &gst_object_unref);
 }
 
