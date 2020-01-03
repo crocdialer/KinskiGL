@@ -37,21 +37,29 @@
 #include <gst/gl/egl/gstgldisplay_egl.h>
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 #define GST_UTIL_LINUX
+
 #include <gst/gl/x11/gstgldisplay_x11.h>
 #include "GLFW/glfw3.h"
+
 #define GLFW_EXPOSE_NATIVE_X11
 #define GLFW_EXPOSE_NATIVE_GLX
+
 #include "GLFW/glfw3native.h"
+
 #elif defined(__APPLE__)
 #include <gst/gl/cocoa/gstgldisplay_cocoa.h>
 #endif
 
-namespace kinski{ namespace media{
+namespace kinski
+{
+namespace media
+{
 
 class GstUtil
 {
 public:
     GstUtil(bool use_gl);
+
     ~GstUtil();
 
     bool set_pipeline_state(GstState the_target_state);
@@ -60,11 +68,15 @@ public:
 
     void use_pipeline(GstElement *the_pipeline, GstElement *the_appsink = nullptr);
 
-    GstElement* pipeline(){ return m_pipeline; }
+    GstElement *pipeline(){ return m_pipeline; }
 
-    void set_clock(GstClock* the_clock);
+    void set_clock(GstClock *the_clock);
 
-    GstClock* clock(){ return m_gst_clock.get(); }
+    GstClock *clock(){ return m_gst_clock.get(); }
+
+    GstClockTime basetime() const{ return m_basetime; };
+
+    void set_basetime(GstClockTime time);
 
     std::shared_ptr<GstBuffer> new_buffer();
 
@@ -73,20 +85,33 @@ public:
     const GstVideoInfo &video_info() const;
 
     bool is_playing() const;
+
     const uint32_t num_video_channels() const;
+
     const uint32_t num_audio_channels() const;
+
     const bool has_subtitle() const;
+
     const bool is_prerolled() const;
+
     const bool is_live() const;
+
     const bool is_buffering() const;
+
     const bool has_new_frame() const;
+
     const float fps() const;
+
     const bool is_eos() const;
+
     const bool is_paused() const;
 
     void set_on_load_cb(const std::function<void()> &the_cb);
+
     void set_on_end_cb(const std::function<void()> &the_cb);
+
     void set_on_new_frame_cb(const std::function<void(std::shared_ptr<GstBuffer>)> &the_cb);
+
     void set_on_aysnc_done_cb(const std::function<void()> &the_cb);
 
 private:
@@ -113,14 +138,14 @@ private:
 
     GstVideoInfo m_video_info;
 
-    GstElement* m_pipeline = nullptr;
-    GstElement* m_app_sink = nullptr;
-    GstElement* m_video_bin = nullptr;
-    GstGLContext* m_gl_context = nullptr;
+    GstElement *m_pipeline = nullptr;
+    GstElement *m_app_sink = nullptr;
+    GstElement *m_video_bin = nullptr;
+    GstGLContext *m_gl_context = nullptr;
 
-    GstElement* m_gl_upload = nullptr;
-    GstElement* m_gl_color_convert = nullptr;
-    GstElement* m_raw_caps_filter = nullptr;
+    GstElement *m_gl_upload = nullptr;
+    GstElement *m_gl_color_convert = nullptr;
+    GstElement *m_raw_caps_filter = nullptr;
 
     std::atomic<GstState> m_current_state, m_target_state;
 
@@ -130,7 +155,7 @@ private:
     std::shared_ptr<GMainLoop> m_g_main_loop;
 
     // delivers the messages
-    GstBus* m_gst_bus = nullptr;
+    GstBus *m_gst_bus = nullptr;
 
     // Save the id of the bus for releasing when not needed.
     int m_bus_id;
@@ -141,6 +166,7 @@ private:
     std::shared_ptr<std::thread> m_thread;
 
     // network syncing
+    GstClockTime m_basetime;
     std::shared_ptr<GstClock> m_gst_clock;
 
     // protect appsink callbacks
@@ -151,11 +177,15 @@ private:
 
     bool init_gstreamer();
 
-    static GstBusSyncReply check_bus_messages_sync(GstBus* bus, GstMessage* message, gpointer userData);
-    static gboolean check_bus_messages_async(GstBus* bus, GstMessage* message, gpointer userData);
-    static void on_gst_eos(GstAppSink* sink, gpointer userData);
-    static GstFlowReturn on_gst_sample(GstAppSink* sink, gpointer userData);
-    static GstFlowReturn on_gst_preroll(GstAppSink* sink, gpointer userData);
+    static GstBusSyncReply check_bus_messages_sync(GstBus *bus, GstMessage *message, gpointer userData);
+
+    static gboolean check_bus_messages_async(GstBus *bus, GstMessage *message, gpointer userData);
+
+    static void on_gst_eos(GstAppSink *sink, gpointer userData);
+
+    static GstFlowReturn on_gst_sample(GstAppSink *sink, gpointer userData);
+
+    static GstFlowReturn on_gst_preroll(GstAppSink *sink, gpointer userData);
 
     void set_eos();
 
@@ -167,6 +197,7 @@ private:
 
     void update_state(GstState the_state);
 };
-}}// namspaces
+}
+}// namspaces
 
 #endif //KINSKIGL_GSTUTIL_H

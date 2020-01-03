@@ -142,7 +142,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
         return;
     }
 
-    m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
+    m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_pipeline_clock(GST_PIPELINE(m_pipeline)),
                                             &gst_object_unref);
     if(!m_gst_clock)
     {
@@ -153,11 +153,9 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
     gst_pipeline_use_clock(GST_PIPELINE(m_pipeline), m_gst_clock.get());
     gst_pipeline_set_clock(GST_PIPELINE(m_pipeline), m_gst_clock.get());
 
-    gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
-    auto basetime = gst_clock_get_time(m_gst_clock.get());
-    gst_element_set_base_time(m_pipeline, basetime);
+    set_basetime(gst_clock_get_time(m_gst_clock.get()));
 
-    LOG_DEBUG << "gst_clock basetime: " << basetime;
+    LOG_DEBUG << "gst_clock basetime: " << m_basetime;
 
     // user provided appsink?
     if(the_appsink){ m_app_sink = the_appsink; }
@@ -276,7 +274,7 @@ void GstUtil::set_clock(GstClock *the_clock)
     gst_pipeline_set_clock(GST_PIPELINE(m_pipeline), the_clock);
     gst_pipeline_use_clock(GST_PIPELINE(m_pipeline), the_clock);
     gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
-    gst_element_set_base_time(m_pipeline, 8938701492101);
+    gst_element_set_base_time(m_pipeline, 12383350618107);
     m_gst_clock = std::shared_ptr<GstClock>(the_clock, &gst_object_unref);
 }
 
@@ -738,6 +736,13 @@ void GstUtil::set_on_aysnc_done_cb(const std::function<void()> &the_cb)
 const GstVideoInfo &GstUtil::video_info() const
 {
     return m_video_info;
+}
+
+void GstUtil::set_basetime(GstClockTime time)
+{
+    gst_element_set_start_time(m_pipeline, GST_CLOCK_TIME_NONE);
+    gst_element_set_base_time(m_pipeline, time);
+    m_basetime = time;
 }
 
 }

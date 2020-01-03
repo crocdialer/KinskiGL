@@ -493,14 +493,13 @@ bool MediaController::use_net_time_provider(const std::string &the_ip, uint16_t 
 
     LOG_DEBUG << "MediaController::use_net_time_provider: " << the_ip << ":" << the_port;
 
-    auto clock = gst_net_client_clock_new(nullptr, the_ip.c_str(), the_port,
-                                          gst_element_get_base_time(m_impl->m_gst_util.pipeline()));
+    auto clock = gst_net_client_clock_new(nullptr, the_ip.c_str(), the_port, 12383350618107);
     if(clock)
     {
 //        GST_OBJECT_FLAG_SET(clock, GST_CLOCK_FLAG_NEEDS_STARTUP_SYNC);
 
         m_impl->m_gst_util.set_clock(clock);
-        m_impl->m_gst_util.set_pipeline_state(GST_STATE_PLAYING);
+//        m_impl->m_gst_util.set_pipeline_state(GST_STATE_PLAYING);
         return true;
     }
     else{ LOG_WARNING << "failed to create netclock"; }
