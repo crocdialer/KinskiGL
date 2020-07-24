@@ -75,7 +75,7 @@ void MediaPlayer::setup()
     // check for command line input
     if(args().size() > 1)
     {
-        fs::path p = args()[1];
+        std::filesystem::path p = args()[1];
         
         if(fs::exists(p))
         {
@@ -485,7 +485,7 @@ void MediaPlayer::reload_media()
     m_sync_off_timer.cancel();
 
     std::string abs_path;
-    try{ abs_path = fs::search_file(*m_media_path); }
+    try{ abs_path = fs::search_file(m_media_path->value()); }
     catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.what(); m_reload_media = false; return; }
 
     auto media_type = fs::get_file_type(abs_path);
@@ -553,7 +553,7 @@ void MediaPlayer::reload_media()
     // network sync
     if(*m_is_master)
     {
-        send_network_cmd("load " + fs::get_filename_part(*m_media_path));
+        send_network_cmd("load " + fs::get_filename_part(m_media_path->value()));
         begin_network_sync();
     }
 }
@@ -745,7 +745,7 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
 
 void MediaPlayer::create_playlist(const std::string &the_base_dir)
 {
-    std::map<fs::FileType, std::vector<fs::path>> files;
+    std::map<fs::FileType, std::vector<std::filesystem::path>> files;
     files[fs::FileType::MOVIE] = {};
     files[fs::FileType::AUDIO] = {};
     
@@ -753,7 +753,7 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
     {
         files[fs::get_file_type(p)].push_back(p);
     }
-    auto file_list = concat_containers<fs::path>(files[fs::FileType::MOVIE], files[fs::FileType::AUDIO]);
+    auto file_list = concat_containers<std::string>(files[fs::FileType::MOVIE], files[fs::FileType::AUDIO]);
     std::sort(file_list.begin(), file_list.end());
     
     if(file_list.size() != m_playlist->value().size())

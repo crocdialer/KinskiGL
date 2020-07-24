@@ -104,7 +104,7 @@ void ViewerApp::setup()
 
     if(font_path.empty())
     {
-        for(auto &search_path : fs::get_search_paths())
+        for(auto &search_path : fs::search_paths())
         {
             auto font_paths = get_directory_entries(search_path, fs::FileType::FONT, true);
             if(!font_paths.empty())

@@ -465,7 +465,7 @@ void ModelViewer::update_property(const PropertyConstPtr &theProperty)
 
     if(theProperty == m_model_path)
     {
-        fs::add_search_path(fs::get_directory_part(*m_model_path));
+        fs::add_search_path(fs::get_directory_part(m_model_path->value()));
         async_load_asset(*m_model_path, [this](gl::MeshPtr m)
         {
             if(m)
