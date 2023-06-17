@@ -205,30 +205,30 @@ void GLFW_App::init()
     gl::create_context(pd);
     gl::context()->set_current_context_id(main_window->handle());
 
-    // set graphical log stream
-    crocore::g_logger.add_outstream(&m_outstream_gl);
+//    // set graphical log stream
+//    crocore::g_logger.add_outstream(&m_outstream_gl);
 
     // version
-    LOG_INFO << "OpenGL: " << glGetString(GL_VERSION);
-    LOG_INFO << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
+    spdlog::info("OpenGL: {}", (const char*)glGetString(GL_VERSION));
+    spdlog::info("GLSL: {}", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     glfwSetMonitorCallback(&GLFW_App::s_monitor_func);
     glfwSwapInterval(1);
     glClearColor(0, 0, 0, 1);
 
     // file search paths
-    if(!args().empty()){ crocore::fs::add_search_path(crocore::fs::get_directory_part(args().front())); }
-    crocore::fs::add_search_path("./", true);
-    crocore::fs::add_search_path("./res", true);
-    crocore::fs::add_search_path("../Resources", true);
+//    if(!args().empty()){ crocore::fs::add_search_path(crocore::fs::get_directory_part(args().front())); }
+//    crocore::fs::add_search_path("./", true);
+//    crocore::fs::add_search_path("./res", true);
+//    crocore::fs::add_search_path("../Resources", true);
 
     //---------------------------------
 #if defined(__APPLE__)
     crocore::fs::add_search_path("/Library/Fonts");
     crocore::fs::add_search_path("~/Library/Fonts");
 #elif defined(linux) || defined(__linux) || defined(__linux__)
-    crocore::fs::add_search_path("~/.local/share/fonts");
-    crocore::fs::add_search_path("/usr/local/share/fonts");
+//    crocore::fs::add_search_path("~/.local/share/fonts");
+//    crocore::fs::add_search_path("/usr/local/share/fonts");
 #endif
     //---------------------------------
 
@@ -426,7 +426,7 @@ void GLFW_App::add_window(WindowPtr the_window)
 
     if(!w)
     {
-        LOG_ERROR << "add_window failed";
+        spdlog::error("add_window failed");
         return;
     }
 
@@ -494,7 +494,7 @@ std::vector<JoystickState> GLFW_App::get_joystick_states() const
 
 void GLFW_App::s_error_cb(int error_code, const char *error_msg)
 {
-    LOG_WARNING << "GLFW Error (" << error_code << "): " << error_msg;
+    spdlog::warn("GLFW Error ({}): ", error_code, error_msg);
 }
 
 void GLFW_App::s_window_refresh(GLFWwindow *window)
@@ -517,7 +517,7 @@ void GLFW_App::s_window_close(GLFWwindow *window)
     {
         if((*it)->handle() == window)
         {
-            LOG_DEBUG << "window closed: " << (*it)->title();
+            spdlog::warn("window closed: {}", (*it)->title());
 //                it = app->m_windows.erase(it);
             return;
         }
@@ -666,18 +666,18 @@ void GLFW_App::s_monitor_func(GLFWmonitor *the_monitor, int status)
 {
     string name = glfwGetMonitorName(the_monitor);
 
-    if(status == GLFW_CONNECTED){ LOG_DEBUG << "monitor connected: " << name; }
-    else if(status == GLFW_DISCONNECTED){ LOG_DEBUG << "monitor disconnected: " << name; }
+    if(status == GLFW_CONNECTED){ spdlog::debug("monitor connected: {}", name); }
+    else if(status == GLFW_DISCONNECTED){ spdlog::debug("monitor disconnected: {}", name); }
 }
 
 void GLFW_App::s_joystick_cb(int joy, int event)
 {
     if(event == GLFW_CONNECTED)
     {
-        LOG_DEBUG << "joystick " << joy << " connected";
+        spdlog::debug("joystick {} connected", joy);
     }else if(event == GLFW_DISCONNECTED)
     {
-        LOG_DEBUG << "joystick " << joy << " disconnected";
+        spdlog::debug("joystick {} disconnected", joy);
     }
 }
 

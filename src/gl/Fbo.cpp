@@ -359,7 +359,7 @@ void Fbo::init()
 
         FboExceptionInvalidSpecification exc;
         // failed creation; throw
-        if(!check_status(&exc)){ LOG_ERROR << exc.what(); }
+        if(!check_status(&exc)){ spdlog::error(exc.what()); }
     }
     m_impl->m_needs_resolve = false;
     m_impl->m_needs_mipmap_update = false;
@@ -516,7 +516,7 @@ void Fbo::add_attachment(gl::Texture the_attachment, int the_index)
         }else{ m_impl->m_color_textures.push_back(the_attachment); }
         m_impl->m_format.num_color_buffers = m_impl->m_color_textures.size();
         enable_draw_buffers(true);
-    }else{ LOG_ERROR << exc.what(); }
+    }else{ spdlog::error(exc.what()); }
 }
 
 Texture Fbo::texture(int attachment)
@@ -568,7 +568,7 @@ void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 
             // failed creation; throw
             if(check_status(&exc)){ m_impl->m_depth_texture = the_depth_tex; }
-            else{ LOG_ERROR << exc.what(); }
+            else{ spdlog::error(exc.what()); }
         }
     }
 #endif

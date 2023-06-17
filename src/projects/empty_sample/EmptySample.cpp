@@ -126,7 +126,7 @@ void EmptySample::mouse_wheel(const MouseEvent &e)
 
 void EmptySample::file_drop(const MouseEvent &e, const std::vector<std::string> &files)
 {
-    for(const string &f : files){ LOG_INFO << f; }
+    for(const string &f : files){ spdlog::info(f); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -134,7 +134,7 @@ void EmptySample::file_drop(const MouseEvent &e, const std::vector<std::string> 
 void EmptySample::teardown()
 {
     BaseApp::teardown();
-    LOG_PRINT << "ciao " << name();
+    spdlog::info("ciao {}", name());
 }
 
 /////////////////////////////////////////////////////////////////

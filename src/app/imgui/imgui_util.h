@@ -5,11 +5,11 @@
 #ifndef KINSKIGL_IMGUI_UTIL_H
 #define KINSKIGL_IMGUI_UTIL_H
 
-#include <crocore/Component.hpp>
-#include "gl/gl.hpp"
 #include "app/App.hpp"
+#include "app/Component.hpp"
 #include "app/LightComponent.hpp"
 #include "app/WarpComponent.hpp"
+#include "gl/gl.hpp"
 #include "imgui.h"
 
 // forward declared to avoid inclusion of App.h

@@ -96,11 +96,11 @@ namespace kinski
                 }
                 catch(fs::FileNotFoundException &fe)
                 {
-                    if(!fe.file_name().empty()) LOG_DEBUG << fe.what();
+                    if(!fe.file_name().empty()) spdlog::debug(fe.what());
                 }
                 catch(std::exception &e)
                 {
-                    LOG_ERROR << e.what();
+                    spdlog::error(e.what());
                     return;
                 }
                 

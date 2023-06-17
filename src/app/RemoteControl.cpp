@@ -64,8 +64,8 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
     add_command("log_stream", [](net::tcp_connection_ptr con,
                                  const std::vector<std::string> &the_args)
     {
-        LOG_TRACE << "adding log_stream: " << con->remote_ip();
-        crocore::g_logger.add_outstream(con);
+        spdlog::trace("adding log_stream: {}", con->remote_ip());
+//        crocore::g_logger.add_outstream(con);
     });
 
     add_command("echo", [](net::tcp_connection_ptr con, const std::vector<std::string> &the_args)
@@ -83,7 +83,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
             {
                 ptr->main_queue().post([con, ptr]()
                                        {
-                                           LOG_DEBUG << "generate_snapshot ...";
+                                           spdlog::debug("generate_snapshot ...");
                                            Stopwatch timer;
                                            timer.start();
 
@@ -97,8 +97,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
 
                                            ptr->background_queue().post([con, img]()
                                                                         {
-                                                                            LOG_DEBUG
-                                                                            << "compressing snapshot data ...";
+                                                                            spdlog::debug("compressing snapshot data ...");
                                                                             auto compressed_data = encode_jpg(img);
                                                                             auto message = std::vector<uint8_t>(4);
                                                                             *(uint32_t *)(&message[0]) = compressed_data.size();
@@ -106,9 +105,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
                                                                                            compressed_data.begin(),
                                                                                            compressed_data.end());
                                                                             con->write(message);
-                                                                            LOG_DEBUG << "sending snapshot: "
-                                                                                      << compressed_data.size()
-                                                                                      << " bytes";
+                                                                            spdlog::debug("sending snapshot: {} bytes", compressed_data.size());
                                                                         });
                                        });
 
@@ -126,12 +123,11 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
                                              const std::string &the_ip,
                                              uint16_t the_port)
                                       {
-                                          LOG_TRACE_2 << "incoming udp(" << m_udp_server.listening_port() << "): "
-                                                      << the_ip
-                                                      << ": " << the_port << "\n"
-                                                      << std::string(the_data.begin(), the_data.end());
-                                          receive_cb(nullptr, the_data);
-                                      });
+          spdlog::trace("incoming udp({}): {}:{}\n{}",
+                        m_udp_server.listening_port(), the_port,
+                        std::string(the_data.begin(), the_data.end()));
+          receive_cb(nullptr, the_data);
+        });
 }
 
 uint16_t RemoteControl::tcp_port() const
@@ -157,10 +153,10 @@ void RemoteControl::stop_listen()
 
 void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
 {
-    LOG_TRACE << "port: " << con->port() << " -- new connection with: " << con->remote_ip()
-              << " : " << con->remote_port();
+  spdlog::trace("port: {} -- new connection with: {}:{}", con->port(),
+                con->remote_ip(), con->remote_port());
 
-    // manage existing tcp connections
+  // manage existing tcp connections
     std::vector<net::tcp_connection_ptr> tmp;
 
     for(auto &con : m_tcp_connections)
@@ -192,10 +188,10 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
             {
                 std::vector<std::string> args(++tokens.begin(), tokens.end());
 
-                LOG_TRACE_1 << "Executing command: " << iter->first;
+                spdlog::trace("Executing command: {}", iter->first);
                 cmd_found = true;
 
-                for(const auto &a : args){ LOG_TRACE_1 << "arg: " << a; }
+                for(const auto &a : args){ spdlog::trace("arg: {}", a); }
 
                 // call the function object
                 iter->second(rec_con, args);
@@ -212,7 +208,7 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
             {
                 serializer::apply_state(components(), str, PropertyIO_GL());
             }
-        }catch(std::exception &e) { LOG_ERROR << e.what(); }
+        }catch(std::exception &e) { spdlog::error(e.what()); }
     }
 }
 

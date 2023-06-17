@@ -155,7 +155,7 @@ namespace kinski { namespace gl {
 
     private:
 
-        Material(const ShaderPtr &theShader);
+        Material(ShaderPtr theShader);
 
         ShaderPtr m_shader;
 

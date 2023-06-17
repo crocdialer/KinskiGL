@@ -11,9 +11,9 @@
 
 #include <unordered_map>
 
-#include <crocore/filesystem.hpp>
-#include <crocore/Component.hpp>
+#include "Component.hpp"
 #include <crocore/ThreadPool.hpp>
+#include <crocore/filesystem.hpp>
 
 #include "gl/gl.hpp"
 

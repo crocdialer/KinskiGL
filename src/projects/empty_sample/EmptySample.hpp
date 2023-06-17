@@ -46,6 +46,6 @@ namespace kinski
 int main(int argc, char *argv[])
 {
     auto theApp = std::make_shared<kinski::EmptySample>(argc, argv);
-    LOG_INFO << "local ip: " << crocore::net::local_ip();
+    spdlog::info("local ip: {}", crocore::net::local_ip());
     return theApp->run();
 }

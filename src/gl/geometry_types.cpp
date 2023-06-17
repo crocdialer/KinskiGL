@@ -100,10 +100,10 @@ vec3 calculate_centroid(const std::vector<vec3> &theVertices)
 {
     if(theVertices.empty())
     {
-        LOG_TRACE << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
+        spdlog::trace("Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)");
         return vec3(0);
     }
-    return crocore::mean<vec3>(theVertices);
+    return crocore::mean(theVertices);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

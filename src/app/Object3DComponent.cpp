@@ -43,7 +43,7 @@ void Object3DComponent::update_property(const PropertyConstPtr &theProperty)
     gl::Object3DPtr active_object = m_objects.empty() ? gl::Object3DPtr() : m_objects[*m_object_index];
     if(!active_object)
     {
-        LOG_ERROR << "could not update: no component set ...";
+        spdlog::error("could not update: no component set ...");
         return;
     }
     if(theProperty == m_object_index)
@@ -108,7 +108,7 @@ void Object3DComponent::refresh()
     gl::Object3DPtr active_object = m_objects.empty() ? gl::Object3DPtr() : m_objects[*m_object_index];
     if(!active_object)
     {
-        LOG_ERROR << "could not refresh: no component set ...";
+        spdlog::error("could not refresh: no component set ...");
         return;
     }
 

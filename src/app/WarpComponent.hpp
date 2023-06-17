@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <crocore/Component.hpp>
+#include "Component.hpp"
 
 #include "gl/Font.hpp"
 #include "Warp.hpp"

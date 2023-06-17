@@ -52,7 +52,7 @@ App::~App()
 int App::run()
 {
     try{init(); m_running = GL_TRUE;}
-    catch(std::exception &e){LOG_ERROR<<e.what();}
+    catch(std::exception &e){ spdlog::error(e.what()); }
     double time_stamp = 0.0;
 
     // Main loop
@@ -136,7 +136,8 @@ void App::timing(double timeStamp)
 
 bool App::is_loading() const
 {
-    return crocore::Task::num_tasks();
+    return false;
+//    return crocore::Task::num_tasks();
 }
 
 /////////////////////////// Joystick ///////////////////////////////////////

@@ -11,6 +11,7 @@
 //
 //  Created by Fabian on 3/1/13.
 
+#include <shared_mutex>
 #include <crocore/Image.hpp>
 #include "ViewerApp.hpp"
 #include "app/LightComponent.hpp"
@@ -19,6 +20,123 @@
 using namespace crocore;
 
 namespace kinski {
+
+namespace
+{
+std::set<std::filesystem::path> g_search_paths;
+
+std::shared_mutex g_mutex;
+}
+
+std::string expand_user(std::string path)
+{
+  path = trim(path);
+
+  if(!path.empty() && path[0] == '~')
+  {
+    if(path.size() != 1 && path[1] != '/'){ return path; } // or other error handling ?
+    char const *home = getenv("HOME");
+    if(home || ((home = getenv("USERPROFILE"))))
+    {
+      path.replace(0, 1, home);
+    }
+    else
+    {
+      char const *hdrive = getenv("HOMEDRIVE"),
+                 *hpath = getenv("HOMEPATH");
+      if(!(hdrive && hpath)){ return path; } // or other error handling ?
+      path.replace(0, 1, std::string(hdrive) + hpath);
+    }
+  }
+  return path;
+}
+
+/////////// end implemantation internal /////////////
+
+///////////////////////////////////////////////////////////////////////////////
+
+std::set<std::filesystem::path> search_paths()
+{
+  std::shared_lock<std::shared_mutex> lock(g_mutex);
+  return g_search_paths;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void add_search_path(const std::filesystem::path &path, int recursion_depth)
+{
+  std::filesystem::path path_expanded(expand_user(path));
+
+  if(!std::filesystem::exists(path_expanded))
+  {
+    spdlog::debug("directory {} not existing", path_expanded.string());
+    return;
+  }
+
+  std::unique_lock<std::shared_mutex> lock(g_mutex);
+
+  if(recursion_depth)
+  {
+    g_search_paths.insert(crocore::fs::get_directory_part(path_expanded.string()));
+    std::filesystem::recursive_directory_iterator it;
+    try
+    {
+      it = std::filesystem::recursive_directory_iterator(path_expanded);
+      std::filesystem::recursive_directory_iterator end;
+
+      while(it != end)
+      {
+        if(std::filesystem::is_directory(*it)){ g_search_paths.insert(canonical(it->path()).string()); }
+        try{ ++it; }
+        catch(std::exception &e)
+        {
+          // e.g. no permission
+          spdlog::error(e.what());
+          it.disable_recursion_pending();
+          try{ ++it; } catch(...)
+          {
+            spdlog::error("Got trouble in recursive directory iteration: {}", it->path().string());
+            return;
+          }
+        }
+      }
+    }
+    catch(std::exception &e){ spdlog::error(e.what()); }
+  }
+  else{ g_search_paths.insert(canonical(path_expanded).string()); }
+}
+
+std::filesystem::path search_file(const std::filesystem::path &file_name)
+{
+  auto trim_file_name = trim(file_name);
+
+  std::string expanded_name = expand_user(trim_file_name);
+  std::filesystem::path ret_path(expanded_name);
+
+  try
+  {
+    if(ret_path.is_absolute() && is_regular_file(ret_path)){ return ret_path.string(); }
+
+    std::shared_lock<std::shared_mutex> lock(g_mutex);
+
+    for(const auto &p : g_search_paths)
+    {
+      ret_path = p / std::filesystem::path(expanded_name);
+
+      if(std::filesystem::exists(ret_path) && is_regular_file(ret_path))
+      {
+        spdlog::trace("found '{}' as: {}", trim_file_name, ret_path.string());
+        return ret_path.string();
+      }
+    }
+  }
+  catch(std::exception &e){ spdlog::debug(e.what()); }
+
+  // not found
+  throw std::runtime_error(fmt::format("{} not found", file_name.string()));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 ViewerApp::ViewerApp(int argc, char *argv[]) : BaseApp(argc, argv),
                                                m_camera(new gl::PerspectiveCamera),
@@ -36,7 +154,7 @@ ViewerApp::ViewerApp(int argc, char *argv[]) : BaseApp(argc, argv),
     register_property(m_search_paths);
 
     m_logger_severity = RangedProperty<int>::create("logger severity",
-                                                    (int)crocore::Severity::INFO, 0, 9);
+                                                    SPDLOG_LEVEL_INFO, 0, 9);
     register_property(m_logger_severity);
 
     m_show_tweakbar = Property_<bool>::create("show Tweakbar", false);
@@ -99,12 +217,12 @@ void ViewerApp::setup()
 
     // find font file
     std::string font_path;
-    try { font_path = fs::search_file("Courier New Bold.ttf"); }
-    catch(fs::FileNotFoundException &e) { LOG_DEBUG << e.what(); }
+    try { font_path = search_file("Courier New Bold.ttf"); }
+    catch(fs::FileNotFoundException &e) { spdlog::debug(e.what()); }
 
     if(font_path.empty())
     {
-        for(auto &search_path : fs::search_paths())
+        for(auto &search_path : g_search_paths)
         {
             auto font_paths = get_directory_entries(search_path, fs::FileType::FONT, true);
             if(!font_paths.empty())
@@ -118,8 +236,9 @@ void ViewerApp::setup()
     // still no font!?
     if(font_path.empty())
     {
-        LOG_WARNING << "no font-file found!\n"
-                       "fonts (*.ttf, *.otf, ...) can be placed next to the executable or in </usr/local/share/fonts>";
+      spdlog::warn("no font-file found!\n"
+                   "fonts (*.ttf, *.otf, ...) can be placed next to the "
+                   "executable or in </usr/local/share/fonts>");
     }else{ fonts()[0].load(font_path, 18); }
 
     outstream_gl().set_color(gl::COLOR_WHITE);
@@ -156,11 +275,11 @@ void ViewerApp::setup()
     m_warp_component->set_font(fonts()[0]);
 
     // print local ip
-    LOG_INFO << "local ip: " << net::local_ip();
+    spdlog::info("local ip: {}", net::local_ip());
 
-    // setup remote control
-    m_remote_control = RemoteControl(main_queue().io_service(), {shared_from_this(), m_light_component});
-    m_remote_control.start_listen();
+//    // setup remote control
+//    m_remote_control = RemoteControl(main_queue().io_service(), {shared_from_this(), m_light_component});
+//    m_remote_control.start_listen();
 }
 
 void ViewerApp::update(float timeDelta)
@@ -230,7 +349,7 @@ void ViewerApp::mouse_press(const MouseEvent &e)
                                                    m_precise_selection);
         if(picked_obj)
         {
-            LOG_TRACE << "picked id: " << picked_obj->get_id();
+            spdlog::trace("picked id: {}", picked_obj->get_id());
             if(gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
             {
                 if(!e.is_control_down()){ clear_selected_objects(); }
@@ -273,7 +392,7 @@ void ViewerApp::mouse_drag(const MouseEvent &e)
 void ViewerApp::mouse_release(const MouseEvent &e)
 {
     m_mouse_down = false;
-    if(!display_gui()){ m_inertia = crocore::mean<glm::vec2>(m_drag_buffer); }
+    if(!display_gui()){ m_inertia = crocore::mean(m_drag_buffer); }
 }
 
 void ViewerApp::mouse_wheel(const MouseEvent &e)
@@ -316,7 +435,7 @@ void ViewerApp::key_press(const KeyEvent &e)
 
         case Key::_R:
             try { load_settings(); }
-            catch(std::exception &e) { LOG_WARNING << e.what(); }
+            catch(std::exception &e) { spdlog::warn(e.what()); }
             break;
 
         default:
@@ -342,13 +461,14 @@ void ViewerApp::update_property(const PropertyConstPtr &theProperty)
 {
     if(theProperty == m_search_paths)
     {
-        for(const auto &search_path : m_search_paths->value())
-        {
-            fs::add_search_path(search_path, 1);
-        }
+//        for(const auto &search_path : m_search_paths->value())
+//        {
+//            fs::add_search_path(search_path, 1);
+//        }
     }else if(theProperty == m_logger_severity)
     {
-        crocore::g_logger.set_severity(static_cast<Severity>(m_logger_severity->value()));
+      spdlog::set_level(spdlog::level::level_enum(m_logger_severity->value()));
+//        crocore::g_logger.set_severity(static_cast<Severity>(m_logger_severity->value()));
     }else if(theProperty == m_show_tweakbar)
     {
         set_display_gui(*m_show_tweakbar);
@@ -393,11 +513,11 @@ void ViewerApp::update_property(const PropertyConstPtr &theProperty)
 
 bool ViewerApp::save_settings(const std::string &the_path)
 {
-    auto task = Task::create();
+//    auto task = Task::create();
     std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
     path_prefix = fs::get_directory_part(path_prefix);
 
-    LOG_DEBUG << "save settings to: " << path_prefix;
+    spdlog::debug("save settings to: {}", path_prefix);
 
     std::list<ComponentPtr> light_components, warp_components;
     for(uint32_t i = 0; i < lights().size(); i++)
@@ -417,7 +537,7 @@ bool ViewerApp::save_settings(const std::string &the_path)
         warp_components.push_back(wc);
     }
 
-    background_queue().post([this, path_prefix, light_components, warp_components, task]()
+    background_queue().post([this, path_prefix, light_components, warp_components/*, task*/]()
                             {
 
                                 try
@@ -433,21 +553,21 @@ bool ViewerApp::save_settings(const std::string &the_path)
                                                            PropertyIO_GL());
 
                                 }
-                                catch(std::exception &e) { LOG_ERROR << e.what(); }
+                                catch(std::exception &e) { spdlog::error(e.what()); }
                             });
     return true;
 }
 
 bool ViewerApp::load_settings(const std::string &the_path)
 {
-    auto task = Task::create();
+//    auto task = Task::create();
 
     m_inertia = glm::vec2(0);
     clear_selected_objects();
 
     std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
     path_prefix = fs::get_directory_part(path_prefix);
-    LOG_DEBUG << "load settings from: " << path_prefix;
+    spdlog::debug("load settings from: {}", path_prefix);
 
     std::list<ComponentPtr> light_components, warp_components;
     for(uint32_t i = 0; i < lights().size(); i++)
@@ -491,7 +611,7 @@ bool ViewerApp::load_settings(const std::string &the_path)
     }
     catch(std::exception &e)
     {
-        LOG_WARNING << e.what();
+        spdlog::warn(e.what());
         for(auto p : get_property_list()){ p->notify_observers(); }
         return false;
     }
@@ -525,12 +645,13 @@ void ViewerApp::async_load_texture(const std::string &the_path,
                                    bool compress,
                                    GLfloat anisotropic_filter_lvl)
 {
-    auto task = Task::create("load texture: " + the_path);
-    background_queue().post([this, task, the_path, the_callback, mip_map, compress,
+//    auto task = Task::create("load texture: " + the_path);
+    background_queue().post([this, the_path, the_callback, mip_map, compress,
                                     anisotropic_filter_lvl]()
                             {
                                 std::string abs_path = the_path;
-                                try { abs_path = fs::search_file(the_path); }
+//                                try { abs_path = fs::search_file(the_path); }
+                                try { abs_path = the_path; }
                                 catch(std::exception &e) {}
 
                                 auto file_type = fs::get_file_type(abs_path);
@@ -540,7 +661,7 @@ void ViewerApp::async_load_texture(const std::string &the_path,
                                     auto img = create_image_from_file(abs_path);
 
                                     main_queue().post(
-                                            [task, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
+                                            [img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
                                             {
                                                 auto tex = gl::create_texture_from_image(img, mip_map, compress,
                                                                                          anisotropic_filter_lvl);
@@ -559,16 +680,16 @@ void ViewerApp::async_load_texture(const std::string &the_path,
                                         }
 
                                         main_queue().post(
-                                                [task, the_path, images, mip_map, compress, the_callback]()
+                                                [the_path, images, mip_map, compress, the_callback]()
                                                 {
                                                     auto cubemap = gl::create_cube_texture_from_images(images,
                                                                                                        mip_map,
                                                                                                        compress);
-                                                    LOG_DEBUG << "loaded cubemap folder: " << the_path;
+                                                    spdlog::debug("loaded cubemap folder: {}", the_path);
                                                     the_callback(cubemap);
                                                 });
-                                    }else{ LOG_WARNING << "got " << img_paths.size() << " images, expected 6"; }
-                                }else{ LOG_WARNING << "could not load texture: " << the_path; }
+                                    }else{ spdlog::warn("got {} images, expected 6", img_paths.size()); }
+                                }else{ spdlog::warn("could not load texture: {}", the_path); }
                             });
 }
 

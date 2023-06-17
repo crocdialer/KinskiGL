@@ -9,11 +9,12 @@
 
 #include "Material.hpp"
 
+#include <utility>
+
 using namespace std;
 using namespace glm;
 
-namespace kinski {
-namespace gl {
+namespace kinski::gl {
 
 class InsertUniformVisitor : public boost::static_visitor<>
 {
@@ -24,7 +25,7 @@ private:
 public:
 
     InsertUniformVisitor(gl::ShaderPtr theShader, const std::string &theUniform)
-            : m_shader(theShader), m_uniform(theUniform) {};
+            : m_shader(std::move(theShader)), m_uniform(theUniform) {};
 
     template<typename T>
     inline void operator()(T &value) const
@@ -33,8 +34,8 @@ public:
     }
 };
 
-Material::Material(const ShaderPtr &theShader) :
-        m_shader(theShader),
+Material::Material(ShaderPtr theShader) :
+        m_shader(std::move(theShader)),
         m_dirty_uniform_buffer(true),
         m_polygon_mode(GL_FRONT),
         m_wireframe(false),
@@ -232,7 +233,7 @@ void Material::update_uniforms(const ShaderPtr &the_shader)
     auto shader_obj = the_shader ? the_shader : m_shader;
     if(!shader_obj)
     {
-        LOG_WARNING << "update_uniforms: no shader assigned";
+        spdlog::warn("update_uniforms: no shader assigned");
         return;
     }
 
@@ -305,5 +306,4 @@ void Material::update_uniforms(const ShaderPtr &the_shader)
     m_dirty_uniform_buffer = false;
 }
 
-}
 }// namespace

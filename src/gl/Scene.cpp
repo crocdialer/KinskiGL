@@ -121,7 +121,7 @@ namespace kinski { namespace gl {
                                                                        ray_in_object_space.direction);
                                     ray_tri_hit.distance *= distance_scale;
                                     clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
-                                    LOG_TRACE_2 << "hit distance: " << ray_tri_hit.distance;
+                                    spdlog::trace("hit distance: {}", ray_tri_hit.distance);
                                     break;
                                 }
                             }
@@ -138,7 +138,7 @@ namespace kinski { namespace gl {
         {
             clicked_items.sort();
             ret = clicked_items.front().object->shared_from_this();
-            LOG_TRACE << "ray hit id " << ret->get_id() << " (" << clicked_items.size() << " total)";
+            spdlog::trace("ray hit id {} ({} total)", ret->get_id(), clicked_items.size());
         }
         return ret;
     }
@@ -180,12 +180,12 @@ namespace kinski { namespace gl {
         switch(t.target())
         {
             case GL_TEXTURE_CUBE_MAP:
-                LOG_DEBUG << "adding cubical skybox";
+                spdlog::debug("adding cubical skybox");
                 mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_CUBE));
                 mat->add_texture(t, Texture::Usage::ENVIROMENT);
                 break;
             case GL_TEXTURE_2D:
-                LOG_DEBUG << "adding panorama skybox";
+                spdlog::debug("adding panorama skybox");
 #ifdef KINSKI_GLES_2
                 mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_PANORAMA));
                 mat->add_texture(t, Texture::Usage::ENVIROMENT);

@@ -458,8 +458,8 @@ void Warp::move_center_to(const gl::vec2 &the_pos)
 
 gl::vec2 Warp::center() const
 {
-    if(m_impl->m_perspective){ return crocore::mean<gl::vec2>(m_impl->m_corners); }
-    else{ return crocore::mean<gl::vec2>(m_impl->m_control_points); }
+    if(m_impl->m_perspective){ return crocore::mean(m_impl->m_corners); }
+    else{ return crocore::mean(m_impl->m_control_points); }
 }
 
 void Warp::flip_content(bool horizontal)

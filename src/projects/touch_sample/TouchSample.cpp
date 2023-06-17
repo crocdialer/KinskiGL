@@ -164,14 +164,14 @@ void TouchSample::mouse_wheel(const MouseEvent &e)
 
 void TouchSample::file_drop(const MouseEvent &e, const std::vector<std::string> &files)
 {
-    for(const string &f : files){ LOG_INFO << f; }
+    for(const string &f : files){ spdlog::info(f); }
 }
 
 /////////////////////////////////////////////////////////////////
 
 void TouchSample::teardown()
 {
-    LOG_PRINT << "ciao " << name();
+    spdlog::info("ciao {}", name());
 }
 
 /////////////////////////////////////////////////////////////////

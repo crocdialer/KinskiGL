@@ -378,8 +378,8 @@ gl::Ray calculate_ray(const CameraPtr &theCamera, const glm::vec2 &window_pos,
         click_world_pos = cam_pos + lookAt * near + side * coord.x + up * coord.y;
         ray_dir = lookAt;
     }
-    LOG_TRACE_2 << "clicked_world: (" << click_world_pos.x << ",  " << click_world_pos.y
-                << ",  " << click_world_pos.z << ")";
+//    LOG_TRACE_2 << "clicked_world: (" << click_world_pos.x << ",  " << click_world_pos.y
+//                << ",  " << click_world_pos.z << ")";
     return Ray(click_world_pos, ray_dir);
 }
 
@@ -458,7 +458,7 @@ gl::CameraPtr create_shadow_camera(const Light *the_light, float far_clip)
             break;
 
         default:
-            LOG_WARNING << "light type not handled";
+            spdlog::warn("light type not handled");
             return nullptr;
     }
     cam->set_transform(the_light->global_transform());
@@ -698,7 +698,7 @@ void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2
     if(!material)
     {
         try { material = gl::Material::create(); }
-        catch(std::exception &e) { LOG_ERROR << e.what(); }
+        catch(std::exception &e) { spdlog::error(e.what()); }
         material->set_depth_test(false);
         material->set_depth_write(false);
         material->set_blending(true);
@@ -721,7 +721,7 @@ void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2
         material->uniform("u_texture_size", theTexture.size());
     }else
     {
-        LOG_ERROR << "drawTexture: texture target not supported";
+        spdlog::error("drawTexture: texture target not supported");
         return;
     }
     material->uniform("u_gamma", the_gamma);
@@ -754,7 +754,7 @@ void draw_texture_with_mask(const gl::Texture &the_texture,
     if(!material)
     {
         try { material = gl::Material::create(gl::ShaderType::UNLIT_MASK); }
-        catch(std::exception &e) { LOG_ERROR << e.what(); }
+        catch(std::exception &e) { spdlog::error(e.what()); }
         material->set_depth_test(false);
         material->set_depth_write(false);
         material->set_blending(true);
@@ -782,7 +782,7 @@ void draw_quad(const vec2 &the_size, const Color &the_color, const vec2 &the_top
     if(!material)
     {
         try { material = gl::Material::create(); }
-        catch(std::exception &e) { LOG_ERROR << e.what(); }
+        catch(std::exception &e) { spdlog::error(e.what()); }
         material->set_depth_test(false);
         material->set_depth_write(false);
         material->set_blending(true);
@@ -1094,7 +1094,7 @@ void draw_light(const LightPtr &theLight)
             break;
 
         default:
-            LOG_WARNING << "light type not handled";
+            spdlog::warn("light type not handled");
             return;
     }
 
@@ -1196,8 +1196,8 @@ gl::Texture render_to_texture(const gl::SceneConstPtr &theScene,
 {
     if(!the_fbo)
     {
-        LOG_WARNING << "trying to use an uninitialized FBO";
-        return gl::Texture();
+        spdlog::warn("trying to use an uninitialized FBO");
+        return {};
     }
 
     // push framebuffer and viewport states
@@ -1210,12 +1210,12 @@ gl::Texture render_to_texture(const gl::SceneConstPtr &theScene,
     return the_fbo->texture();
 }
 
-gl::Texture render_to_texture(const FboPtr &the_fbo, std::function<void()> the_functor)
+gl::Texture render_to_texture(const FboPtr &the_fbo, const std::function<void()>& the_functor)
 {
     if(!the_fbo)
     {
-        LOG_WARNING << "trying to use an uninitialized FBO";
-        return gl::Texture();
+        spdlog::warn("trying to use an uninitialized FBO");
+        return {};
     }
     // push framebuffer and viewport states
     gl::SaveViewPort sv;
@@ -1262,7 +1262,7 @@ void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPt
             }
             catch(std::exception &e)
             {
-                LOG_WARNING << e.what();
+                spdlog::warn(e.what());
                 pair.second.status = gl::Material::AssetLoadStatus::NOT_FOUND;
                 it++;
             }
@@ -1276,13 +1276,13 @@ void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPt
                 if(img_tex_it != the_img_tex_cache->end())
                 {
                     t = img_tex_it->second;
-                    LOG_TRACE << "using cached texture: " << pair.first;
+                    spdlog::trace("using cached texture: {}", pair.first);
                 }
             }
 
             if(!t)
             {
-                LOG_TRACE << "creating texture: " << pair.first;
+                spdlog::trace("creating texture: {}", pair.first);
                 t = gl::create_texture_from_image(pair.second.image, true, use_compression, anisotropic_lvl);
                 if(the_img_tex_cache){ (*the_img_tex_cache)[pair.second.image] = t; }
             }
@@ -1300,7 +1300,7 @@ void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPt
     if(the_mat->queued_shader() != gl::ShaderType::NONE)
     {
         try { the_mat->set_shader(gl::create_shader(the_mat->queued_shader())); }
-        catch(std::exception &e) { LOG_WARNING << e.what(); }
+        catch(std::exception &e) { spdlog::warn(e.what()); }
 
     }
     if(!the_mat->shader()){ the_mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
@@ -1618,7 +1618,7 @@ void project_texcoords(gl::MeshPtr src, gl::MeshPtr dest)
             dest_texcoords[i].x = 1 - dest_texcoords[i].x;
             dest_texcoords[i].y = 1 - dest_texcoords[i].y;
 
-        }else{ LOG_ERROR << "no triangle hit"; }
+        }else{ spdlog::error("no triangle hit"); }
     }
 }
 
@@ -1636,7 +1636,7 @@ ShaderPtr create_shader_from_file(const std::string &vertPath,
     if(!geomPath.empty()) geomSrc = crocore::fs::read_file(geomPath);
 
     try { ret = gl::Shader::create(vertSrc, fragSrc, geomSrc); }
-    catch(std::exception &e) { LOG_ERROR << e.what(); }
+    catch(std::exception &e) { spdlog::error(e.what()); }
     return ret;
 }
 
@@ -1771,9 +1771,10 @@ ShaderPtr create_shader(ShaderType type, bool use_cached_shader)
 
         if(vert_src.empty() || frag_src.empty())
         {
-            LOG_WARNING << get_shader_name(type) << " not available, falling back to: " <<
-                        get_shader_name(ShaderType::UNLIT);
-            return create_shader(gl::ShaderType::UNLIT, false);
+          spdlog::warn("{} not available, falling back to: {}",
+                       get_shader_name(type),
+                       get_shader_name(ShaderType::UNLIT));
+          return create_shader(gl::ShaderType::UNLIT, false);
         }
         ret = gl::Shader::create(vert_src, frag_src, geom_src);
         if(use_cached_shader){ g_shaders[type] = ret; }
@@ -1856,7 +1857,7 @@ Texture create_texture_from_image(const crocore::ImagePtr &the_img, bool mipmap,
     Texture ret;
     if(!the_img){ return ret; }
     bool use_float = (the_img->num_bytes() / (the_img->width() * the_img->height() * the_img->num_components())) > 1;
-    LOG_TRACE_IF(use_float) << "creating FLOAT texture ...";
+    if(use_float){ spdlog::trace("creating FLOAT texture ..."); };
     auto data_type = use_float ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
     GLenum format = 0, internal_format = 0;
@@ -1902,7 +1903,7 @@ Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipm
     try { img = crocore::create_image_from_data(the_data); }
     catch(crocore::ImageLoadException &e)
     {
-        LOG_ERROR << e.what();
+        spdlog::error(e.what());
         return ret;
     }
     ret = create_texture_from_image(img, mipmap, compress, anisotropic_filter_lvl);
@@ -1987,9 +1988,10 @@ gl::Texture create_cube_texture_from_images(const std::vector<crocore::ImagePtr>
     // check if number and sizes of input textures match
     if(the_planes.size() != 6 || !the_planes[0])
     {
-        LOG_WARNING << "cube map creation failed. number of input textures must be 6 -- "
-                    << the_planes.size() << " provided";
-        return ret;
+      spdlog::warn("cube map creation failed. number of input textures must be "
+                   "6 -- {} provided",
+                   the_planes.size());
+      return ret;
     }
 
     uint32_t width = the_planes[0]->width(), height = the_planes[0]->height();
@@ -2000,7 +2002,7 @@ gl::Texture create_cube_texture_from_images(const std::vector<crocore::ImagePtr>
         if(!img || img->width() != width || img->height() != height ||
            img->num_components() != num_components)
         {
-            LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
+            spdlog::warn("cube map creation failed. size/type of input textures not consistent");
             return ret;
         }
     }
@@ -2043,10 +2045,10 @@ gl::Texture create_cube_texture_from_panorama(const gl::Texture &the_panorama, s
 #if !defined(KINSKI_GLES_2)
     if(!the_panorama || the_panorama.target() != GL_TEXTURE_2D)
     {
-        LOG_WARNING << "could not convert panorma to cubemap";
+        spdlog::warn("could not convert panorma to cubemap");
         return gl::Texture();
     }
-    LOG_DEBUG << "creating cubemap from panorama ...";
+    spdlog::debug("creating cubemap from panorama ...");
     auto mat = gl::Material::create();
     mat->set_culling(gl::Material::CULL_FRONT);
     mat->add_texture(the_panorama, Texture::Usage::ENVIROMENT);

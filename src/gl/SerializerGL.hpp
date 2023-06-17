@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <crocore/serializer.hpp>
+#include "app/serializer.hpp"
 #include "gl/gl.hpp"
 
 namespace kinski {

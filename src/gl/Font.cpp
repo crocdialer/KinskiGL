@@ -180,7 +180,7 @@ void Font::load(const std::string &thePath, size_t theSize, bool use_sdf)
 {
     try
     {
-        auto p = crocore::fs::search_file(thePath);
+        auto p = thePath;//crocore::fs::search_file(thePath);
         std::vector<uint8_t> font_file = crocore::fs::read_binary_file(p);
         m_impl->path = p;
         m_impl->string_mesh_map.clear();
@@ -230,7 +230,7 @@ void Font::load(const std::string &thePath, size_t theSize, bool use_sdf)
 #endif
     }catch(const std::exception &e)
     {
-        LOG_ERROR << e.what();
+        spdlog::error(e.what());
     }
 }
 
@@ -393,7 +393,7 @@ gl::MeshPtr Font::create_mesh(const std::string &theText, const glm::vec4 &theCo
     // free the less frequent used half of our buffered string-meshes
     if(m_impl->string_mesh_map.size() >= m_impl->max_mesh_buffer_size)
     {
-        LOG_TRACE << "font-mesh buffersize: " << m_impl->max_mesh_buffer_size << " -> clearing ...";
+        spdlog::trace("font-mesh buffersize: {} -> clearing ...", m_impl->max_mesh_buffer_size);
         std::list<string_mesh_container> tmp_list;
 
         for(auto &item : m_impl->string_mesh_map){ tmp_list.push_back(item.second); }

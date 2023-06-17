@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <set>
 #include <crocore/crocore.hpp>
 #include <crocore/Image.hpp>
 #include "Platform.h"
@@ -29,8 +30,8 @@
 
 #include "SerializerGL.hpp"
 
-namespace kinski {
-namespace gl {
+namespace kinski::gl
+{
 
 // promote some glm symbols
 using glm::vec2;
@@ -375,7 +376,7 @@ void draw_circle(const vec2 &center, float radius, const MaterialPtr &theMateria
 gl::Texture render_to_texture(const gl::SceneConstPtr &theScene, const FboPtr &the_fbo,
                               const gl::CameraPtr &theCam);
 
-gl::Texture render_to_texture(const FboPtr &the_fbo, std::function<void()> the_functor);
+gl::Texture render_to_texture(const FboPtr &the_fbo, const std::function<void()>& the_functor);
 
 /*********************************** lazy state changing **********************************/
 
@@ -524,5 +525,4 @@ LOG_ERROR << "Unknown GLerror"; break;\
 #define KINSKI_CHECK_GL_ERRORS()
 #endif
 
-}
 }//namespace

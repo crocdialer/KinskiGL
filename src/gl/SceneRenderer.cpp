@@ -149,7 +149,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
         {
             if(i >= shadow_fbos().size())
             {
-                LOG_WARNING << "too many lights with active shadows";
+                spdlog::warn("too many lights with active shadows");
                 break;
             }
             set_shadow_pass(true);

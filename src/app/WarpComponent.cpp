@@ -423,7 +423,7 @@ void WarpComponent::mouse_press(const MouseEvent &e)
                 m_active_control_points.insert(cp);
 
                 quad_warp().selected_indices().insert(i);
-                LOG_TRACE_2 << "selected control point: " << i << " -> " << glm::to_string(coord);
+                spdlog::trace("selected control point: {} -> {}", i, glm::to_string(coord));
             }
         }
     }else if(e.is_right())
