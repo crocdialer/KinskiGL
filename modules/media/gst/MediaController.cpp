@@ -1,13 +1,15 @@
 #include <deque>
+#include <memory>
 
 #include "GstUtil.h"
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
+#include "app/file_search.hpp"
 #include "MediaController.hpp"
 
 #include <gst/net/gstnet.h>
 
-namespace kinski{ namespace media
+namespace kinski::media
 {
 
 struct MediaControllerImpl
@@ -25,7 +27,7 @@ struct MediaControllerImpl
     GstUtil m_gst_util;
 
     // memory map that holds the incoming frame.
-    GstMapInfo m_memory_map_info;
+    GstMapInfo m_memory_map_info{};
 
     // handle for the pipeline's videosink element
     GstElement *m_video_sink;
@@ -126,7 +128,7 @@ struct MediaControllerImpl
             seek_event = gst_event_new_seek(m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, 0,
                                             GST_SEEK_TYPE_SET, the_position_nanos);
         }
-        if(!gst_element_send_event(m_gst_util.pipeline(), seek_event)){ LOG_WARNING << "seek failed"; }
+        if(!gst_element_send_event(m_gst_util.pipeline(), seek_event)){ spdlog::warn("seek failed"); }
     }
 
     void send_step_event(uint32_t the_num_steps = 1)
@@ -185,7 +187,7 @@ m_impl(new MediaControllerImpl)
 
 }
 
-MediaController::~MediaController(){}
+MediaController::~MediaController()= default;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -196,16 +198,16 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     if(crocore::fs::is_uri(filePath)){ found_path = filePath; }
     else
     {
-        try{ found_path = crocore::fs::search_file(filePath); }
+        try{ found_path = app::search_file(filePath); }
         catch(crocore::fs::FileNotFoundException &e)
         {
-            LOG_ERROR << e.what();
+            spdlog::error(e.what());
             return;
         }
     }
     callback_t on_load = m_impl ? m_impl->m_on_load_cb : callback_t();
     callback_t on_end = m_impl ? m_impl->m_on_end_cb : callback_t();
-    m_impl.reset(new MediaControllerImpl());
+    m_impl = std::make_unique<MediaControllerImpl>();
     m_impl->m_src_path = found_path;
     m_impl->m_loop = loop;
     m_impl->m_media_controller = shared_from_this();
@@ -443,7 +445,7 @@ bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
     }
     else
     {
-        LOG_ERROR << "no samples";
+        spdlog::error("no samples");
         return false;
     }
 
@@ -610,4 +612,4 @@ MediaController::AudioTarget MediaController::audio_target() const
 }
 
 /////////////////////////////////////////////////////////////////
-}}// namespaces
+}// namespaces

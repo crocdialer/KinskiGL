@@ -53,7 +53,7 @@ m_target_state(GST_STATE_NULL)
                 if(t->joinable())
                 {
                     try{ t->join(); }
-                    catch(std::exception &e){ LOG_ERROR << e.what(); }
+                    catch(std::exception &e){ spdlog::error(e.what()); }
                     delete t;
                 }
             });
@@ -88,15 +88,13 @@ bool GstUtil::init_gstreamer()
 
         if(!gst_init_check(nullptr, nullptr, &err))
         {
-            if(err->message){ LOG_ERROR << "FAILED to initialize GStreamer: " << err->message; }
-            else{ LOG_ERROR << "FAILED to initialize GStreamer due to unknown error ..."; }
+            if(err->message){ spdlog::error("FAILED to initialize GStreamer: ",err->message); }
+            else{ spdlog::error("FAILED to initialize GStreamer due to unknown error ..."); }
             return false;
         }
         else
         {
-            char buf[128];
-            sprintf(buf, "GStreamer %i.%i.%i.%i", major, minor, micro, nano);
-            LOG_INFO << buf;
+            spdlog::info("GStreamer {}.{}.{}.{}", major, minor, micro, nano);
             return true;
         }
     }
@@ -137,7 +135,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 
     if(!m_pipeline)
     {
-        LOG_ERROR << "failed to create playbin pipeline";
+        spdlog::error("failed to create playbin pipeline");
         return;
     }
 
@@ -149,7 +147,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 
         if(!m_app_sink)
         {
-            LOG_ERROR << "failed to create app sink element";
+            spdlog::error("failed to create app sink element");
             return;
         }
 
@@ -167,7 +165,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 
         GstPad *pad = nullptr;
         m_video_bin = gst_bin_new("kinski-vbin");
-        if(!m_video_bin){ LOG_ERROR << "Failed to create video bin"; }
+        if(!m_video_bin){ spdlog::error("Failed to create video bin"); }
 
         if(m_use_gl)
         {
@@ -201,10 +199,10 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 #endif
 
             m_gl_upload = gst_element_factory_make("glupload", "upload");
-            if(!m_gl_upload){ LOG_ERROR << "failed to create GL upload element"; };
+            if(!m_gl_upload){ spdlog::error("failed to create GL upload element"); };
 
             m_gl_color_convert = gst_element_factory_make("glcolorconvert", "convert");
-            if(!m_gl_color_convert){ LOG_ERROR << "failed to create GL convert element"; }
+            if(!m_gl_color_convert){ spdlog::error("failed to create GL convert element"); }
 
             m_raw_caps_filter = gst_element_factory_make("capsfilter", "rawcapsfilter");
 
@@ -220,14 +218,14 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
                 g_object_set(G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string( "video/x-raw" ), nullptr );
             }
 #endif
-            else{ LOG_ERROR << "failed to create raw caps filter element"; }
+            else{ spdlog::error("failed to create raw caps filter element"); }
 
             gst_bin_add_many(GST_BIN(m_video_bin), m_raw_caps_filter, m_gl_upload, m_gl_color_convert, m_app_sink,
                              nullptr);
 
             if(!gst_element_link_many(m_raw_caps_filter, m_gl_upload, m_gl_color_convert, m_app_sink, nullptr))
             {
-                LOG_ERROR << "failed to link video elements";
+                spdlog::error("failed to link video elements");
             }
             pad = gst_element_get_static_pad(m_raw_caps_filter, "sink");
             gst_element_add_pad(m_video_bin, gst_ghost_pad_new("sink", pad));
@@ -349,36 +347,37 @@ bool GstUtil::set_pipeline_state(GstState the_target_state)
         return true;
 
     GstStateChangeReturn state_change_result = gst_element_set_state(m_pipeline, m_target_state);
-    LOG_TRACE_2 << "pipeline state about to change from: " << gst_element_state_get_name(current) <<
-                " to " << gst_element_state_get_name(the_target_state);
+    spdlog::trace("pipeline state about to change from: {} to: {}",
+                  gst_element_state_get_name(current),
+                  gst_element_state_get_name(the_target_state));
 
     if(!s_enable_async_state_change && state_change_result == GST_STATE_CHANGE_ASYNC)
     {
-        LOG_TRACE_2 << "blocking until pipeline state changes from: "
-                    << gst_element_state_get_name(current) << " to: "
-                    << gst_element_state_get_name(the_target_state);
+        spdlog::trace("blocking until pipeline state changes from: {} to: {}",
+                      gst_element_state_get_name(current),
+                      gst_element_state_get_name(the_target_state));
         state_change_result = gst_element_get_state(m_pipeline, &current, &pending, GST_CLOCK_TIME_NONE);
     }
 
     switch(state_change_result)
     {
         case GST_STATE_CHANGE_FAILURE:
-            LOG_WARNING << "pipeline failed to change state";
+            spdlog::warn("pipeline failed to change state");
             return false;
 
         case GST_STATE_CHANGE_SUCCESS:
-            LOG_TRACE_2 << "pipeline state changed SUCCESSFULLY from: "
-                        << gst_element_state_get_name(m_current_state) << " to: "
-                        << gst_element_state_get_name(m_target_state);
+            spdlog::trace("pipeline state changed SUCCESSFULLY from: {} to: {}",
+                          gst_element_state_get_name(m_current_state),
+                          gst_element_state_get_name(m_target_state));
 
             // target state reached
             update_state(m_target_state);
             return true;
 
         case GST_STATE_CHANGE_ASYNC:
-            LOG_TRACE_2 << "pipeline state change will happen ASYNC from: "
-                        << gst_element_state_get_name(m_current_state) << " to: "
-                        << gst_element_state_get_name(m_target_state);
+            spdlog::trace("pipeline state change will happen ASYNC from: {} to: {}",
+                          gst_element_state_get_name(m_current_state),
+                          gst_element_state_get_name(m_target_state));
             return true;
 
         case GST_STATE_CHANGE_NO_PREROLL:
@@ -419,7 +418,7 @@ GstBusSyncReply GstUtil::check_bus_messages_sync(GstBus* bus, GstMessage* messag
 {
     if(!userData ){ return GST_BUS_DROP; }
 
-    GstUtil* self = static_cast<GstUtil*>(userData);
+    auto self = static_cast<GstUtil*>(userData);
 
     switch(GST_MESSAGE_TYPE(message))
     {
@@ -429,7 +428,8 @@ GstBusSyncReply GstUtil::check_bus_messages_sync(GstBus* bus, GstMessage* messag
             GstContext* context = nullptr;
             gst_message_parse_context_type(message, &context_type);
 
-            LOG_TRACE_2 << "need context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            spdlog::trace("need context {} from element {}", context_type,
+                          GST_ELEMENT_NAME(GST_MESSAGE_SRC(message)));
 
             if(g_strcmp0(context_type, GST_GL_DISPLAY_CONTEXT_TYPE) == 0)
             {
@@ -473,7 +473,7 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
 
             if(state == GST_STATE_CHANGE_FAILURE)
             {
-                LOG_ERROR << "failed to set the pipeline to nullptr state after ERROR occured";
+                spdlog::error("failed to set the pipeline to nullptr state after ERROR occured");
             }
             break;
         }
@@ -487,7 +487,8 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
             gst_message_parse_have_context(message, &context);
             context_type = gst_context_get_context_type(context);
             context_str = gst_structure_to_string(gst_context_get_structure(context));
-            LOG_TRACE_2 << "have context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            spdlog::trace("have context {} from element {}", context_type,
+                          GST_ELEMENT_NAME(GST_MESSAGE_SRC(message)));
             g_free(context_str);
 
             if(context){ gst_context_unref(context); }
@@ -500,12 +501,12 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
             if(self->m_live) break;
             gint percent = 0;
             gst_message_parse_buffering(message, &percent);
-            LOG_DEBUG << "buffering " << std::setfill('0') << std::setw(3) << percent << " %";
+            spdlog::debug("buffering {}%", percent);
 
             if(percent == 100)
             {
                 self->m_buffering = false;
-                LOG_TRACE_2 << "buffering complete!";
+                spdlog::trace("buffering complete!");
 
                 if(self->m_target_state == GST_STATE_PLAYING)
                 {
@@ -517,7 +518,7 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
                 if(!self->m_buffering && self->m_target_state == GST_STATE_PLAYING)
                 {
                     gst_element_set_state(self->m_pipeline, GST_STATE_PAUSED);
-                    LOG_TRACE_2 << "buffering in process ...";
+                    spdlog::trace("buffering ...");
                 }
                 self->m_buffering = true;
             }
@@ -545,10 +546,10 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
 
                 if(old != current)
                 {
-                    LOG_TRACE_2 << "pipeline state changed from: "
-                                << gst_element_state_get_name(old) << " to: "
-                                << gst_element_state_get_name(current) << " with pending: "
-                                << gst_element_state_get_name(pending);
+                    spdlog::trace("pipeline state changed from: {} to: {} with pending: {}",
+                                  gst_element_state_get_name(old),
+                                  gst_element_state_get_name(current),
+                                  gst_element_state_get_name(pending));
                 }
                 self->update_state(current);
 
@@ -620,7 +621,7 @@ std::shared_ptr<GstBuffer> GstUtil::wait_for_buffer()
 
 void GstUtil::on_gst_eos(GstAppSink *sink, gpointer userData)
 {
-    LOG_TRACE_2 << "on_gst_eos";
+    spdlog::trace("on_gst_eos");
     auto *self = static_cast<GstUtil*>(userData);
     self->set_eos();
 }

@@ -149,7 +149,7 @@ private:
     // blocking stuff
     std::condition_variable m_condition_new_frame;
 
-    bool init_gstreamer();
+    static bool init_gstreamer();
 
     static GstBusSyncReply check_bus_messages_sync(GstBus* bus, GstMessage* message, gpointer userData);
     static gboolean check_bus_messages_async(GstBus* bus, GstMessage* message, gpointer userData);

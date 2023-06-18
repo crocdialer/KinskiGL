@@ -75,7 +75,7 @@ void CameraController::start_capture()
 
         if(error)
         {
-            LOG_ERROR << "could not construct pipeline: " << error->message;
+            spdlog::error("could not construct pipeline: {}", error->message);
             g_error_free(error);
         }
         else

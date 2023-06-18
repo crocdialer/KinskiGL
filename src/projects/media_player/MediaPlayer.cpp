@@ -7,6 +7,7 @@
 //
 
 #include <nlohmann/json.hpp>
+#include "app/file_search.hpp"
 #include "MediaPlayer.hpp"
 #include <mutex>
 
@@ -43,7 +44,7 @@ namespace
 void MediaPlayer::setup()
 {
     ViewerApp::setup();
-    crocore::g_logger.set_use_log_file(true);
+//    crocore::g_logger.set_use_log_file(true);
 
     fonts()[1].load(fonts()[0].path(), 28);
     fonts()[2].load(fonts()[0].path(), 54);
@@ -88,7 +89,7 @@ void MediaPlayer::setup()
                 m_scan_media_timer.set_periodic();
                 m_scan_media_timer.expires_from_now(5.f);
                 
-                fs::add_search_path(p, 3);
+                app::add_search_path(p, 3);
             }
             else{ *m_media_path = p; }
         }
@@ -176,10 +177,10 @@ void MediaPlayer::draw()
         }
     }
     
-    if(!*m_is_master && m_is_syncing && crocore::g_logger.severity() >= Severity::DEBUG)
-    {
-        gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
-    }
+//    if(!*m_is_master && m_is_syncing && crocore::g_logger.severity() >= Severity::DEBUG)
+//    {
+//        gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
+//    }
     if(display_gui())
     {
         // media title
@@ -369,7 +370,7 @@ void MediaPlayer::teardown()
 {
     BaseApp::teardown();
     m_media.reset();
-    LOG_PRINT << "ciao " << name();
+    spdlog::info("ciao {}", name());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -479,18 +480,21 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
 
 void MediaPlayer::reload_media()
 {
-    auto task = Task::create();
+//    auto task = Task::create();
 
     textures()[TEXTURE_INPUT].reset();
     m_sync_off_timer.cancel();
 
     std::string abs_path;
-    try{ abs_path = fs::search_file(m_media_path->value()); }
-    catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.what(); m_reload_media = false; return; }
+    try{ abs_path = app::search_file(m_media_path->value()); }
+    catch (fs::FileNotFoundException &e)
+    {
+      spdlog::debug(e.what()); m_reload_media = false;
+      return;
+    }
 
     auto media_type = fs::get_file_type(abs_path);
-
-    LOG_DEBUG << "loading: " << m_media_path->value();
+    spdlog::debug("loading: {}", m_media_path->value());
 
     if(fs::is_uri(*m_media_path) ||
        media_type == fs::FileType::AUDIO ||
@@ -507,7 +511,7 @@ void MediaPlayer::reload_media()
 
         m_media->set_media_ended_callback([this](media::MediaControllerPtr mc)
         {
-            LOG_DEBUG << "media ended";
+            spdlog::debug("media ended");
             
             if(*m_is_master && *m_loop)
             {
@@ -524,12 +528,12 @@ void MediaPlayer::reload_media()
             }
         });
         
-        m_media->set_on_load_callback([this](media::MediaControllerPtr mc)
+        m_media->set_on_load_callback([this](const media::MediaControllerPtr& mc)
         {
             if(m_media->has_video() && m_media->fps() > 0)
             {
                 g_sync_thresh = 1.0 / m_media->fps() / 2.0;
-                LOG_DEBUG << "media fps: " << to_string(m_media->fps(), 2);
+                spdlog::debug("media fps: {}", to_string(m_media->fps(), 2));
             }
             m_media->set_rate(*m_playback_speed);
             m_media->set_volume(*m_volume);
@@ -731,13 +735,13 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
         }
         else{ it->second.push_back(delay); }
         
-        LOG_TRACE << ptr->remote_ip() << " (roundtrip, last 10s): "
-            << (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])) << " ms";
+        spdlog::trace("{} (roundtrip, last 10s): {} ms", ptr->remote_ip(),
+            (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])));
         
 //        ptr->close();
         con->set_tcp_receive_cb(net::tcp_connection::tcp_receive_cb_t());
     };
-    con->set_connect_cb([this](ConnectionPtr the_con){ the_con->write("echo ping"); });
+    con->set_connect_cb([this](crocore::net::ConnectionPtr the_con){ the_con->write("echo ping"); });
     con->set_tcp_receive_cb(receive_func);
 }
 
