@@ -84,7 +84,7 @@ void MediaPlayer::setup()
             {
                 create_playlist(p);
                 
-                m_scan_media_timer = Timer(background_queue().io_service(),
+                m_scan_media_timer = Timer(m_io_service,
                                            [this, p](){ create_playlist(p); });
                 m_scan_media_timer.set_periodic();
                 m_scan_media_timer.expires_from_now(5.f);
@@ -96,13 +96,15 @@ void MediaPlayer::setup()
     }
     
     m_ip_adress = net::local_ip();
-    m_check_ip_timer = Timer(background_queue().io_service(), [this]()
+    m_check_ip_timer = Timer(m_io_service, [this]()
     {
         auto fetched_ip = net::local_ip();
         main_queue().post([this, fetched_ip]() { m_ip_adress = fetched_ip; });
     });
     m_check_ip_timer.set_periodic();
     m_check_ip_timer.expires_from_now(5.f);
+
+    background_queue().post([this](){ m_io_service.run(); });
 }
 
 /////////////////////////////////////////////////////////////////
@@ -422,18 +424,18 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
     }
     else if(theProperty == m_use_discovery_broadcast || theProperty == m_broadcast_port)
     {
-        if(*m_use_discovery_broadcast && !*m_is_master)
-        {
-            // setup a periodic udp-broadcast to enable discovery of this node
-            m_broadcast_timer = Timer(main_queue().io_service(), [this]()
-            {
-                LOG_TRACE_2 << "sending discovery_broadcast on udp-port: " << m_broadcast_port->value();
-                net::async_send_udp_broadcast(background_queue().io_service(), name(),
-                                              *m_broadcast_port);
-            });
-            m_broadcast_timer.set_periodic();
-            m_broadcast_timer.expires_from_now(g_broadcast_interval);
-        }else{ m_broadcast_timer.cancel(); }
+//        if(*m_use_discovery_broadcast && !*m_is_master)
+//        {
+//            // setup a periodic udp-broadcast to enable discovery of this node
+//            m_broadcast_timer = Timer(main_queue().io_service(), [this]()
+//            {
+//                spdlog::trace("sending discovery_broadcast on udp-port: {}", m_broadcast_port->value());
+//                net::async_send_udp_broadcast(background_queue().io_service(), name(),
+//                                              *m_broadcast_port);
+//            });
+//            m_broadcast_timer.set_periodic();
+//            m_broadcast_timer.expires_from_now(g_broadcast_interval);
+//        }else{ m_broadcast_timer.cancel(); }
     }
     else if(theProperty == m_is_master)
     {
@@ -442,24 +444,24 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
             *m_use_discovery_broadcast = false;
             m_ip_timestamps.clear();
 
-            // discovery udp-server to receive pings from existing nodes in the network
-            m_udp_server = net::udp_server(background_queue().io_service());
-            m_udp_server.start_listen(*m_broadcast_port);
-            m_udp_server.set_receive_function([this](const std::vector<uint8_t> &data,
-                                                     const std::string &remote_ip, uint16_t remote_port)
-            {
-                string str(data.begin(), data.end());
-                LOG_TRACE_1 << str << " " << remote_ip << " (" << remote_port << ")";
-
-                if(str == name())
-                {
-                    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-                    m_ip_timestamps[remote_ip] = get_application_time();
-                    
-                    ping_delay(remote_ip);
-                }
-            });
-            begin_network_sync();
+//            // discovery udp-server to receive pings from existing nodes in the network
+//            m_udp_server = net::udp_server(background_queue().io_service());
+//            m_udp_server.start_listen(*m_broadcast_port);
+//            m_udp_server.set_receive_function([this](const std::vector<uint8_t> &data,
+//                                                     const std::string &remote_ip, uint16_t remote_port)
+//            {
+//                string str(data.begin(), data.end());
+//                spdlog::trace("{} {} ({}) ", str, remote_ip, remote_port);
+//
+//                if(str == name())
+//                {
+//                    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+//                    m_ip_timestamps[remote_ip] = get_application_time();
+//
+//                    ping_delay(remote_ip);
+//                }
+//            });
+//            begin_network_sync();
         }
         else
         {
@@ -467,11 +469,11 @@ void MediaPlayer::update_property(const PropertyConstPtr &theProperty)
             m_sync_timer.cancel();
             m_use_discovery_broadcast->notify_observers();
             
-            m_sync_off_timer = Timer(background_queue().io_service(), [this]()
-            {
-                m_media->set_rate(*m_playback_speed);
-                m_is_syncing = 0;
-            });
+//            m_sync_off_timer = Timer(background_queue().io_service(), [this]()
+//            {
+//                m_media->set_rate(*m_playback_speed);
+//                m_is_syncing = 0;
+//            });
         }
     }
 }
@@ -487,7 +489,7 @@ void MediaPlayer::reload_media()
 
     std::string abs_path;
     try{ abs_path = app::search_file(m_media_path->value()); }
-    catch (fs::FileNotFoundException &e)
+    catch (std::exception &e)
     {
       spdlog::debug(e.what()); m_reload_media = false;
       return;
@@ -509,7 +511,7 @@ void MediaPlayer::reload_media()
         if(render_target == media::MediaController::RenderTarget::SCREEN)
         { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
 
-        m_media->set_media_ended_callback([this](media::MediaControllerPtr mc)
+        m_media->set_media_ended_callback([this](const media::MediaControllerPtr& mc)
         {
             spdlog::debug("media ended");
             
@@ -636,12 +638,12 @@ void MediaPlayer::sync_media_to_timestamp(double the_timestamp)
 
 void MediaPlayer::begin_network_sync()
 {
-    m_sync_timer = Timer(background_queue().io_service(), [this]()
-    {
-        if(m_media && m_media->is_playing()){ send_sync_cmd(); }
-    });
-    m_sync_timer.set_periodic();
-    m_sync_timer.expires_from_now(g_sync_interval);
+//    m_sync_timer = Timer(background_queue().io_service(), [this]()
+//    {
+//        if(m_media && m_media->is_playing()){ send_sync_cmd(); }
+//    });
+//    m_sync_timer.set_periodic();
+//    m_sync_timer.expires_from_now(g_sync_interval);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -653,22 +655,14 @@ void MediaPlayer::send_sync_cmd()
     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
 //    bool use_udp = true;
     
-    for(auto &pair : m_ip_roundtrip)
-    {
-        double sync_delay = 0.0;//median(pair.second) * (use_udp ? 0.5 : 1.5);
-        string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
-        
-//        if(use_udp)
-        {
-            net::async_send_udp(background_queue().io_service(), cmd, pair.first,
-                                remote_control().udp_port());
-        }
-//        else
-//        {
-//            net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
-//                                remote_control().tcp_port());
-//        }
-    }
+//    for(auto &pair : m_ip_roundtrip)
+//    {
+//        double sync_delay = 0.0;//median(pair.second) * (use_udp ? 0.5 : 1.5);
+//        string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
+//
+//        net::async_send_udp(background_queue().io_service(), cmd, pair.first,
+//                                remote_control().udp_port());
+//    }
 }
 
 void MediaPlayer::remove_dead_ip_adresses()
@@ -705,8 +699,8 @@ void MediaPlayer::send_network_cmd(const std::string &the_cmd)
 
     for(; it != m_ip_timestamps.end(); ++it)
     {
-        net::async_send_tcp(background_queue().io_service(), the_cmd, it->first,
-                            remote_control().tcp_port());
+//        net::async_send_tcp(background_queue().io_service(), the_cmd, it->first,
+//                            remote_control().tcp_port());
     }
 }
 
@@ -714,35 +708,35 @@ void MediaPlayer::send_network_cmd(const std::string &the_cmd)
 
 void MediaPlayer::ping_delay(const std::string &the_ip)
 {
-    Stopwatch timer;
-    timer.start();
-    
-    auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
-                                           remote_control().tcp_port());
-    auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
-                                           const std::vector<uint8_t> &data)
-    {
-        std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-        
-        // we measured 2 roundtrips
-        auto delay = timer.time_elapsed() * 0.5;
-        
-        auto it = m_ip_roundtrip.find(ptr->remote_ip());
-        if(it == m_ip_roundtrip.end())
-        {
-            m_ip_roundtrip[ptr->remote_ip()] = CircularBuffer<double>(5);
-            m_ip_roundtrip[ptr->remote_ip()].push_back(delay);
-        }
-        else{ it->second.push_back(delay); }
-        
-        spdlog::trace("{} (roundtrip, last 10s): {} ms", ptr->remote_ip(),
-            (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])));
-        
-//        ptr->close();
-        con->set_tcp_receive_cb(net::tcp_connection::tcp_receive_cb_t());
-    };
-    con->set_connect_cb([this](crocore::net::ConnectionPtr the_con){ the_con->write("echo ping"); });
-    con->set_tcp_receive_cb(receive_func);
+//    Stopwatch timer;
+//    timer.start();
+//
+//    auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
+//                                           remote_control().tcp_port());
+//    auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
+//                                           const std::vector<uint8_t> &data)
+//    {
+//        std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+//
+//        // we measured 2 roundtrips
+//        auto delay = timer.time_elapsed() * 0.5;
+//
+//        auto it = m_ip_roundtrip.find(ptr->remote_ip());
+//        if(it == m_ip_roundtrip.end())
+//        {
+//            m_ip_roundtrip[ptr->remote_ip()] = CircularBuffer<double>(5);
+//            m_ip_roundtrip[ptr->remote_ip()].push_back(delay);
+//        }
+//        else{ it->second.push_back(delay); }
+//
+//        spdlog::trace("{} (roundtrip, last 10s): {} ms", ptr->remote_ip(),
+//            (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])));
+//
+////        ptr->close();
+//        con->set_tcp_receive_cb(net::tcp_connection::tcp_receive_cb_t());
+//    };
+//    con->set_connect_cb([this](crocore::net::ConnectionPtr the_con){ the_con->write("echo ping"); });
+//    con->set_tcp_receive_cb(receive_func);
 }
 
 /////////////////////////////////////////////////////////////////

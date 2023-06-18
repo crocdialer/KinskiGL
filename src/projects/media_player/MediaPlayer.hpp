@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <boost/asio.hpp>
+
 #include "app/ViewerApp.hpp"
 #include "gl/Texture.hpp"
 
@@ -33,6 +35,9 @@ namespace kinski
         bool m_reload_media = false, m_needs_redraw = true;
         int m_is_syncing = 0;
         Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer, m_scan_media_timer, m_check_ip_timer;
+
+        boost::asio::io_service m_io_service;
+        boost::asio::io_service::work m_io_work{m_io_service};
 
         net::udp_server m_udp_server;
         std::unordered_map<std::string, float> m_ip_timestamps;

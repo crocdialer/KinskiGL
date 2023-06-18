@@ -351,7 +351,7 @@ bool GstUtil::set_pipeline_state(GstState the_target_state)
                   gst_element_state_get_name(current),
                   gst_element_state_get_name(the_target_state));
 
-    if(!s_enable_async_state_change && state_change_result == GST_STATE_CHANGE_ASYNC)
+    if(!s_enable_async_state_change && (state_change_result == GST_STATE_CHANGE_ASYNC))
     {
         spdlog::trace("blocking until pipeline state changes from: {} to: {}",
                       gst_element_state_get_name(current),

@@ -4,7 +4,11 @@
 
 #ifndef KINSKIGL_FILE_SEARCH_H
 #define KINSKIGL_FILE_SEARCH_H
+
 #pragma once
+
+#include <set>
+#include <filesystem>
 
 namespace kinski::app {
 
