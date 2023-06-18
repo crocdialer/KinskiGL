@@ -44,15 +44,10 @@ m_background_queue(2)
     for(int i = 0; i < argc; i++){ m_args.push_back(argv[i]); }
 }
 
-App::~App()
-{
-
-}
-
 int App::run()
 {
-    try{init(); m_running = GL_TRUE;}
-    catch(std::exception &e){ spdlog::error(e.what()); }
+    try{init(); m_running = true;}
+    catch(std::exception &e){ spdlog::error("caught exception at top-lvl (ouch): {}", e.what()); }
     double time_stamp = 0.0;
 
     // Main loop

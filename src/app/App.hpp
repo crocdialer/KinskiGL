@@ -115,9 +115,9 @@ class App : public crocore::Component, public MouseDelegate, public KeyDelegate,
 {
 public:
 
-    App(int argc = 0, char *argv[] = nullptr);
+    explicit App(int argc = 0, char *argv[] = nullptr);
 
-    virtual ~App();
+    virtual ~App() = default;
 
     int run();
 

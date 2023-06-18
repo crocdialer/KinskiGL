@@ -11,6 +11,7 @@
 #include "gl/Material.hpp"
 #include "GLFW_App.hpp"
 #include "app/imgui/imgui_integration.h"
+#include "app/file_search.hpp"
 
 #if defined(KINSKI_LINUX)
 
@@ -217,18 +218,18 @@ void GLFW_App::init()
     glClearColor(0, 0, 0, 1);
 
     // file search paths
-//    if(!args().empty()){ crocore::fs::add_search_path(crocore::fs::get_directory_part(args().front())); }
-//    crocore::fs::add_search_path("./", true);
-//    crocore::fs::add_search_path("./res", true);
-//    crocore::fs::add_search_path("../Resources", true);
+    if(!args().empty()){ app::add_search_path(crocore::fs::get_directory_part(args().front()), 3); }
+    app::add_search_path("./", true);
+    app::add_search_path("./res", true);
+    app::add_search_path("../Resources", true);
 
     //---------------------------------
 #if defined(__APPLE__)
     crocore::fs::add_search_path("/Library/Fonts");
     crocore::fs::add_search_path("~/Library/Fonts");
 #elif defined(linux) || defined(__linux) || defined(__linux__)
-//    crocore::fs::add_search_path("~/.local/share/fonts");
-//    crocore::fs::add_search_path("/usr/local/share/fonts");
+    app::add_search_path("~/.local/share/fonts", 3);
+    app::add_search_path("/usr/local/share/fonts", 3);
 #endif
     //---------------------------------
 

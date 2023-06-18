@@ -37,8 +37,8 @@ namespace kinski {
     class ViewerApp : public BaseApp
     {
     public:
-        ViewerApp(int argc = 0, char *argv[] = nullptr);
-        virtual ~ViewerApp();
+        explicit ViewerApp(int argc = 0, char *argv[] = nullptr);
+        virtual ~ViewerApp() = default;
         
         void setup() override;
         void update(float timeDelta) override;

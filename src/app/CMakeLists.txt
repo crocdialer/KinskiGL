@@ -1,9 +1,9 @@
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 SET(LIB_NAME "app")
 
-FILE(GLOB FOLDER_SOURCES App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp
+FILE(GLOB FOLDER_SOURCES App.cpp file_search.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp
      Object3DComponent.cpp MaterialComponent.cpp WarpComponent.cpp Property.cpp Component.cpp serializer.cpp)
-FILE(GLOB FOLDER_HEADERS App.hpp RemoteControl.hpp ViewerApp.hpp LightComponent.hpp
+FILE(GLOB FOLDER_HEADERS App.hpp file_search.hpp RemoteControl.hpp ViewerApp.hpp LightComponent.hpp
      Object3DComponent.hpp MaterialComponent.hpp WarpComponent.hpp Property.hpp Component.hpp serializer.hpp)
 
 ##### IMGUI
@@ -39,7 +39,7 @@ elseif(KINSKI_MALI)
 FILE(GLOB ARM_SOURCES EGL_App.cpp es_util_mali.c)
 FILE(GLOB ARM_HEADERS EGL_App.hpp esUtil.h)
 set(FOLDER_SOURCES ${FOLDER_SOURCES} ${ARM_SOURCES})
-set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS})
+set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS} file_search.hpp file_search.cpp)
 include_directories("/usr/include/libdrm/")
 endif()
 

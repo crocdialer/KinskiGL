@@ -11,130 +11,16 @@
 //
 //  Created by Fabian on 3/1/13.
 
-#include <shared_mutex>
 #include <crocore/Image.hpp>
 #include "ViewerApp.hpp"
 #include "app/LightComponent.hpp"
 #include "app/MaterialComponent.hpp"
+#include "app/file_search.hpp"
 
 using namespace crocore;
 
-namespace kinski {
-
-namespace
+namespace kinski
 {
-std::set<std::filesystem::path> g_search_paths;
-
-std::shared_mutex g_mutex;
-}
-
-std::string expand_user(std::string path)
-{
-  path = trim(path);
-
-  if(!path.empty() && path[0] == '~')
-  {
-    if(path.size() != 1 && path[1] != '/'){ return path; } // or other error handling ?
-    char const *home = getenv("HOME");
-    if(home || ((home = getenv("USERPROFILE"))))
-    {
-      path.replace(0, 1, home);
-    }
-    else
-    {
-      char const *hdrive = getenv("HOMEDRIVE"),
-                 *hpath = getenv("HOMEPATH");
-      if(!(hdrive && hpath)){ return path; } // or other error handling ?
-      path.replace(0, 1, std::string(hdrive) + hpath);
-    }
-  }
-  return path;
-}
-
-/////////// end implemantation internal /////////////
-
-///////////////////////////////////////////////////////////////////////////////
-
-std::set<std::filesystem::path> search_paths()
-{
-  std::shared_lock<std::shared_mutex> lock(g_mutex);
-  return g_search_paths;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void add_search_path(const std::filesystem::path &path, int recursion_depth)
-{
-  std::filesystem::path path_expanded(expand_user(path));
-
-  if(!std::filesystem::exists(path_expanded))
-  {
-    spdlog::debug("directory {} not existing", path_expanded.string());
-    return;
-  }
-
-  std::unique_lock<std::shared_mutex> lock(g_mutex);
-
-  if(recursion_depth)
-  {
-    g_search_paths.insert(crocore::fs::get_directory_part(path_expanded.string()));
-    std::filesystem::recursive_directory_iterator it;
-    try
-    {
-      it = std::filesystem::recursive_directory_iterator(path_expanded);
-      std::filesystem::recursive_directory_iterator end;
-
-      while(it != end)
-      {
-        if(std::filesystem::is_directory(*it)){ g_search_paths.insert(canonical(it->path()).string()); }
-        try{ ++it; }
-        catch(std::exception &e)
-        {
-          // e.g. no permission
-          spdlog::error(e.what());
-          it.disable_recursion_pending();
-          try{ ++it; } catch(...)
-          {
-            spdlog::error("Got trouble in recursive directory iteration: {}", it->path().string());
-            return;
-          }
-        }
-      }
-    }
-    catch(std::exception &e){ spdlog::error(e.what()); }
-  }
-  else{ g_search_paths.insert(canonical(path_expanded).string()); }
-}
-
-std::filesystem::path search_file(const std::filesystem::path &file_name)
-{
-  auto trim_file_name = trim(file_name);
-
-  std::string expanded_name = expand_user(trim_file_name);
-  std::filesystem::path ret_path(expanded_name);
-
-  try
-  {
-    if(ret_path.is_absolute() && is_regular_file(ret_path)){ return ret_path.string(); }
-
-    std::shared_lock<std::shared_mutex> lock(g_mutex);
-
-    for(const auto &p : g_search_paths)
-    {
-      ret_path = p / std::filesystem::path(expanded_name);
-
-      if(std::filesystem::exists(ret_path) && is_regular_file(ret_path))
-      {
-        spdlog::trace("found '{}' as: {}", trim_file_name, ret_path.string());
-        return ret_path.string();
-      }
-    }
-  }
-  catch(std::exception &e){ spdlog::debug(e.what()); }
-
-  // not found
-  throw std::runtime_error(fmt::format("{} not found", file_name.string()));
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -206,23 +92,21 @@ ViewerApp::ViewerApp(int argc, char *argv[]) : BaseApp(argc, argv),
     register_function("generate_snapshot", [this](const std::vector<std::string> &) { generate_snapshot(); });
 }
 
-ViewerApp::~ViewerApp()
-{
-
-}
-
 void ViewerApp::setup()
 {
     set_window_title(name());
 
+    app::add_search_path("~/.local/share/fonts", 3);
+    app::add_search_path("/usr/local/share/fonts", 3);
+
     // find font file
     std::string font_path;
-    try { font_path = search_file("Courier New Bold.ttf"); }
-    catch(fs::FileNotFoundException &e) { spdlog::debug(e.what()); }
+    try { font_path = app::search_file("Courier New Bold.ttf"); }
+    catch(std::exception &e) { spdlog::debug(e.what()); }
 
     if(font_path.empty())
     {
-        for(auto &search_path : g_search_paths)
+        for(auto &search_path : app::search_paths())
         {
             auto font_paths = get_directory_entries(search_path, fs::FileType::FONT, true);
             if(!font_paths.empty())
