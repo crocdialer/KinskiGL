@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <crocore/Timer.hpp>
 #include <crocore/CircularBuffer.hpp>
 
 #include "app/RemoteControl.hpp"
